@@ -24,7 +24,7 @@
 #include "Alvar.h"
 #include "Optimization.h"
 #include "time.h"
-#include "highgui.h"
+#include <opencv2/highgui.hpp>
 
 #include <iostream>
 using namespace std;
@@ -96,14 +96,14 @@ double Optimization::CalcTukeyWeightSimple(double residual, double c)
 	else return c;
 }
 
-void Optimization::CalcJacobian(CvMat* x, CvMat* J, EstimateCallback Estimate)
+void Optimization::CalcJacobian(cv::Mat* x, cv::Mat* J, EstimateCallback Estimate)
 {
 	const double step = 0.001;
 
 	cvZero(J);
 	for (int i=0; i<J->cols; i++)
 	{
-		CvMat J_column;
+		cv::Mat J_column;
 		cvGetCol(J, &J_column, i);
 
 		cvZero(delta); 
@@ -120,16 +120,16 @@ void Optimization::CalcJacobian(CvMat* x, CvMat* J, EstimateCallback Estimate)
 }
 
 
-double Optimization::Optimize(CvMat* parameters,      // Initial values are set
-							  CvMat* measurements,    // Some observations
+double Optimization::Optimize(cv::Mat* parameters,      // Initial values are set
+							  cv::Mat* measurements,    // Some observations
 							  double stop,
 							  int	max_iter,
 							  EstimateCallback Estimate,
 							  void *param,
 							  OptimizeMethod method,
-							  CvMat* parameters_mask, // Mask indicating non-constant parameters)
-							  CvMat* J_mat,
-							  CvMat* weights)
+							  cv::Mat* parameters_mask, // Mask indicating non-constant parameters)
+							  cv::Mat* J_mat,
+							  cv::Mat* weights)
 {
 
 	int n_params = parameters->rows;
@@ -156,7 +156,7 @@ double Optimization::Optimize(CvMat* parameters,      // Initial values are set
 				CvRect rect;
 				rect.height = J->rows; rect.width = 1;
 				rect.y = 0; rect.x = i;
-				CvMat foo;
+				cv::Mat foo;
 				cvGetSubRect(J, &foo, rect);
 				cvZero(&foo);
 			}
@@ -173,7 +173,7 @@ double Optimization::Optimize(CvMat* parameters,      // Initial values are set
 				cvMulTransposed(J, JtJ, 1);
 				cvInv(JtJ, JtJ, CV_SVD);
 				cvGEMM(JtJ, J, 1.0, 0, 0, tmp, CV_GEMM_B_T); // inv(JtJ)Jt
-				cvMatMul(tmp, err, delta);
+				cv::MatMul(tmp, err, delta);
 				cvAdd(delta, parameters, parameters);
 
 				// Lopetusehto
@@ -212,7 +212,7 @@ double Optimization::Optimize(CvMat* parameters,      // Initial values are set
 				if(weights)
 					cvGEMM(tmp, W, 1, 0, 0, tmp, 0);
 				
-				cvMatMul(tmp, err, delta);
+				cv::MatMul(tmp, err, delta);
 				cvAdd(delta, parameters, tmp_par);
 
 				Estimate(tmp_par, x_tmp1, estimate_param);
@@ -265,7 +265,7 @@ double Optimization::Optimize(CvMat* parameters,      // Initial values are set
 				cvInv(JtJ, JtJ, CV_SVD);
 				cvGEMM(JtJ, J, 1.0, 0, 0, tmp, CV_GEMM_B_T);
 				cvGEMM(tmp, W, 1, 0, 0, tmp, 0);
-				cvMatMul(tmp, err, delta);
+				cv::MatMul(tmp, err, delta);
 				cvAdd(delta, parameters, tmp_par);
 
 				Estimate(tmp_par, x_tmp1, estimate_param);

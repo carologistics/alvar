@@ -1,5 +1,5 @@
 #include "MultiMarker.h"
-#include "highgui.h"
+#include <opencv2/highgui.hpp>
 using namespace std;
 using namespace alvar;
 
@@ -42,7 +42,7 @@ struct State {
             MarkerData md(marker_side_len, content_res, margin_res);
             int side_len = int(marker_side_len*units+0.5);
             if (img == 0) {
-                img = cvCreateImage(cvSize(side_len, side_len), IPL_DEPTH_8U, 1);
+                img = cvCreateImage(cv::Size(side_len, side_len), IPL_DEPTH_8U, 1);
                 filename.str("");
                 filename<<"MarkerData";
                 minx = (posx*units) - (marker_side_len*units/2.0);
@@ -58,7 +58,7 @@ struct State {
                 if (miny < new_miny) new_miny = miny;
                 if (maxx > new_maxx) new_maxx = maxx;
                 if (maxy > new_maxy) new_maxy = maxy;
-                IplImage *new_img = cvCreateImage(cvSize(int(new_maxx-new_minx+0.5), int(new_maxy-new_miny+0.5)), IPL_DEPTH_8U, 1);
+                IplImage *new_img = cvCreateImage(cv::Size(int(new_maxx-new_minx+0.5), int(new_maxy-new_miny+0.5)), IPL_DEPTH_8U, 1);
                 cvSet(new_img, cvScalar(255));
                 CvRect roi = cvRect(int(minx-new_minx+0.5), int(miny-new_miny+0.5), img->width, img->height);
                 cvSetImageROI(new_img, roi);
@@ -101,7 +101,7 @@ struct State {
             MarkerArtoolkit md(marker_side_len, content_res, margin_res);
             int side_len = int(marker_side_len*units+0.5);
             if (img != 0) cvReleaseImage(&img);
-            img = cvCreateImage(cvSize(side_len, side_len), IPL_DEPTH_8U, 1);
+            img = cvCreateImage(cv::Size(side_len, side_len), IPL_DEPTH_8U, 1);
             filename.str("");
             filename<<"MarkerArtoolkit";
             md.SetContent(atoi(id));

@@ -11,7 +11,7 @@ Camera cam;
 Drawable d[32];
 std::stringstream calibrationFilename;
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static IplImage *rgba;
     bool flip_image = (image->origin?true:false);

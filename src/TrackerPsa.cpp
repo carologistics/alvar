@@ -43,7 +43,7 @@ TrackerPsa::~TrackerPsa() {
 	if (verprev) delete [] verprev;
 }
 
-double TrackerPsa::Track(IplImage *img) {
+double TrackerPsa::Track(cv::Mat&img) {
 	long best_x_factor=99999999;
 	long best_y_factor=99999999;
 	long worst_x_factor=0;
@@ -158,7 +158,7 @@ TrackerPsaRot::~TrackerPsaRot() {
 	if (rot_count) delete [] rot_count;
 }
 
-double TrackerPsaRot::Track(IplImage *img) {
+double TrackerPsaRot::Track(cv::Mat&img) {
 	long best_rot_factor=99999999;
 	double conf1 = TrackerPsa::Track(img);
 

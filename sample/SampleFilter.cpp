@@ -1,5 +1,5 @@
-#include "cv.h"
-#include "highgui.h"
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 #include <iostream>
 #include <cstdlib>
 #include <string>
@@ -92,7 +92,7 @@ void filter_array_average(double x, double y, double *fx, double *fy) {
 }
 
 class KalmanSensorOwn : public KalmanSensorEkf {
-    virtual void h(CvMat *x_pred, CvMat *_z_pred) {
+    virtual void h(cv::Mat *x_pred, cv::Mat *_z_pred) {
         double x = cvmGet(x_pred, 0, 0);
         double y = cvmGet(x_pred, 1, 0);
         double dx = cvmGet(x_pred, 2, 0);
@@ -105,7 +105,7 @@ public:
 };
 
 class KalmanOwn : public KalmanEkf {
-    virtual void f(CvMat *_x, CvMat *_x_pred, double dt) {
+    virtual void f(cv::Mat *_x, cv::Mat *_x_pred, double dt) {
         double x = cvmGet(_x, 0, 0);
         double y = cvmGet(_x, 1, 0);
         double dx = cvmGet(_x, 2, 0);
@@ -212,7 +212,7 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
 
         // Processing loop
-        IplImage *img = cvCreateImage(cvSize(res, res), IPL_DEPTH_8U, 3);
+        IplImage *img = cvCreateImage(cv::Size(res, res), IPL_DEPTH_8U, 3);
         cvNamedWindow("SampleFilter");
         CvFont font;
         cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0);
@@ -220,15 +220,15 @@ int main(int argc, char *argv[])
             int key = 0;
             double x, y;
             double fx, fy;
-            vector<CvPoint> tail;
+            vector<cv::Point> tail;
             while (1) {
                 get_measurement(&x, &y);
                 filters[ii](x, y, &fx, &fy);
                 cvZero(img);
-                cvPutText(img, filter_names[ii], cvPoint(3, res - 10), &font, cvScalar(CV_RGB(255, 255, 255)));
-                cvCircle(img, cvPoint(int(x), int(y)), 2, cvScalar(CV_RGB(0, 255, 255)));
-                cvCircle(img, cvPoint(int(x), int(y)), 3, cvScalar(CV_RGB(255, 255, 255)));
-                CvPoint fp;
+                cvPutText(img, filter_names[ii], cv::Point(3, res - 10), &font, cvScalar(CV_RGB(255, 255, 255)));
+                cvCircle(img, cv::Point(int(x), int(y)), 2, cvScalar(CV_RGB(0, 255, 255)));
+                cvCircle(img, cv::Point(int(x), int(y)), 3, cvScalar(CV_RGB(255, 255, 255)));
+                cv::Point fp;
                 fp.x = int(fx);
                 fp.y = int(fy);
                 tail.push_back(fp);

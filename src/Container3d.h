@@ -30,7 +30,7 @@
  * \brief This file implements a generic container to store data in 3D.
  */
 
-#include "cv.h"
+#include <opencv2/core.hpp>
 #include <utility>
 #include <vector>
 #include <algorithm>
@@ -43,10 +43,10 @@ template <class T> class Container3d;
 template <class T>
 class Container3dSortDist {
 protected:
-	CvPoint3D32f orig;
+	cv::Point3f orig;
 	Container3d<T> &container;
 public:
-	Container3dSortDist(Container3d<T> &_container, const CvPoint3D32f _orig) : container(_container), orig(_orig) {}
+	Container3dSortDist(Container3d<T> &_container, const cv::Point3f _orig) : container(_container), orig(_orig) {}
 	bool operator()(size_t i1, size_t i2)
 	{
 		float x1 = container[i1].first.x-orig.x, x2 = container[i2].first.x-orig.x;
@@ -76,10 +76,10 @@ template <class T>
 class Container3dLimitDist {
 protected:
 	Container3d<T> &container;
-	CvPoint3D32f orig;
+	cv::Point3f orig;
 	float dist_limit;
 public:
-	Container3dLimitDist(Container3d<T> &_container, const CvPoint3D32f _orig, float _dist_limit) 
+	Container3dLimitDist(Container3d<T> &_container, const cv::Point3f _orig, float _dist_limit) 
 		: container(_container),orig(_orig),dist_limit(_dist_limit) {}
 	bool operator()(size_t i) const {
 		float x = container[i].first.x-orig.x;
@@ -140,17 +140,17 @@ public:
  * 
  * ...
  * Container3d<int> c3d;
- * c3d.Add(CvPoint3D32f(0,0,0), 0);
- * c3d.Add(CvPoint3D32f(5,0,0), 1);
- * c3d.Add(CvPoint3D32f(0,5,0), 2);
- * c3d.Add(CvPoint3D32f(0,0,5), 3);
- * c3d.Add(CvPoint3D32f(0,0,500), 4);
- * c3d.Add(CvPoint3D32f(500,0,0), 5);
- * c3d.Add(CvPoint3D32f(1,0,0), 6);
- * c3d.Add(CvPoint3D32f(0,0,1), 7);
+ * c3d.Add(cv::Point3f(0,0,0), 0);
+ * c3d.Add(cv::Point3f(5,0,0), 1);
+ * c3d.Add(cv::Point3f(0,5,0), 2);
+ * c3d.Add(cv::Point3f(0,0,5), 3);
+ * c3d.Add(cv::Point3f(0,0,500), 4);
+ * c3d.Add(cv::Point3f(500,0,0), 5);
+ * c3d.Add(cv::Point3f(1,0,0), 6);
+ * c3d.Add(cv::Point3f(0,0,1), 7);
  * Container3dSortX<int> sortx(c3d);
  * Container3dLimitX<int> limitx(c3d, -10, 10);
- * Container3dLimitDist<int> limit_dist(c3d, cvPoint3D32f(0,0,0), 10.0);
+ * Container3dLimitDist<int> limit_dist(c3d, cv::Point3f(0,0,0), 10.0);
  * c3d.ResetSearchSpace();                // Search space: 0,1,2,3,4,5,6,7
  * c3d.Sort(sortx);                       // Search space: 0,2,3,4,7,6,1,5
  * c3d.Limit(limitx);                     // Search space: 0,2,3,4,7,6,1
@@ -167,16 +167,16 @@ class Container3d
 {
 	public:
 		/** \brief \e node_type for storing data. 3D-position is paired with the data content. */
-		typedef std::pair<CvPoint3D32f, T> node_type;
+		typedef std::pair<cv::Point3f, T> node_type;
 	protected:
-		/** \brief the actual data in using node_type: pair<CvPoint3D32f, T> */
+		/** \brief the actual data in using node_type: pair<cv::Point3f, T> */
 		std::vector<node_type> data;
 		/** \brief Possibly limited set of indices for \e data in somehow "optimal" search order */
 		std::vector<size_t>    search_space;
 
 	public:
 		/** \brief Add \e _data in the container and associate it with 3D position \e _pos */
-		void Add(const CvPoint3D32f& _pos, const T& _data){
+		void Add(const cv::Point3f& _pos, const T& _data){
 			data.push_back(node_type(_pos, _data));
 			search_space.push_back(data.size()-1);
 		}

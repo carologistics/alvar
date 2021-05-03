@@ -71,7 +71,7 @@ int FitLines(vector<Line> &lines,
 		double* data = new double[2*len];
 
 		// OpenCV routine... 
-		CvMat* line_data = cvCreateMat(1, len, CV_32FC2);
+		cv::Mat* line_data = cvCreateMat(1, len, CV_32FC2);
 		for(int i = 0; i < len; ++i)
 		{
 			ind = i + start;
@@ -80,7 +80,7 @@ int FitLines(vector<Line> &lines,
 
 			double px = double(edge[ind].x);
 			double py = double(edge[ind].y);
-			CV_MAT_ELEM(*line_data, CvPoint2D32f, 0, i) = cvPoint2D32f(px, py);
+			CV_MAT_ELEM(*line_data, cv::Point2f, 0, i) = cv::Point2f(px, py);
 		}
 
 		float params[4] = {0};

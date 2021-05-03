@@ -41,8 +41,8 @@ TrifocalTensor::~TrifocalTensor() {
 
 void TrifocalTensor::computeTensor(const Pose &p0, const Pose &p1) {
   double data_p12[4][4], data_p13[4][4];
-  CvMat p12 = cvMat( 4, 4, CV_64F, data_p12 );
-  CvMat p13 = cvMat( 4, 4, CV_64F, data_p13 );
+  cv::Mat p12 = cv::Mat( 4, 4, CV_64F, data_p12 );
+  cv::Mat p13 = cv::Mat( 4, 4, CV_64F, data_p13 );
   p0.GetMatrix(&p12);
   p1.GetMatrix(&p13);
 
@@ -67,15 +67,15 @@ double det(double *r0, double *r1, double *r2, double *r3) {
   memcpy(&m[4], r1, 4*sizeof(double));
   memcpy(&m[8], r2, 4*sizeof(double));
   memcpy(&m[12], r3, 4*sizeof(double));
-  CvMat M = cvMat(4, 4, CV_64F, m);
+  cv::Mat M = cv::Mat(4, 4, CV_64F, m);
   return cvDet(&M);
 }
 
 void TrifocalTensor::computeTensor(const Pose &p0, const Pose &p1, const Pose &p2) {
   double data_p0[16], data_p1[16], data_p2[16];
-  CvMat P0 = cvMat( 4, 4, CV_64F, data_p0 );
-  CvMat P1 = cvMat( 4, 4, CV_64F, data_p1 );
-  CvMat P2 = cvMat( 4, 4, CV_64F, data_p2 );
+  cv::Mat P0 = cv::Mat( 4, 4, CV_64F, data_p0 );
+  cv::Mat P1 = cv::Mat( 4, 4, CV_64F, data_p1 );
+  cv::Mat P2 = cv::Mat( 4, 4, CV_64F, data_p2 );
   p0.GetMatrix(&P0);
   p1.GetMatrix(&P1);
   p2.GetMatrix(&P2);
@@ -91,7 +91,7 @@ void TrifocalTensor::computeTensor(const Pose &p0, const Pose &p1, const Pose &p
       }  
 }
 
-double TrifocalTensor::projectAxis(const CvPoint2D64f &p0, const CvPoint2D64f &p1, int l) {
+double TrifocalTensor::projectAxis(const cv::Point2d &p0, const cv::Point2d &p1, int l) {
   double v00 =
     p1.x * (  p0.x * T[0][0][l]
 	      + p0.y * T[1][0][l]
@@ -180,17 +180,17 @@ double TrifocalTensor::projectAxis(const CvPoint2D64f &p0, const CvPoint2D64f &p
   return v;
 }
 
-void TrifocalTensor::project(const CvPoint2D64f &p0, 
-			     const CvPoint2D64f &p1, 
-			     CvPoint2D64f &p2) {
+void TrifocalTensor::project(const cv::Point2d &p0, 
+			     const cv::Point2d &p1, 
+			     cv::Point2d &p2) {
   double z = projectAxis(p0, p1, 2);
   p2.x = projectAxis(p0, p1, 0) / z;
   p2.y = projectAxis(p0, p1, 1) / z;
 }
 
-double TrifocalTensor::projectError(const CvPoint2D64f &p0, 
-				    const CvPoint2D64f &p1, 
-				    const CvPoint2D64f &p2) {
+double TrifocalTensor::projectError(const cv::Point2d &p0, 
+				    const cv::Point2d &p1, 
+				    const cv::Point2d &p2) {
   double v0 = projectAxis(p0, p1, 0);
   double v1 = projectAxis(p0, p1, 1);
   double v2 = projectAxis(p0, p1, 2);

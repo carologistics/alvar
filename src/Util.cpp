@@ -31,8 +31,8 @@ using namespace std;
 
 //ttesis
 
-int dot(CvPoint *A, CvPoint *B, CvPoint *C){
-    CvPoint AB, BC; 
+int dot(cv::Point *A, cv::Point *B, cv::Point *C){
+    cv::Point AB, BC; 
     AB.x = B->x-A->x;
 	AB.y = B->y-A->y;
     BC.x = C->x-B->x;
@@ -41,8 +41,8 @@ int dot(CvPoint *A, CvPoint *B, CvPoint *C){
     return dot;
 }
 
-int cross(CvPoint *A,CvPoint *B, CvPoint *C){
-	CvPoint AB, AC; 
+int cross(cv::Point *A,cv::Point *B, cv::Point *C){
+	cv::Point AB, AC; 
 	AB.x = B->x-A->x;
 	AB.y = B->y-A->y;
 	AC.x = C->x-A->x;
@@ -51,14 +51,14 @@ int cross(CvPoint *A,CvPoint *B, CvPoint *C){
     return cross;
 }
 
-double distance(CvPoint *A,CvPoint *B){
+double distance(cv::Point *A,cv::Point *B){
     double d1 = A->x - B->x;
 	double d2 = A->y - B->y;
     return sqrt(d1*d1+d2*d2);
 }
 
 
-double linePointDist(CvPoint *A,CvPoint *B,CvPoint *C, bool isSegment){
+double linePointDist(cv::Point *A,cv::Point *B,cv::Point *C, bool isSegment){
 	double dist = cross(A,B,C) / distance(A,B);
     if(isSegment){
         int dot1 = dot(A,B,C);
@@ -69,7 +69,7 @@ double linePointDist(CvPoint *A,CvPoint *B,CvPoint *C, bool isSegment){
     return abs(dist);
 }
 
-double angle(CvPoint *A,CvPoint *B, CvPoint *C,CvPoint *D, int isDirectionDependent){
+double angle(cv::Point *A,cv::Point *B, cv::Point *C,cv::Point *D, int isDirectionDependent){
 	double angle;
 	double a = B->x  - A->x; 
 	double b = B->y  - A->y;
@@ -86,7 +86,7 @@ double angle(CvPoint *A,CvPoint *B, CvPoint *C,CvPoint *D, int isDirectionDepend
 	}	
 }
 
-double polyLinePointDist(CvPoint *PointList, int nPnts,CvPoint *C, int *index, int isClosedPolygon){
+double polyLinePointDist(cv::Point *PointList, int nPnts,cv::Point *C, int *index, int isClosedPolygon){
 //	Calculate minimum distance of Point C to Polygon whose points are in list PointList
 //	if isClosedPolygon is true polygon is closed (segnment of the first and last point is also checked)
 //	index is the index of point A in pointlist, 
@@ -118,10 +118,10 @@ void FitCVEllipse(const vector<PointDouble> &points, CvBox2D& ellipse_box)
 {
 	if(points.size() < 8) return;
 
-	CvMat* vector = cvCreateMat(1, int(points.size()), CV_64FC2);
+	cv::Mat* vector = cvCreateMat(1, int(points.size()), CV_64FC2);
 	for(size_t i = 0; i < points.size(); ++i)
 	{
-		CV_MAT_ELEM(*vector, CvPoint2D64f, 0, i) = (CvPoint2D64f)points[i];
+		CV_MAT_ELEM(*vector, cv::Point2d, 0, i) = (cv::Point2d)points[i];
 	}
 	ellipse_box = cvFitEllipse2(vector);
 	cvReleaseMat(&vector);
@@ -213,7 +213,7 @@ int find_zero_crossings(const vector<double>& v, vector<int> &corners, int offs)
 	return int(corners.size());
 }
 
-void out_matrix(const CvMat *m, const char *name) {
+void out_matrix(const cv::Mat *m, const char *name) {
 	if (m->cols == 1) {
 		std::cout<<name<<" = [";
 		for (int j=0; j<m->rows; j++) {
@@ -494,7 +494,7 @@ bool Serialization::Serialize(std::string &data, const std::string &name) {
 	return ret;
 }
 
-bool Serialization::Serialize(CvMat &data, const std::string &name) {
+bool Serialization::Serialize(cv::Mat &data, const std::string &name) {
 	SerializationFormatterXml *xml = (SerializationFormatterXml *)formatter_handle;
 	bool ret = true;
 	if (input) {

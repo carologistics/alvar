@@ -40,7 +40,7 @@ namespace alvar {
 		return true;
 	}
 
-	CvMat* FileFormatUtils::allocateXMLMatrix(const TiXmlElement *xml_matrix) {
+	cv::Mat* FileFormatUtils::allocateXMLMatrix(const TiXmlElement *xml_matrix) {
 		if (!xml_matrix) return NULL;
 
 		int type, rows, cols;
@@ -49,7 +49,7 @@ namespace alvar {
 		return cvCreateMat(rows, cols, type);
 	}
 
-	bool FileFormatUtils::parseXMLMatrix(const TiXmlElement *xml_matrix, CvMat *matrix) {
+	bool FileFormatUtils::parseXMLMatrix(const TiXmlElement *xml_matrix, cv::Mat *matrix) {
 		if (!xml_matrix || !matrix) return false;
 
 		int type, rows, cols;
@@ -72,7 +72,7 @@ namespace alvar {
 		return true;
 	}
 
-	TiXmlElement* FileFormatUtils::createXMLMatrix(const char* element_name, const CvMat *matrix) {
+	TiXmlElement* FileFormatUtils::createXMLMatrix(const char* element_name, const cv::Mat *matrix) {
 		if (!matrix) return NULL;
 
 		TiXmlElement* xml_matrix = new TiXmlElement(element_name);

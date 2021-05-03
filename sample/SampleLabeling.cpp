@@ -9,7 +9,7 @@ using namespace std;
 
 int thresh_param1 = 31;
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     bool flip_image = (image->origin?true:false);
     if (flip_image) {
@@ -34,8 +34,8 @@ void videocallback(IplImage *image)
         int n_pixels = pixels->total;
         for(int j = 0; j < n_pixels; ++j)
         {
-            CvPoint* pt = (CvPoint*)cvGetSeqElem(pixels, j);
-            cvLine(image, *pt, *pt, cvScalar(CV_RGB(255,0,0)));
+            cv::Point* pt = (cv::Point*)cvGetSeqElem(pixels, j);
+            cv::line(image, *pt, *pt, cvScalar(CV_RGB(255,0,0)));
         }
     }
 

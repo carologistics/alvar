@@ -105,7 +105,7 @@ public:
 	/** \brief Update integral image for the given image.
 	 *  \param gray The original grayscale image we want analyze
 	 */
-	void Update(IplImage *gray);
+	void Update(cv::Mat&gray);
 	/** \brief Calculate the sum for the given rectangular area in the image.
 	 *  \param rect The rectancle
 	 *  \param count If this parameter is not 0 it is filled with number of pixels in the rectangle.
@@ -121,7 +121,7 @@ public:
 	 *  rectangular area \e rect . In practice the \e sub is filled by
 	 *  getting the average with \e GetAve() for every pixel area.
 	 */
-    void GetSubimage(const CvRect &rect, IplImage *sub);
+    void GetSubimage(const CvRect &rect, cv::Mat&sub);
 };
 
 /** \brief \e IntegralGradient is used for calculating rectangular image gradients rapidly
@@ -141,14 +141,14 @@ protected:
 	IntegralImage integy;
 	// Calculate point normals for 4-pixel intersection
 	// as described in Donahue1992
-	void CalculatePointNormals(IplImage *gray);
+	void CalculatePointNormals(cv::Mat&gray);
 public:
 	IntegralGradient();
 	~IntegralGradient();
 	/** \brief Update intermediate images for calculating the gradients to the given image.
 	 *  \param gray The original grayscale image we want analyze
 	 */
-	void Update(IplImage *gray);
+	void Update(cv::Mat&gray);
 	/** \brief Calculate the gradient for the given rectangular area in the image.
 	 *  \param dirx Method fills in the x-component of the gradient here
 	 *  \param diry Method fills in the y-component of the gradient here

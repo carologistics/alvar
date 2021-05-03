@@ -49,7 +49,7 @@ struct OwnDrawable : public Drawable {
     }
 };
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static bool init=true;
     static const int marker_size=15;
@@ -64,7 +64,7 @@ void videocallback(IplImage *image)
     }
 
     static IplImage* bg_image = 0;
-    if(!bg_image) bg_image = cvCreateImage(cvSize(512, 512), 8, 3);
+    if(!bg_image) bg_image = cvCreateImage(cv::Size(512, 512), 8, 3);
     if(image->nChannels == 3)
     {
         bg_image->origin = 0;
@@ -84,7 +84,7 @@ void videocallback(IplImage *image)
         double p[16];
         cam.GetOpenglProjectionMatrix(p,image->width,image->height);
         GlutViewer::SetGlProjectionMatrix(p);
-        hide_texture = CvTestbed::Instance().CreateImage("hide_texture", cvSize(64, 64), 8, 4);
+        hide_texture = CvTestbed::Instance().CreateImage("hide_texture", cv::Size(64, 64), 8, 4);
     }
     static MarkerDetector<MarkerData> marker_detector;\
     marker_detector.Detect(image, &cam, false, false);

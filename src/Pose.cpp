@@ -39,7 +39,7 @@ Pose::Pose() : Rotation() {
 	cvmSet(&translation_mat, 3, 0, 1);
 }
 
-Pose::Pose(CvMat *tra, CvMat *rot, RotationType t) : Rotation(rot, t) {
+Pose::Pose(cv::Mat *tra, cv::Mat *rot, RotationType t) : Rotation(rot, t) {
 	cvInitMatHeader(&translation_mat, 4, 1, CV_64F, translation);
 	cvZero(&translation_mat);
 	cvmSet(&translation_mat, 3, 0, 1);
@@ -49,7 +49,7 @@ Pose::Pose(CvMat *tra, CvMat *rot, RotationType t) : Rotation(rot, t) {
 	cvmSet(&translation_mat, 2, 0, cvmGet(tra, 2, 0));
 }
 
-Pose::Pose(CvMat *mat) : Rotation(mat, MAT) {
+Pose::Pose(cv::Mat *mat) : Rotation(mat, MAT) {
 	cvInitMatHeader(&translation_mat, 4, 1, CV_64F, translation);
 	cvZero(&translation_mat);
 	cvmSet(&translation_mat, 3, 0, 1);
@@ -72,7 +72,7 @@ void Pose::Reset()
 	cvZero(&translation_mat);
 }
 
-void Pose::SetMatrix(const CvMat *mat)
+void Pose::SetMatrix(const cv::Mat *mat)
 {
 	double tmp[9];
 	for(int i = 0; i < 3; ++i)
@@ -88,7 +88,7 @@ void Pose::SetMatrix(const CvMat *mat)
 	}
 }
 
-void Pose::GetMatrix(CvMat *mat) const
+void Pose::GetMatrix(cv::Mat *mat) const
 {
 	if (mat->width == 3) {
 		QuatToMat9(quaternion, mat->data.db);
@@ -104,7 +104,7 @@ void Pose::GetMatrix(CvMat *mat) const
 void Pose::GetMatrixGL(double gl[16], bool mirror)
 {
 	if (mirror) Mirror(false, true, true);
-	CvMat gl_mat = cvMat(4, 4, CV_64F, gl);
+	cv::Mat gl_mat = cv::Mat(4, 4, CV_64F, gl);
 	GetMatrix(&gl_mat);
 	cvTranspose(&gl_mat, &gl_mat);
 	if (mirror) Mirror(false, true, true);
@@ -114,7 +114,7 @@ void Pose::SetMatrixGL(double gl[16], bool mirror)
 {
 	double gll[16];
 	memcpy(gll, gl, sizeof(double)*16);
-	CvMat gl_mat = cvMat(4, 4, CV_64F, gll);
+	cv::Mat gl_mat = cv::Mat(4, 4, CV_64F, gll);
 	cvTranspose(&gl_mat, &gl_mat);
 	SetMatrix(&gl_mat);
 	if (mirror) Mirror(false, true, true);
@@ -123,7 +123,7 @@ void Pose::SetMatrixGL(double gl[16], bool mirror)
 void Pose::Transpose()
 {
 	double tmp[16];
-	CvMat tmp_mat = cvMat(4, 4, CV_64F, tmp);
+	cv::Mat tmp_mat = cv::Mat(4, 4, CV_64F, tmp);
 	GetMatrix(&tmp_mat);
 	cvTranspose(&tmp_mat, &tmp_mat);
 	SetMatrix(&tmp_mat);
@@ -132,7 +132,7 @@ void Pose::Transpose()
 void Pose::Invert()
 {
 	double tmp[16];
-	CvMat tmp_mat = cvMat(4, 4, CV_64F, tmp);
+	cv::Mat tmp_mat = cv::Mat(4, 4, CV_64F, tmp);
 	GetMatrix(&tmp_mat);
 	cvInvert(&tmp_mat, &tmp_mat);
 	SetMatrix(&tmp_mat);
@@ -141,13 +141,13 @@ void Pose::Invert()
 void Pose::Mirror(bool x, bool y, bool z)
 {
 	double tmp[16];
-	CvMat tmp_mat = cvMat(4, 4, CV_64F, tmp);
+	cv::Mat tmp_mat = cv::Mat(4, 4, CV_64F, tmp);
 	GetMatrix(&tmp_mat);
 	MirrorMat(&tmp_mat, x, y, z);
 	SetMatrix(&tmp_mat);
 }
 
-void Pose::SetTranslation(const CvMat *tra) {
+void Pose::SetTranslation(const cv::Mat *tra) {
 	cvmSet(&translation_mat, 0, 0, cvmGet(tra, 0, 0));
 	cvmSet(&translation_mat, 1, 0, cvmGet(tra, 1, 0));
 	cvmSet(&translation_mat, 2, 0, cvmGet(tra, 2, 0));
@@ -165,7 +165,7 @@ void Pose::SetTranslation(const double x, const double y, const double z) {
 	translation[2] = z;
 	translation[3] = 1;
 }
-void Pose::GetTranslation( CvMat *tra) const{
+void Pose::GetTranslation( cv::Mat *tra) const{
 	cvmSet(tra, 0, 0, cvmGet(&translation_mat, 0, 0));
 	cvmSet(tra, 1, 0, cvmGet(&translation_mat, 1, 0));
 	cvmSet(tra, 2, 0, cvmGet(&translation_mat, 2, 0));

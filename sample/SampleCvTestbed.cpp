@@ -3,7 +3,7 @@
 using namespace alvar;
 using namespace std;
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static IplImage *img_gray=NULL;
 

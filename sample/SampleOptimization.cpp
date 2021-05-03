@@ -1,6 +1,6 @@
 #include "Optimization.h"
-#include "cv.h"
-#include "highgui.h"
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 #include <time.h>
 #include <vector>
 #include <iostream>
@@ -17,7 +17,7 @@ double random(int dist_type, double param1, double param2) {
     static CvRNG rng=0;
     if (rng == 0) rng = cvRNG(time(0));
     double m_data;
-    CvMat m = cvMat(1, 1, CV_64F, &m_data);
+    cv::Mat m = cv::Mat(1, 1, CV_64F, &m_data);
     cvRandArr(&rng, &m, dist_type, cvScalar(param1), cvScalar(param2));
     return m_data;
 }
@@ -39,7 +39,7 @@ bool get_measurement(double *x, double *y, double a, double b, double c, double 
     return true;
 }
 
-void Estimate(CvMat* state, CvMat *projection, void *param) {
+void Estimate(cv::Mat* state, cv::Mat *projection, void *param) {
     double *measx=(double *)param;
     int data_degree = state->rows-1;
     double a = (data_degree >= 4? cvmGet(state, 4, 0) : 0);
@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
         std::cout << std::endl;
 
         // Processing loop
-        IplImage *img = cvCreateImage(cvSize(res,res), IPL_DEPTH_8U, 3);
+        IplImage *img = cvCreateImage(cv::Size(res,res), IPL_DEPTH_8U, 3);
         cvNamedWindow("SampleOptimization");
         for (int data_degree=0; data_degree<5; data_degree++) {
             double a = (data_degree >= 4? random(CV_RAND_UNI, -0.5, 0.5) : 0);
@@ -83,20 +83,20 @@ int main(int argc, char *argv[])
             double d = (data_degree >= 1? random(CV_RAND_UNI, -0.5, 0.5) : 0);
             double e = (data_degree >= 0? random(CV_RAND_UNI, -0.5, 0.5) : 0);
             cvZero(img);
-            vector<CvPoint2D32f> measvec;
+            vector<cv::Point2f> measvec;
             for (int i=0; i<1000; i++) {
                 double x, y;
                 if (get_measurement(&x, &y, a, b, c, d, e)) {
-                    measvec.push_back(cvPoint2D32f(x, y));
+                    measvec.push_back(cv::Point2f(x, y));
                     x = (x*res/poly_res)+(res/2);
                     y = (y*res/poly_res)+(res/2);
-                    cvCircle(img, cvPoint(int(x), int(y)), 1, cvScalar(CV_RGB(0,255,0)));
+                    cvCircle(img, cv::Point(int(x), int(y)), 1, cvScalar(CV_RGB(0,255,0)));
                 }
             }
             cvShowImage("SampleOptimization", img);
             cvWaitKey(10);
             double measx[1000];
-            CvMat *meas = cvCreateMat(measvec.size(), 1, CV_64F);
+            cv::Mat *meas = cvCreateMat(measvec.size(), 1, CV_64F);
             for (size_t i=0; i<measvec.size(); i++) {
                 measx[i] = measvec[i].x;
                 cvmSet(meas, i, 0, measvec[i].y);
@@ -104,7 +104,7 @@ int main(int argc, char *argv[])
             for (int degree=0; degree<5; degree++) 
             {
                 double param_data[5]={0};
-                CvMat param = cvMat(degree+1, 1, CV_64F, param_data);
+                cv::Mat param = cv::Mat(degree+1, 1, CV_64F, param_data);
                 Optimization opt(param.rows, meas->rows);
                 opt.Optimize(&param, meas, 0.1, 100, Estimate, measx);
                 double a = (degree >= 4? cvmGet(&param, 4, 0) : 0);
@@ -121,7 +121,7 @@ int main(int argc, char *argv[])
                     double yy2 = get_y(xx2, a, b, c, d, e);
                     int y1 = int((yy1*res/poly_res)+(res/2));
                     int y2 = int((yy2*res/poly_res)+(res/2));
-                    cvLine(img, cvPoint(x1,y1), cvPoint(x2,y2), cvScalar(CV_RGB(degree*50,255-(degree*50),255)));
+                    cv::line(img, cv::Point(x1,y1), cv::Point(x2,y2), cvScalar(CV_RGB(degree*50,255-(degree*50),255)));
                 }
                 cvShowImage("SampleOptimization", img);
                 cvWaitKey(10);

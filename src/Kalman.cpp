@@ -23,9 +23,9 @@
 
 #include <iostream>
 #include <algorithm> // for std::max
-#include "cxcore.h"
-#include "cv.h"
-#include "highgui.h"
+#include <opencv2/core.hpp>
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
 #include "Kalman.h"
 #include "Util.h"
 #include "Alvar.h"
@@ -66,17 +66,17 @@ KalmanSensorCore::~KalmanSensorCore() {
 	cvReleaseMat(&x_gain);
 }
 
-void KalmanSensorCore::update_x(CvMat *x_pred, CvMat *x) {
+void KalmanSensorCore::update_x(cv::Mat *x_pred, cv::Mat *x) {
 	// x = x_pred + K * (z - H*x_pred)
-	cvMatMul(H, x_pred, z_pred);
+	cv::MatMul(H, x_pred, z_pred);
 	cvScaleAdd(z_pred, cvScalar(-1), z, z_residual);
-	cvMatMul(K, z_residual, x_gain);
+	cv::MatMul(K, z_residual, x_gain);
 	cvScaleAdd(x_pred, cvScalar(1), x_gain, x);
 }
 
 void KalmanCore::predict_x(unsigned long tick) {
 	// x_pred = F * x;
-	cvMatMul(F, x, x_pred);
+	cv::MatMul(F, x, x_pred);
 }
 
 KalmanCore::KalmanCore(const KalmanCore &s) {
@@ -102,12 +102,12 @@ KalmanCore::~KalmanCore() {
 	cvReleaseMat(&x_pred);
 }
 
-CvMat *KalmanCore::predict() {
+cv::Mat *KalmanCore::predict() {
 	predict_x(0);
 	return x_pred;
 }
 
-CvMat *KalmanCore::predict_update(KalmanSensorCore *sensor) {
+cv::Mat *KalmanCore::predict_update(KalmanSensorCore *sensor) {
 	predict();
 	sensor->update_x(x_pred, x);
 	return x;
@@ -131,30 +131,30 @@ KalmanSensor::~KalmanSensor() {
 	cvReleaseMat(&P_tmp);
 }
 
-void KalmanSensor::update_K(CvMat *P_pred) {
+void KalmanSensor::update_K(cv::Mat *P_pred) {
 	// K = P * trans(H) * inv(H*P*trans(H) + R)
 	cvTranspose(H, H_trans);
-	cvMatMul(P_pred, H_trans, K);
-	cvMatMul(H, K, R_tmp);
+	cv::MatMul(P_pred, H_trans, K);
+	cv::MatMul(H, K, R_tmp);
 	cvScaleAdd(R_tmp, cvScalar(1), R, R_tmp);
 	cvInvert(R_tmp, R_tmp);
-	cvMatMul(H_trans, R_tmp, K);
-	cvMatMul(P_pred, K, K);
+	cv::MatMul(H_trans, R_tmp, K);
+	cv::MatMul(P_pred, K, K);
 }
 
-void KalmanSensor::update_P(CvMat *P_pred, CvMat *P) {
+void KalmanSensor::update_P(cv::Mat *P_pred, cv::Mat *P) {
 	//P = (I - K*H) * P_pred
-	cvMatMul(K, H, P_tmp);
+	cv::MatMul(K, H, P_tmp);
 	cvSetIdentity(P);
 	cvScaleAdd(P_tmp, cvScalar(-1), P, P);
-	cvMatMul(P, P_pred, P);
+	cv::MatMul(P, P_pred, P);
 }
 
 void Kalman::predict_P() {
 	// P_pred = F*P*trans(F) + Q
 	cvTranspose(F, F_trans);
-	cvMatMul(P, F_trans, P_pred);
-	cvMatMul(F, P_pred, P_pred);
+	cv::MatMul(P, F_trans, P_pred);
+	cv::MatMul(F, P_pred, P_pred);
 	cvScaleAdd(P_pred, cvScalar(1), Q, P_pred);
 }
 
@@ -175,14 +175,14 @@ void Kalman::update_F(unsigned long tick) {
 	//cvSetIdentity(F);
 }
 
-CvMat *Kalman::predict(unsigned long tick) {
+cv::Mat *Kalman::predict(unsigned long tick) {
 	update_F(tick);
 	predict_x(tick);
 	predict_P();
 	return x_pred;
 }
 
-CvMat *Kalman::predict_update(KalmanSensor *sensor, unsigned long tick) {
+cv::Mat *Kalman::predict_update(KalmanSensor *sensor, unsigned long tick) {
 	predict(tick);
 	sensor->update_H(x_pred);
 	sensor->update_K(P_pred);
@@ -197,12 +197,12 @@ double Kalman::seconds_since_update(unsigned long tick) {
 	return ((double)tick_diff/1000.0);
 }
 
-void KalmanSensorEkf::update_H(CvMat *x_pred) {
+void KalmanSensorEkf::update_H(cv::Mat *x_pred) {
 	// By default we update the H by calculating Jacobian numerically
 	const double step = 0.000001;
 	cvZero(H);
 	for (int i=0; i<n; i++) {
-		CvMat H_column;
+		cv::Mat H_column;
 		cvGetCol(H, &H_column, i);
 
 		cvZero(delta); 
@@ -218,11 +218,11 @@ void KalmanSensorEkf::update_H(CvMat *x_pred) {
 	}
 }
 
-void KalmanSensorEkf::update_x(CvMat *x_pred, CvMat *x) {
+void KalmanSensorEkf::update_x(cv::Mat *x_pred, cv::Mat *x) {
 	// x = x_pred + K * (z - h(x_pred))
 	h(x_pred, z_pred);
 	cvScaleAdd(z_pred, cvScalar(-1), z, z_residual);
-	cvMatMul(K, z_residual, x_gain);
+	cv::MatMul(K, z_residual, x_gain);
 	cvScaleAdd(x_pred, cvScalar(1), x_gain, x);
 }
 
@@ -257,7 +257,7 @@ void KalmanEkf::update_F(unsigned long tick) {
 	const double step = 0.000001;
 	cvZero(F);
 	for (int i=0; i<n; i++) {
-		CvMat F_column;
+		cv::Mat F_column;
 		cvGetCol(F, &F_column, i);
 
 		cvZero(delta); 
@@ -294,7 +294,7 @@ KalmanEkf::~KalmanEkf() {
 	cvReleaseMat(&x_tmp2);
 }
 
-void KalmanVisualize::img_matrix(CvMat *mat, int top, int left) {
+void KalmanVisualize::img_matrix(cv::Mat *mat, int top, int left) {
 	cvSetImageROI(img, cvRect(top, left, mat->cols, mat->rows));
 	for (int j=0; j<mat->rows; j++) {
 		for (int i=0; i<mat->cols; i++) {
@@ -330,7 +330,7 @@ void KalmanVisualize::Init() {
 	m = sensor->get_m();
 	int img_width = std::max(3+n+3+n+5+m+5, 1+n+1+n+1+n+1+m+1+n+1);
 	int img_height = 1+n+1+std::max(n, m+1+m)+1;
-	img = cvCreateImage(cvSize(img_width, img_height), IPL_DEPTH_8U, 3);
+	img = cvCreateImage(cv::Size(img_width, img_height), IPL_DEPTH_8U, 3);
 	cvSet(img, cvScalar(64,64,64));
 	img_legend = cvLoadImage("Legend.png");
 	if (img_legend) {
@@ -339,7 +339,7 @@ void KalmanVisualize::Init() {
 				break;
 			}
 		}
-		img_show = cvCreateImage(cvSize(img_width*img_scale, img_legend->height + img_height*img_scale), IPL_DEPTH_8U, 3);
+		img_show = cvCreateImage(cv::Size(img_width*img_scale, img_legend->height + img_height*img_scale), IPL_DEPTH_8U, 3);
 		cvSet(img_show, cvScalar(64,64,64));
 		cvSetImageROI(img_show, cvRect(0, 0, img_legend->width, img_legend->height));
 		cvCopy(img_legend, img_show);
@@ -347,13 +347,13 @@ void KalmanVisualize::Init() {
 		cvNamedWindow("KalmanVisualize");
 	} else {
 		img_scale = 1;
-		img_show = cvCreateImage(cvSize(img_width*img_scale, img_height*img_scale), IPL_DEPTH_8U, 3);
+		img_show = cvCreateImage(cv::Size(img_width*img_scale, img_height*img_scale), IPL_DEPTH_8U, 3);
 		cvSet(img_show, cvScalar(64,64,64));
 		cvNamedWindow("KalmanVisualize",0);
 	}
 }
 
-void KalmanVisualize::out_matrix(CvMat *m, char *name) {
+void KalmanVisualize::out_matrix(cv::Mat *m, char *name) {
 	if (m->cols == 1) {
 		std::cout<<name<<" = [";
 		for (int j=0; j<m->rows; j++) {

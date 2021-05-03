@@ -49,7 +49,7 @@ protected:
 	// One idea is that the same 'pointcloud' could contain feature 
 	// points after marker-corner-points. This way they would be
 	// optimized simultaneously with marker corners...
-	std::map<int, CvPoint3D64f> pointcloud;
+	std::map<int, cv::Point3d> pointcloud;
 	std::vector<int> marker_indices; // The marker id's to be used in marker field (first being the base)
 	std::vector<int> marker_status;  // 0: not in point cloud, 1: in point cloud, 2: used in GetPose()
 
@@ -58,7 +58,7 @@ protected:
 
 	double _GetPose(MarkerIterator &begin, MarkerIterator &end, Camera* cam, Pose& pose, IplImage* image);
 
-	int _SetTrackMarkers(MarkerDetectorImpl &marker_detector, Camera* cam, Pose& pose, IplImage *image);
+	int _SetTrackMarkers(MarkerDetectorImpl &marker_detector, Camera* cam, Pose& pose, cv::Mat&image);
 
 private:
 
@@ -129,7 +129,7 @@ public:
 		\param pose Current pose of the camera.
 		\param corners Resulted 3D corner points are stored here.
 	*/
-	void PointCloudCorners3d(double edge_length, Pose &pose, CvPoint3D64f corners[4]);
+	void PointCloudCorners3d(double edge_length, Pose &pose, cv::Point3d corners[4]);
 
 	/** \brief Adds marker corners to 3D point cloud of multi marker.
 		\param marker_id Id of the marker to be added.
@@ -175,7 +175,7 @@ public:
 	 * also these markers.
 	*/
 	template <class M>
-	int SetTrackMarkers(MarkerDetector<M> &marker_detector, Camera* cam, Pose& pose, IplImage *image=0) {
+	int SetTrackMarkers(MarkerDetector<M> &marker_detector, Camera* cam, Pose& pose, cv::Mat&image=0) {
     return _SetTrackMarkers(marker_detector, cam, pose, image);
 	}
 };

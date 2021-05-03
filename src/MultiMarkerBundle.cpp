@@ -53,7 +53,7 @@ int n_images; // TODO: This should not be global (use the param instead)
 int n_markers; // TODO: This should not be global (use the param instead)
 Camera *camera; // TODO: This should not be global (use the param instead)
 
-void Est(CvMat* state, CvMat* estimation, void *param)
+void Est(cv::Mat* state, cv::Mat* estimation, void *param)
 {
 
 	// State: cam1, cam2, cam3, cam4, ..., X1(x,y,z), X2, X3, ...
@@ -67,8 +67,8 @@ void Est(CvMat* state, CvMat* estimation, void *param)
 
 		double tra[3];
 		double rodr[3];
-		CvMat mat_translation_vector = cvMat(3, 1, CV_64F, tra);
-		CvMat mat_rotation_vector = cvMat(3, 1, CV_64F, rodr);
+		cv::Mat mat_translation_vector = cv::Mat(3, 1, CV_64F, tra);
+		cv::Mat mat_rotation_vector = cv::Mat(3, 1, CV_64F, rodr);
 
 		memcpy(tra, &(state->data.db[i*7]), 3*sizeof(double));
 		p.GetRodriques(&mat_rotation_vector);
@@ -84,11 +84,11 @@ void Est(CvMat* state, CvMat* estimation, void *param)
 									   state->data.db[index+2]};
 
 
-			CvMat mat_object_points;
+			cv::Mat mat_object_points;
 			cvInitMatHeader(&mat_object_points, 1, 1, CV_64FC3, object_points);
 
 			double proj[2]={0};
-			CvMat mat_proj = cvMat(1, 1, CV_64FC2, proj);
+			cv::Mat mat_proj = cv::Mat(1, 1, CV_64FC2, proj);
 
 			cvProjectPoints2(&mat_object_points, &mat_rotation_vector,
 				&mat_translation_vector, &(camera->calib_K),
@@ -121,10 +121,10 @@ bool MultiMarkerBundle::Optimize(Camera *_cam, double stop, int max_iter, Optimi
 	size_t frames = camera_poses.size();
 	int n_params = frames*7 + 3*4*n_markers;
 	int n_meas = 2*4*n_markers*frames;
-	CvMat* parameters_mat   = cvCreateMat(n_params, 1, CV_64F);
-	CvMat* parameters_mask_mat = cvCreateMat(n_params, 1, CV_8U);
-	CvMat* measurements_mat = cvCreateMat(n_meas, 1, CV_64F);
-	CvMat* weight_mat = cvCreateMat(n_meas, 1, CV_64F);
+	cv::Mat* parameters_mat   = cvCreateMat(n_params, 1, CV_64F);
+	cv::Mat* parameters_mask_mat = cvCreateMat(n_params, 1, CV_8U);
+	cv::Mat* measurements_mat = cvCreateMat(n_meas, 1, CV_64F);
+	cv::Mat* weight_mat = cvCreateMat(n_meas, 1, CV_64F);
 	cvZero(parameters_mat);
 	cvSet(parameters_mask_mat, cvScalar(1));
 	cvZero(measurements_mat);
@@ -159,8 +159,8 @@ bool MultiMarkerBundle::Optimize(Camera *_cam, double stop, int max_iter, Optimi
 	for (size_t f=0; f < frames; f++) {
 		//cout<<"frame "<<f<<" / "<<frames<<endl;
 		// Camera pose
-		CvMat tra  = cvMat(3, 1, CV_64F, &(parameters_mat->data.db[f*7+0]));
-		CvMat qua  = cvMat(4, 1, CV_64F, &(parameters_mat->data.db[f*7+3]));
+		cv::Mat tra  = cv::Mat(3, 1, CV_64F, &(parameters_mat->data.db[f*7+0]));
+		cv::Mat qua  = cv::Mat(4, 1, CV_64F, &(parameters_mat->data.db[f*7+3]));
 		camera_poses[f].GetTranslation(&tra);
 		camera_poses[f].GetQuaternion(&qua);
 		// Measurements
@@ -199,7 +199,7 @@ bool MultiMarkerBundle::Optimize(Camera *_cam, double stop, int max_iter, Optimi
 	cout<<"Optimization error per corner: "<<optimization_error<<endl;
 	/*
 	if ((frames > 3) && (optimization_error > stop)) {
-		CvMat *err = optimization.GetErr();
+		cv::Mat *err = optimization.GetErr();
 		int max_k=-1;
 		double max=0;
 		for (int k=0; k<err->height; k++) {

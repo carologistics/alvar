@@ -52,7 +52,7 @@ bool Labeling::CheckBorder(CvSeq* contour, int width, int height)
 	bool ret = true;
 	for(int i = 0; i < contour->total; ++i)
 	{
-		CvPoint* pt = (CvPoint*)cvGetSeqElem(contour, i);
+		cv::Point* pt = (cv::Point*)cvGetSeqElem(contour, i);
 		if((pt->x <= 1) || (pt->x >= width-2) || (pt->y <= 1) || (pt->y >= height-2)) ret = false;
 	}
 	return ret;
@@ -82,9 +82,9 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
         if (bw) cvReleaseImage(&bw); bw=NULL;
     }
     if (gray == NULL) {
-        gray = cvCreateImage(cvSize(image->width, image->height), IPL_DEPTH_8U, 1);
+        gray = cvCreateImage(cv::Size(image->width, image->height), IPL_DEPTH_8U, 1);
         gray->origin = image->origin;
-        bw = cvCreateImage(cvSize(image->width, image->height), IPL_DEPTH_8U, 1);
+        bw = cvCreateImage(cv::Size(image->width, image->height), IPL_DEPTH_8U, 1);
         bw->origin = image->origin;
     }
 
@@ -107,7 +107,7 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
     CvSeq* square_contours = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvSeq), storage);
 
     cvFindContours(bw, storage, &contours, sizeof(CvContour),
-        CV_RETR_LIST, CV_CHAIN_APPROX_NONE, cvPoint(0,0));
+        CV_RETR_LIST, CV_CHAIN_APPROX_NONE, cv::Point(0,0));
 
     while(contours)
     {
@@ -143,11 +143,11 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
         
         for(int j = 0; j < 4; ++j)
         {
-            CvPoint* pt0 = (CvPoint*)cvGetSeqElem(sq, j);
-            CvPoint* pt1 = (CvPoint*)cvGetSeqElem(sq, (j+1)%4);
+            cv::Point* pt0 = (cv::Point*)cvGetSeqElem(sq, j);
+            cv::Point* pt1 = (cv::Point*)cvGetSeqElem(sq, (j+1)%4);
             int k0=-1, k1=-1;
             for (int k = 0; k<square_contour->total; k++) {
-                CvPoint* pt2 = (CvPoint*)cvGetSeqElem(square_contour, k);
+                cv::Point* pt2 = (cv::Point*)cvGetSeqElem(square_contour, k);
                 if ((pt0->x == pt2->x) && (pt0->y == pt2->y)) k0=k;
                 if ((pt1->x == pt2->x) && (pt1->y == pt2->y)) k1=k;
             }
@@ -156,11 +156,11 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
             else len = square_contour->total-k0+k1-1;
             if (len == 0) len = 1;
 
-            CvMat* line_data = cvCreateMat(1, len, CV_32FC2);
+            cv::Mat* line_data = cvCreateMat(1, len, CV_32FC2);
             for (int l=0; l<len; l++) {
                 int ll = (k0+l+1)%square_contour->total;
-                CvPoint* p = (CvPoint*)cvGetSeqElem(square_contour, ll);
-                CvPoint2D32f pp;
+                cv::Point* p = (cv::Point*)cvGetSeqElem(square_contour, ll);
+                cv::Point2f pp;
                 pp.x = float(p->x);
                 pp.y = float(p->y);
 
@@ -168,7 +168,7 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
                 if(cam)
                     cam->Undistort(pp);
 
-                CV_MAT_ELEM(*line_data, CvPoint2D32f, 0, l) = pp;
+                CV_MAT_ELEM(*line_data, cv::Point2f, 0, l) = pp;
             }
 
             // Fit edge and put to vector of edges
@@ -202,9 +202,9 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
             PointDouble intc = Intersection(fitted_lines[j],fitted_lines[(j+1)%4]);
 
             // TODO: Instead, test OpenCV find corner in sub-pix...
-            //CvPoint2D32f pt = cvPoint2D32f(intc.x, intc.y);
+            //cv::Point2f pt = cv::Point2f(intc.x, intc.y);
             //cvFindCornerSubPix(gray, &pt,
-            //                   1, cvSize(3,3), cvSize(-1,-1),
+            //                   1, cv::Size(3,3), cv::Size(-1,-1),
             //                   cvTermCriteria(
             //                   CV_TERMCRIT_ITER+CV_TERMCRIT_EPS,10,1e-4));
             
@@ -225,10 +225,10 @@ void LabelingCvSeq::LabelSquares(IplImage* image, bool visualize)
         if (visualize) {
             for(size_t j = 0; j < 4; ++j) {
                 PointDouble &intc = blob_corners[i][j];
-                if (j == 0) cvCircle(image, cvPoint(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(255, 255, 255)));
-                if (j == 1) cvCircle(image, cvPoint(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(255, 0, 0)));
-                if (j == 2) cvCircle(image, cvPoint(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(0, 255, 0)));
-                if (j == 3) cvCircle(image, cvPoint(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(0, 0, 255)));
+                if (j == 0) cvCircle(image, cv::Point(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(255, 255, 255)));
+                if (j == 1) cvCircle(image, cv::Point(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(255, 0, 0)));
+                if (j == 2) cvCircle(image, cv::Point(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(0, 255, 0)));
+                if (j == 3) cvCircle(image, cv::Point(int(intc.x), int(intc.y)), 5, cvScalar(CV_RGB(0, 0, 255)));
             }
         }
     }
@@ -244,9 +244,9 @@ CvSeq* LabelingCvSeq::LabelImage(IplImage* image, int min_size, bool approx)
 		if (bw) cvReleaseImage(&bw); bw=NULL;
 	}
 	if (gray == NULL) {
-		gray = cvCreateImage(cvSize(image->width, image->height), IPL_DEPTH_8U, 1);
+		gray = cvCreateImage(cv::Size(image->width, image->height), IPL_DEPTH_8U, 1);
 		gray->origin = image->origin;
-		bw = cvCreateImage(cvSize(image->width, image->height), IPL_DEPTH_8U, 1);
+		bw = cvCreateImage(cv::Size(image->width, image->height), IPL_DEPTH_8U, 1);
 		bw->origin = image->origin;
 	}
 
@@ -268,9 +268,9 @@ CvSeq* LabelingCvSeq::LabelImage(IplImage* image, int min_size, bool approx)
 	CvSeq* squares = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvSeq), storage);
 
 	cvFindContours(bw, storage, &contours, sizeof(CvContour),
-		CV_RETR_LIST, CV_CHAIN_APPROX_NONE, cvPoint(0,0));
+		CV_RETR_LIST, CV_CHAIN_APPROX_NONE, cv::Point(0,0));
 	//cvFindContours(bw, storage, &contours, sizeof(CvContour),
-	//	CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0));
+	//	CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cv::Point(0,0));
 
 
 	while(contours)
@@ -313,34 +313,34 @@ inline T absdiff(T c1, T c2) {
 
 //#define SHOW_DEBUG
 #ifdef SHOW_DEBUG
-#include "highgui.h"
+#include <opencv2/highgui.hpp>
 #endif
 
 // TODO: This should be in LabelingCvSeq ???
-void FitLineGray(CvMat *line_data, float params[4], IplImage *gray) {
+void FitLineGray(cv::Mat *line_data, float params[4], cv::Mat&gray) {
 	// this very simple approach works...
 	/*
 	float *cx = &(params[2]);
 	float *cy = &(params[3]);
 	float *sx = &(params[0]);
 	float *sy = &(params[1]);
-	CvPoint2D32f *p1 = (CvPoint2D32f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, 0, sizeof(CvPoint2D32f));
-	CvPoint2D32f *p2 = (CvPoint2D32f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, line_data->cols-1, sizeof(CvPoint2D32f));
+	cv::Point2f *p1 = (cv::Point2f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, 0, sizeof(cv::Point2f));
+	cv::Point2f *p2 = (cv::Point2f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, line_data->cols-1, sizeof(cv::Point2f));
 	*cx = p1->x; *cy = p1->y;
 	*sx = p2->x - p1->x; *sy = p2->y - p1->y;
 	return;
 	*/
 
 #ifdef SHOW_DEBUG
-	IplImage *tmp = cvCreateImage(cvSize(gray->width, gray->height), IPL_DEPTH_8U, 3);
-	IplImage *tmp2 = cvCreateImage(cvSize(gray->width*5, gray->height*5), IPL_DEPTH_8U, 3);
+	IplImage *tmp = cvCreateImage(cv::Size(gray->width, gray->height), IPL_DEPTH_8U, 3);
+	IplImage *tmp2 = cvCreateImage(cv::Size(gray->width*5, gray->height*5), IPL_DEPTH_8U, 3);
 	cvCvtColor(gray, tmp, CV_GRAY2RGB);
 	cvResize(tmp, tmp2, CV_INTER_NN);
 #endif
 
 	// Discover 1st the line normal direction
-	CvPoint2D32f *p1 = (CvPoint2D32f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, 0, sizeof(CvPoint2D32f));
-	CvPoint2D32f *p2 = (CvPoint2D32f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, line_data->cols-1, sizeof(CvPoint2D32f));
+	cv::Point2f *p1 = (cv::Point2f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, 0, sizeof(cv::Point2f));
+	cv::Point2f *p2 = (cv::Point2f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, line_data->cols-1, sizeof(cv::Point2f));
 	double dx = +(p2->y - p1->y);
 	double dy = -(p2->x - p1->x);
 	if ((dx == 0) && (dy == 0)) return;
@@ -369,15 +369,15 @@ void FitLineGray(CvMat *line_data, float params[4], IplImage *gray) {
 
 	// Adjust the points
 	for (int l=0; l<line_data->cols; l++) {
-		CvPoint2D32f *p = (CvPoint2D32f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, l, sizeof(CvPoint2D32f));
+		cv::Point2f *p = (cv::Point2f*)CV_MAT_ELEM_PTR_FAST(*line_data, 0, l, sizeof(cv::Point2f));
 
 		double dx=0, dy=0, ww=0;
 		for (int i=0; i<diff_win_size; i++) {
 			unsigned char c1 = (unsigned char)gray->imageData[int((p->y+yy[i])*gray->widthStep+(p->x+xx[i]))];
 			unsigned char c2 = (unsigned char)gray->imageData[int((p->y+yy[i+1])*gray->widthStep+(p->x+xx[i+1]))];
 #ifdef SHOW_DEBUG
-			cvCircle(tmp2, cvPoint((p->x+xx[i])*5+2,(p->y+yy[i])*5+2), 0, CV_RGB(0,0,255));
-			cvCircle(tmp2, cvPoint((p->x+xx[i+1])*5+2,(p->y+yy[i+1])*5+2), 0, CV_RGB(0,0,255));
+			cvCircle(tmp2, cv::Point((p->x+xx[i])*5+2,(p->y+yy[i])*5+2), 0, CV_RGB(0,0,255));
+			cvCircle(tmp2, cv::Point((p->x+xx[i+1])*5+2,(p->y+yy[i+1])*5+2), 0, CV_RGB(0,0,255));
 #endif
 			double w = absdiff(c1, c2);
 			dx += dxx[i]*w;
@@ -388,9 +388,9 @@ void FitLineGray(CvMat *line_data, float params[4], IplImage *gray) {
 			dx /= ww; dy /= ww;
 		}
 #ifdef SHOW_DEBUG
-		cvLine(tmp2, cvPoint(p->x*5+2,p->y*5+2), cvPoint((p->x+dx)*5+2, (p->y+dy)*5+2), CV_RGB(0,255,0));
+		cv::line(tmp2, cv::Point(p->x*5+2,p->y*5+2), cv::Point((p->x+dx)*5+2, (p->y+dy)*5+2), CV_RGB(0,255,0));
 		p->x += float(dx); p->y += float(dy);
-		cvCircle(tmp2, cvPoint(p->x*5+2,p->y*5+2), 0, CV_RGB(255,0,0));
+		cvCircle(tmp2, cv::Point(p->x*5+2,p->y*5+2), 0, CV_RGB(255,0,0));
 #else
 		p->x += float(dx); p->y += float(dy);
 #endif

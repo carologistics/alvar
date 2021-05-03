@@ -46,13 +46,13 @@ void MultiMarkerFiltered::PointCloudAverage(int marker_id, double edge_length, P
 	if (marker_id == 0) {
 		if (marker_status[get_id_index(marker_id)] == 0) PointCloudAdd(marker_id, edge_length, pose);
 	} else {
-		CvPoint3D64f corners[4];
+		cv::Point3d corners[4];
 		PointCloudCorners3d(edge_length, pose, corners);
 		for(size_t j = 0; j < 4; ++j) {
 			int id_index = get_id_index(marker_id);
 			if (id_index < 0) continue;
 			int index = id_index*4*3 + j*3;
-			CvPoint3D64f p;
+			cv::Point3d p;
 			p.x = pointcloud_filtered[index+0].next(corners[j].x);
 			p.y = pointcloud_filtered[index+1].next(corners[j].y);
 			p.z = pointcloud_filtered[index+2].next(corners[j].z);
@@ -84,14 +84,14 @@ double MultiMarkerFiltered::_Update(MarkerIterator &begin, MarkerIterator &end,
 			double cam_posed[16];
 			double mar_posed[16];
 
-			CvMat cam_mat = cvMat(4, 4, CV_64F, cam_posed);
-			CvMat mar_mat = cvMat(4, 4, CV_64F, mar_posed);
+			cv::Mat cam_mat = cv::Mat(4, 4, CV_64F, cam_posed);
+			cv::Mat mar_mat = cv::Mat(4, 4, CV_64F, mar_posed);
 
 			pose.GetMatrix(&cam_mat);
 			marker->pose.GetMatrix(&mar_mat);
 
 			cvInvert(&cam_mat, &cam_mat);
-			cvMatMul(&cam_mat, &mar_mat, &mar_mat);
+			cv::MatMul(&cam_mat, &mar_mat, &mar_mat);
 
 			Pose p;
 			p.SetMatrix(&mar_mat);

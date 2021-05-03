@@ -154,9 +154,9 @@ public:
 	int type_id;
 	bool has_p2d;
 	bool has_p3d;
-	CvPoint2D32f p2d;
-	CvPoint3D32f p3d;
-	CvPoint2D32f projected_p2d; // This is only temporary -- user needs to take care that it has valid content
+	cv::Point2f p2d;
+	cv::Point3f p3d;
+	cv::Point2f projected_p2d; // This is only temporary -- user needs to take care that it has valid content
 	ExternalContainer() : type_id(-1), has_p2d(false), has_p3d(false) {}
 	ExternalContainer(const ExternalContainer &c) {
 		type_id = c.type_id;
@@ -259,7 +259,7 @@ public:
 
 	/** \brief Track features with matching type id. New features will have id's in the specified id range. */
 	template<typename T>
-	bool Track(IplImage *img, IplImage *mask, std::map<int,T> &container, int type_id=-1, int first_id=-1, int last_id=-1)
+	bool Track(cv::Mat&img, cv::Mat&mask, std::map<int,T> &container, int type_id=-1, int first_id=-1, int last_id=-1)
 	{
 		DoHandleTest<T> do_handle_test_default(type_id);
 		if (type_id == -1) type_id=0;
@@ -268,7 +268,7 @@ public:
 
 	/** \brief Track features matching the given functor. New features will have id's in the specified id range. */
 	/*template<typename T, typename F>
-	bool Track(IplImage *img, IplImage *mask, std::map<int,T> &container, F do_handle_test, int type_id=0, int first_id=0, int last_id=65535)
+	bool Track(cv::Mat&img, cv::Mat&mask, std::map<int,T> &container, F do_handle_test, int type_id=0, int first_id=0, int last_id=65535)
 	{
 		// Update features to match the ones in the given container
 		typename std::map<int,T>::iterator iter = container.begin();
@@ -308,7 +308,7 @@ public:
 
 	/** \brief Track features matching the given functor. If first_id >= 0 we call \e AddFeatures with the specified id range. */
 	template<typename T, typename F>
-	bool Track(IplImage *img, IplImage *mask, std::map<int,T> &container, F do_handle_test, int type_id=0, int first_id=-1, int last_id=-1)
+	bool Track(cv::Mat&img, cv::Mat&mask, std::map<int,T> &container, F do_handle_test, int type_id=0, int first_id=-1, int last_id=-1)
 	{
 		// When first_id && last_id are < 0 then we don't add new features...
 		if (first_id < 0) last_id = -1;
@@ -383,7 +383,7 @@ public:
 	 */
 	void Purge() { purge=true; }
 	void Reset() { throw alvar::AlvarException("Method not supported"); }
-	double Reset(IplImage *img, IplImage *mask) { throw alvar::AlvarException("Method not supported"); }
+	double Reset(cv::Mat&img, cv::Mat&mask) { throw alvar::AlvarException("Method not supported"); }
 	bool DelFeature(int index) { throw alvar::AlvarException("Method not supported"); }
 	bool DelFeatureId(int id) { throw alvar::AlvarException("Method not supported"); }
 };
@@ -436,8 +436,8 @@ public:
 	bool CalcExteriorOrientation(std::map<int,T> &container, Pose *pose, F do_handle_test) {
 		int count_points = container.size();
 		if(count_points < 4) return false;
-		CvMat* world_points = cvCreateMat(count_points, 1, CV_32FC3);
-		CvMat* image_observations = cvCreateMat(count_points*2, 1, CV_32FC2);
+		cv::Mat* world_points = cvCreateMat(count_points, 1, CV_32FC3);
+		cv::Mat* image_observations = cvCreateMat(count_points*2, 1, CV_32FC2);
 		typename std::map<int,T>::iterator iter = container.begin();
 		typename std::map<int,T>::iterator iter_end = container.end();
 		int ind = 0;
@@ -456,9 +456,9 @@ public:
 		if (ind<4) return false;
 
 		CvRect r; r.x = 0; r.y = 0; r.height = ind; r.width = 1;
-		CvMat world_points_sub;
+		cv::Mat world_points_sub;
 		cvGetSubRect(world_points, &world_points_sub, r);
-		CvMat image_observations_sub;
+		cv::Mat image_observations_sub;
 		cvGetSubRect(image_observations, &image_observations_sub, r);
 
 		bool ret = Camera::CalcExteriorOrientation(&world_points_sub, &image_observations_sub, pose);
@@ -486,8 +486,8 @@ public:
 		int count_points = container.size();
 		if(count_points < 6) return false;
 
-		CvMat* world_points = cvCreateMat(count_points, 1, CV_64FC3);
-		CvMat* image_observations = cvCreateMat(count_points*2, 1, CV_64F); // [u v u v u v ...]'
+		cv::Mat* world_points = cvCreateMat(count_points, 1, CV_64FC3);
+		cv::Mat* image_observations = cvCreateMat(count_points*2, 1, CV_64F); // [u v u v u v ...]'
 
 		int ind = 0;
 		typename std::map<int,T>::iterator iter = container.begin();
@@ -507,11 +507,11 @@ public:
 		if (ind < 6) return false;
 
 		CvRect r; r.x = 0; r.y = 0; r.height = ind; r.width = 1;
-		CvMat world_points_sub;
+		cv::Mat world_points_sub;
 		cvGetSubRect(world_points, &world_points_sub, r);
 
 		r.height = 2*ind;
-		CvMat image_observations_sub;
+		cv::Mat image_observations_sub;
 		cvGetSubRect(image_observations, &image_observations_sub, r);
 
 		bool ret = UpdateRotation(&world_points_sub, &image_observations_sub, pose);
@@ -527,9 +527,9 @@ public:
 		int count_points = container.size();
 		if(count_points < 4) return false; // Note, UpdatePose calls CalcExteriorOrientation if 4 or 5 points
 
-		CvMat* world_points = cvCreateMat(count_points, 1, CV_64FC3);
-		CvMat* image_observations = cvCreateMat(count_points*2, 1, CV_64F); // [u v u v u v ...]'
-		CvMat* w = 0;
+		cv::Mat* world_points = cvCreateMat(count_points, 1, CV_64FC3);
+		cv::Mat* image_observations = cvCreateMat(count_points*2, 1, CV_64F); // [u v u v u v ...]'
+		cv::Mat* w = 0;
 		if(weights) w = cvCreateMat(count_points*2, 1, CV_64F);
 
 		int ind = 0;
@@ -553,16 +553,16 @@ public:
 		if (ind < 4) return false; // Note, UpdatePose calls CalcExteriorOrientation if 4 or 5 points
 
 		CvRect r; r.x = 0; r.y = 0; r.height = ind; r.width = 1;
-		CvMat world_points_sub;
+		cv::Mat world_points_sub;
 		cvGetSubRect(world_points, &world_points_sub, r);
 
 		r.height = 2*ind;
-		CvMat image_observations_sub;
+		cv::Mat image_observations_sub;
 		cvGetSubRect(image_observations, &image_observations_sub, r);
 
 		bool ret;
 		if (weights) {
-			CvMat w_sub;
+			cv::Mat w_sub;
 			cvGetSubRect(w, &w_sub, r);
 			ret = UpdatePose(&world_points_sub, &image_observations_sub, pose, &w_sub);
 		}
@@ -623,25 +623,25 @@ public:
 	}
 
 	/** \brief Update pose rotations based on new observations */
-	bool UpdateRotation(const CvMat* object_points, CvMat* image_points, Pose *pose);
+	bool UpdateRotation(const cv::Mat* object_points, cv::Mat* image_points, Pose *pose);
 
 	/** \brief Update pose rotations (in rodriques&tra) based on new observations */
-	bool UpdateRotation(const CvMat* object_points, CvMat* image_points, CvMat *rot, CvMat *tra);
+	bool UpdateRotation(const cv::Mat* object_points, cv::Mat* image_points, cv::Mat *rot, cv::Mat *tra);
 
 	/** \brief Update existing pose based on new observations */
-	bool UpdatePose(const CvMat* object_points, CvMat* image_points, Pose *pose, CvMat *weights=0);
+	bool UpdatePose(const cv::Mat* object_points, cv::Mat* image_points, Pose *pose, cv::Mat *weights=0);
 
 	/** \brief Update existing pose (in rodriques&tra) based on new observations */
-	bool UpdatePose(const CvMat* object_points, CvMat* image_points, CvMat *rodriques, CvMat *tra, CvMat *weights=0);
+	bool UpdatePose(const cv::Mat* object_points, cv::Mat* image_points, cv::Mat *rodriques, cv::Mat *tra, cv::Mat *weights=0);
 
 	/** \brief Reconstruct 3D point using two camera poses and corresponding undistorted image feature positions */
-	bool ReconstructFeature(const Pose *pose1, const Pose *pose2, const CvPoint2D32f *u1, const CvPoint2D32f *u2, CvPoint3D32f *p3d, double limit);
+	bool ReconstructFeature(const Pose *pose1, const Pose *pose2, const cv::Point2f *u1, const cv::Point2f *u2, cv::Point3f *p3d, double limit);
 
 	/** \brief Get 3D-coordinate for 2D feature on the plane defined by the pose (z == 0) */ 
-	void Get3dOnPlane(const Pose *pose, CvPoint2D32f p2d, CvPoint3D32f &p3d);
+	void Get3dOnPlane(const Pose *pose, cv::Point2f p2d, cv::Point3f &p3d);
 
 	/** \brief Get 3D-coordinate for 2D feature assuming certain depth */
-	void Get3dOnDepth(const Pose *pose, CvPoint2D32f p2d, float depth, CvPoint3D32f &p3d);
+	void Get3dOnDepth(const Pose *pose, cv::Point2f p2d, float depth, cv::Point3f &p3d);
 };
 
 /** \brief Calculate the index used in external container map for specified \e marker_id */
@@ -672,7 +672,7 @@ public:
 
 	/** \brief Detect markers in the image and fill in their 2D-positions in the given external container */
 	template<typename T>
-	int Detect(IplImage *image,
+	int Detect(cv::Mat&image,
 			   Camera *cam,
 			   std::map<int,T> &container,
 			   int type_id=0,
@@ -718,7 +718,7 @@ public:
 	/** \brief Fill in 3D-coordinates for \e marker_id marker corners using \e edge_length and \e pose */
 	template<typename T>
 	void MarkerToEC(std::map<int,T> &container, int marker_id, double edge_length, Pose &pose, int type_id=0, int first_id=0,int last_id=65535) {
-		CvMat *m3 = cvCreateMat(4,4,CV_64F); cvSetIdentity(m3);
+		cv::Mat *m3 = cvCreateMat(4,4,CV_64F); cvSetIdentity(m3);
 		pose.GetMatrix(m3);
 
 		for(size_t corner = 0; corner < 4; ++corner)
@@ -740,8 +740,8 @@ public:
 				X_data[1] = +0.5*edge_length;
 			}
 
-			CvMat X  = cvMat(4, 1, CV_64F, X_data);
-			cvMatMul(m3, &X, &X);
+			cv::Mat X  = cv::Mat(4, 1, CV_64F, X_data);
+			cv::MatMul(m3, &X, &X);
 
 			int id = MarkerIdToContainerId(marker_id, corner, first_id, last_id);
 			T &f = container[id];

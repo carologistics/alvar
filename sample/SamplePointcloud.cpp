@@ -33,7 +33,7 @@ OwnDrawable d_points[1000];
 int own_drawable_count;
 
 bool reset=false;
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static IplImage *rgb = 0;
     static IplImage* bg_image = 0;
@@ -60,7 +60,7 @@ void videocallback(IplImage *image)
         d_marker.SetScale(marker_size*2);
         rgb = CvTestbed::Instance().CreateImageWithProto("RGB", image, 0, 3);
         CvTestbed::Instance().ToggleImageVisible(0, 0);
-        bg_image = CvTestbed::Instance().CreateImage("BG texture", cvSize(512,512),8, 3);
+        bg_image = CvTestbed::Instance().CreateImage("BG texture", cv::Size(512,512),8, 3);
         bg_image->origin = 0;
 
         sfm->SetScale(10);

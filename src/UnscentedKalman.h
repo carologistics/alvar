@@ -25,7 +25,7 @@
 #define __UNSCENTED_KALMAN__
 
 #include "Alvar.h"
-#include "cxcore.h"
+#include <opencv2/core.hpp>
 
 /**
  * \file UnscentedKalman.h
@@ -65,14 +65,14 @@ namespace alvar {
    *
    * \code
    *   class MyUnscentedProcess : public UnscentedProcess {
-   *     void f(CvMat *state) { // compute new state }
-   *     CvMat *getProcessNoise() { return _noise; }
+   *     void f(cv::Mat *state) { // compute new state }
+   *     cv::Mat *getProcessNoise() { return _noise; }
    *   } myProcess;
    *
    *   class MyUnscentedObservation : public UnscentedObservation {
-   *     void h(CvMat *z, cvMat *state) { // compute measurement vector z from state }
-   *     CvMat *getObservation() { return _obs; }
-   *     CvMat *getObservationNoise() { return _noise; }
+   *     void h(cv::Mat *z, cv::Mat *state) { // compute measurement vector z from state }
+   *     cv::Mat *getObservation() { return _obs; }
+   *     cv::Mat *getObservationNoise() { return _noise; }
    *   } myObservation;
    *
    *   int state_n = NUMBER_OF_ELEMENTS_IN_PROCESS_STATE_VECTOR;
@@ -87,7 +87,7 @@ namespace alvar {
    *     ukf.predict(&myProcess);
    *     // measure new observation.
    *     ukf.update(&myObservation);
-   *     CvMat *state = ukf.getState();
+   *     cv::Mat *state = ukf.getState();
    *     // unpack state information from the state vector and do something with it.
    *   }
    *
@@ -102,26 +102,26 @@ namespace alvar {
     bool sigmasUpdated;
 	double lambda, lambda2;
 
-    CvMat *state;
-    CvMat *stateCovariance;
-    CvMat *sqrtStateCovariance;
-    CvMat *stateD;
-    CvMat *stateU;
-    CvMat *stateV;
-    CvMat *stateTmp;
-    CvMat *stateDiff;
+    cv::Mat *state;
+    cv::Mat *stateCovariance;
+    cv::Mat *sqrtStateCovariance;
+    cv::Mat *stateD;
+    cv::Mat *stateU;
+    cv::Mat *stateV;
+    cv::Mat *stateTmp;
+    cv::Mat *stateDiff;
 
-    CvMat *predObs;
-    CvMat *predObsCovariance;
-    CvMat *invPredObsCovariance;
-    CvMat *predObsDiff;
+    cv::Mat *predObs;
+    cv::Mat *predObsCovariance;
+    cv::Mat *invPredObsCovariance;
+    cv::Mat *predObsDiff;
 
-    CvMat *statePredObsCrossCorrelation;
-    CvMat *kalmanGain;
-    CvMat *kalmanTmp;
+    cv::Mat *statePredObsCrossCorrelation;
+    cv::Mat *kalmanGain;
+    cv::Mat *kalmanTmp;
 
-    CvMat **sigma_state;
-    CvMat **sigma_predObs;
+    cv::Mat **sigma_state;
+    cv::Mat **sigma_predObs;
 
     // possess state mean and co-variance (as a list of sigma points).
     // generate sigma points from state mean vector and co-variance matrix.
@@ -170,7 +170,7 @@ namespace alvar {
      *
      * \return A vector of state_n elements.
      */
-    CvMat *getState() { return state; }
+    cv::Mat *getState() { return state; }
 
     /** \brief Returns the process state covariance matrix.
      *
@@ -181,7 +181,7 @@ namespace alvar {
      *
      * \return state_n by state_n covariance matrix.
      */
-    CvMat *getStateCovariance() { return stateCovariance; }
+    cv::Mat *getStateCovariance() { return stateCovariance; }
 
     /** \brief (Re-)initialize UKF internal state.
      *
@@ -228,7 +228,7 @@ namespace alvar {
      * \param state state_n size vector; The current state in input and the next
      *              state estimate in output.
      */
-    virtual void f(CvMat *state) = 0;
+    virtual void f(cv::Mat *state) = 0;
 
     /** \brief Returns the process noise covariance.
      *
@@ -239,7 +239,7 @@ namespace alvar {
      *
      * \return state_n by state_n size matrix; or NULL for no additional noise.
      */
-    virtual CvMat *getProcessNoise() = 0;
+    virtual cv::Mat *getProcessNoise() = 0;
   };
 
   /**
@@ -258,7 +258,7 @@ namespace alvar {
      * \param z obs_n size vector; The estimated measurement.
      * \param state state_n size vector; The current state.
      */
-    virtual void h(CvMat *z, CvMat *state) = 0;
+    virtual void h(cv::Mat *z, cv::Mat *state) = 0;
 
     /** \brief Returns the current measurement vector.
      *
@@ -269,7 +269,7 @@ namespace alvar {
      * 
      * \return obs_n size vector containing the current measured values.
      */
-    virtual CvMat *getObservation() = 0;
+    virtual cv::Mat *getObservation() = 0;
 
     /** \brief Returns the observation noise covariance matrix.
      *
@@ -281,7 +281,7 @@ namespace alvar {
      * \return obs_n by obs_b matrix containing observation noise covariance; or
      *         NULL for no additional noise.
      */
-    virtual CvMat *getObservationNoise() = 0;
+    virtual cv::Mat *getObservationNoise() = 0;
   };
 
 } // namespace alvar

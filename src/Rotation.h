@@ -44,7 +44,7 @@ class ALVAR_EXPORT Rotation
 {
 protected:
 	double quaternion[4];
-	CvMat quaternion_mat;
+	cv::Mat quaternion_mat;
 
 public:	
 	
@@ -58,10 +58,10 @@ public:
 	
 	/**
 	* \brief Constructor.
-	* \param data	Rotation data stored in CvMat. With RotationType::MAT both 3x3 and 4x4 matrices are allowed.
+	* \param data	Rotation data stored in cv::Mat. With RotationType::MAT both 3x3 and 4x4 matrices are allowed.
 	* \param t		Rotation type that corresponds to data.
 	*/
-	Rotation(CvMat *data, RotationType t);
+	Rotation(cv::Mat *data, RotationType t);
 
 	Rotation& operator  = (const Rotation& p);
 	Rotation& operator += (const Rotation& v);
@@ -76,7 +76,7 @@ public:
 	* \param y		
 	* \param z		
 	*/
-	static void MirrorMat(CvMat *mat, bool x, bool y, bool z);
+	static void MirrorMat(cv::Mat *mat, bool x, bool y, bool z);
 	
 	/**
 	* \brief Mirrors the rotation in selected directions.
@@ -165,9 +165,9 @@ public:
 	
 	/**
 	* \brief Sets the rotation from given quaternion. 
-	* \param mat	Input quaternion (4x1 CvMat).
+	* \param mat	Input quaternion (4x1 cv::Mat).
 	*/
-	void SetQuaternion(CvMat *mat);
+	void SetQuaternion(cv::Mat *mat);
 	
 	/**
 	* \brief Sets the rotation from given quaternion. 
@@ -177,45 +177,45 @@ public:
 	
 	/**
 	* \brief Sets the rotation from given Euler angles.
-	* \param mat	Input Euler angles (3x1 CvMat).
+	* \param mat	Input Euler angles (3x1 cv::Mat).
 	*/
-	void SetEuler(const CvMat *mat);
+	void SetEuler(const cv::Mat *mat);
 	
 	/**
 	* \brief Sets the rotation from given rotation vector.
-	* \param mat	Input rotation vector (3x1 CvMat).
+	* \param mat	Input rotation vector (3x1 cv::Mat).
 	*/
-	void SetRodriques(const CvMat *mat);
+	void SetRodriques(const cv::Mat *mat);
 	
 	/**
 	* \brief Sets the rotation from given rotation matrix. 3x3 and 4x4 matrices are allowed.
-	* \param mat	Input rotation matrix (3x3 or 4x4 CvMat).
+	* \param mat	Input rotation matrix (3x3 or 4x4 cv::Mat).
 	*/
-	void SetMatrix(const CvMat *mat);
+	void SetMatrix(const cv::Mat *mat);
 	
 	/**
 	* \brief Returns the rotation in matrix form. 3x3 and 4x4 matrices are allowed.
 	* \param mat	The rotation is stored here.
 	*/
-	void GetMatrix(CvMat *mat) const;
+	void GetMatrix(cv::Mat *mat) const;
 	
 	/**
 	* \brief Returns the rotation in rotation vector form.
-	* \param mat	The rotation is stored here (3x1 CvMat).
+	* \param mat	The rotation is stored here (3x1 cv::Mat).
 	*/
-	void GetRodriques(CvMat *mat) const;
+	void GetRodriques(cv::Mat *mat) const;
 	
 	/**
 	* \brief Returns the rotation in Euler angles.
-	* \param mat	The rotation is stored here (3x1 CvMat).
+	* \param mat	The rotation is stored here (3x1 cv::Mat).
 	*/
-	void GetEuler(CvMat *mat) const;
+	void GetEuler(cv::Mat *mat) const;
 	
 	/**
 	* \brief Returns the rotation in quaternion form.
-	* \param mat	The rotation is stored here (4x1 CvMat).
+	* \param mat	The rotation is stored here (4x1 cv::Mat).
 	*/
-	void GetQuaternion(CvMat *mat) const;
+	void GetQuaternion(cv::Mat *mat) const;
 };
 
 } // namespace alvar

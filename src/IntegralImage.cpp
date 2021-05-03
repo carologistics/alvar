@@ -69,14 +69,14 @@ IntegralImage::IntegralImage() {
 IntegralImage::~IntegralImage() {
 	if (sum) cvReleaseImage(&sum);
 }
-void IntegralImage::Update(IplImage *gray) {
+void IntegralImage::Update(cv::Mat&gray) {
 	if ((sum == 0) ||
 		(sum->height != gray->width+1) ||
 		(sum->width != gray->height+1))
 	{
 		if (sum) cvReleaseImage(&sum);
 		// TODO: Now we assume 'double' - is it ok?
-		sum = cvCreateImage(cvSize(gray->width+1, gray->height+1), IPL_DEPTH_64F, 1);
+		sum = cvCreateImage(cv::Size(gray->width+1, gray->height+1), IPL_DEPTH_64F, 1);
 	}
 	cvIntegral(gray, sum);
 }
@@ -104,7 +104,7 @@ double IntegralImage::GetAve(CvRect &rect) {
 	int count=1;
 	return GetSum(rect, &count)/count;
 }
-void IntegralImage::GetSubimage(const CvRect &rect, IplImage *sub) {
+void IntegralImage::GetSubimage(const CvRect &rect, cv::Mat&sub) {
     int yi=0;
     for (IntIndex yy(rect.height, sub->height); yy.get() != yy.end(); yy.next(),yi++) {
 	    int xi=0;
@@ -125,7 +125,7 @@ void IntegralImage::GetSubimage(const CvRect &rect, IplImage *sub) {
         }
 	}
 }
-void IntegralGradient::CalculatePointNormals(IplImage *gray) {
+void IntegralGradient::CalculatePointNormals(cv::Mat&gray) {
 	int width = gray->width-1;
 	int height = gray->height-1;
 	if ((normalx == 0) || 
@@ -134,8 +134,8 @@ void IntegralGradient::CalculatePointNormals(IplImage *gray) {
 	{
 		if (normalx) cvReleaseImage(&normalx);
 		if (normaly) cvReleaseImage(&normaly);
-		normalx = cvCreateImage(cvSize(width, height), IPL_DEPTH_64F, 1);
-		normaly = cvCreateImage(cvSize(width, height), IPL_DEPTH_64F, 1);
+		normalx = cvCreateImage(cv::Size(width, height), IPL_DEPTH_64F, 1);
+		normaly = cvCreateImage(cv::Size(width, height), IPL_DEPTH_64F, 1);
 	}
     for (int j=0; j<height; j++) {
         for (int i=0; i<width; i++) {
@@ -173,7 +173,7 @@ IntegralGradient::~IntegralGradient() {
 	if (normalx) cvReleaseImage(&normalx);
 	if (normaly) cvReleaseImage(&normaly);
 }
-void IntegralGradient::Update(IplImage *gray) {
+void IntegralGradient::Update(cv::Mat&gray) {
 	CalculatePointNormals(gray);
 	integx.Update(normalx);
 	integy.Update(normaly);

@@ -13,7 +13,7 @@ const int etalon_rows=6;
 const int etalon_columns=8;
 std::stringstream calibrationFilename;
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static bool calibrated = false;
     static int calib_count=0;
@@ -67,7 +67,7 @@ void videocallback(IplImage *image)
             cam.CalcExteriorOrientation(pp.object_points, pp.image_points, &pose);
             cam.ProjectPoints(pp.object_points, &pose, pp.image_points);
             for (size_t i=0; i<pp.image_points.size(); i++) {
-                cvCircle(image, cvPoint((int)pp.image_points[i].x, (int)pp.image_points[i].y), 6, cvScalar(CV_RGB(0, 0, 255)));
+                cvCircle(image, cv::Point((int)pp.image_points[i].x, (int)pp.image_points[i].y), 6, cvScalar(CV_RGB(0, 0, 255)));
             }
             pp.Reset();
         }

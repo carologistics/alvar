@@ -95,7 +95,7 @@ public :
 	/**
 	 * \brief Labels image and filters blobs to obtain square-shaped objects from the scene.
 	*/
-	virtual void LabelSquares(IplImage* image, bool visualize=false) = 0;
+    virtual void LabelSquares(cv::Mat& image, bool visualize=false) = 0;
 
 	bool CheckBorder(CvSeq* contour, int width, int height);
 
@@ -128,10 +128,10 @@ public:
 
 	void SetOptions(bool _detect_pose_grayscale=false);
 
-	void LabelSquares(IplImage* image, bool visualize=false);
+    void LabelSquares(cv::Mat& image, bool visualize=false);
 
 	// TODO: Releases memory inside, cannot return CvSeq*
-	CvSeq* LabelImage(IplImage* image, int min_size, bool approx=false);
+    CvSeq* LabelImage(cv::Mat& image, int min_size, bool approx=false);
 };
 
 } // namespace alvar

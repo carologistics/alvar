@@ -75,7 +75,7 @@ namespace alvar {
 		detect_pose_grayscale = _detect_pose_grayscale;
 	}
 
-	int MarkerDetectorImpl::Detect(IplImage *image,
+	int MarkerDetectorImpl::Detect(cv::Mat&image,
 			   Camera *cam,
 			   bool track,
 			   bool visualize,
@@ -161,7 +161,7 @@ namespace alvar {
 		return (int) _markers_size();
 	}
 
-	int MarkerDetectorImpl::DetectAdditional(IplImage *image, Camera *cam, bool visualize, double max_track_error)
+	int MarkerDetectorImpl::DetectAdditional(cv::Mat&image, Camera *cam, bool visualize, double max_track_error)
 	{
 		assert(image->origin == 0); // Currently only top-left origin supported
 		if(!labeling) return -1;

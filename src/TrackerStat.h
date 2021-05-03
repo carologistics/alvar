@@ -55,7 +55,7 @@ public:
 	/**
 	 * \brief Translation tracker (the simplest possible)
 	 */
-	double Track(IplImage *img);
+	double Track(cv::Mat&img);
 	virtual void Compensate(double *x, double *y);
 };
 
@@ -73,7 +73,7 @@ public:
 	/**
 	 * \brief Translation + rotation tracker
 	 */
-	double Track(IplImage *img);
+	double Track(cv::Mat&img);
 	virtual void Compensate(double *x, double *y);
 };
 

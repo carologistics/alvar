@@ -7,7 +7,7 @@
 using namespace alvar;
 using namespace std;
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static IplImage *img_grad = NULL;
     static IplImage *img_gray = NULL;
@@ -23,8 +23,8 @@ void videocallback(IplImage *image)
         img_grad = CvTestbed::Instance().CreateImageWithProto("Gradient", image);
         CvTestbed::Instance().ToggleImageVisible(0);
         img_gray = CvTestbed::Instance().CreateImageWithProto("Grayscale", image, 0, 1);
-        img_ver = CvTestbed::Instance().CreateImage("Vertical", cvSize(1,image->height), IPL_DEPTH_8U, 1);
-        img_hor = CvTestbed::Instance().CreateImage("Horizontal", cvSize(image->width,1), IPL_DEPTH_8U, 1);
+        img_ver = CvTestbed::Instance().CreateImage("Vertical", cv::Size(1,image->height), IPL_DEPTH_8U, 1);
+        img_hor = CvTestbed::Instance().CreateImage("Horizontal", cv::Size(image->width,1), IPL_DEPTH_8U, 1);
         img_canny = CvTestbed::Instance().CreateImageWithProto("Canny", image, 0, 1);
         img_canny->origin = img_ver->origin = img_hor->origin = image->origin;
     }
@@ -46,15 +46,15 @@ void videocallback(IplImage *image)
     integ.GetSubimage(cvRect(0,0,image->width,image->height), img_ver);
     integ.GetSubimage(cvRect(0,0,image->width,image->height), img_hor);
     for (int y=1; y<image->height; y++) {
-        cvLine(image, 
-               cvPoint(int(cvGet2D(img_ver, y-1, 0).val[0]), y-1), 
-               cvPoint(int(cvGet2D(img_ver, y, 0).val[0]), y), 
+        cv::line(image, 
+               cv::Point(int(cvGet2D(img_ver, y-1, 0).val[0]), y-1), 
+               cv::Point(int(cvGet2D(img_ver, y, 0).val[0]), y), 
                cvScalar(CV_RGB(255,0,0)));
     }
     for (int x=1; x<image->width; x++) {
-        cvLine(image, 
-               cvPoint(x-1, int(cvGet2D(img_hor, 0, x-1).val[0])), 
-               cvPoint(x, int(cvGet2D(img_hor, 0, x).val[0])), 
+        cv::line(image, 
+               cv::Point(x-1, int(cvGet2D(img_hor, 0, x-1).val[0])), 
+               cv::Point(x, int(cvGet2D(img_hor, 0, x).val[0])), 
                cvScalar(CV_RGB(0,255,0)));
     }
 
@@ -69,7 +69,7 @@ void videocallback(IplImage *image)
             r.x = x*4;
             double dirx, diry;
             grad.GetAveGradient(r, &dirx, &diry);
-            cvLine(img_grad, cvPoint(r.x+2,r.y+2), cvPoint(r.x+2+int(dirx),r.y+2+int(diry)), CV_RGB(255,0,0));
+            cv::line(img_grad, cv::Point(r.x+2,r.y+2), cv::Point(r.x+2+int(dirx),r.y+2+int(diry)), CV_RGB(255,0,0));
         }
     }
     */
@@ -86,9 +86,9 @@ void videocallback(IplImage *image)
             if (img_canny->imageData[r.y*img_canny->widthStep+r.x]) {
                 double dirx, diry;
                 grad.GetAveGradient(r, &dirx, &diry);
-                cvLine(img_grad, cvPoint(r.x+2,r.y+2), cvPoint(r.x+2+int(dirx),r.y+2+int(diry)), cvScalar(CV_RGB(0,0,255)));
-                cvLine(img_grad, cvPoint(r.x+2,r.y+2), cvPoint(r.x+2+int(-diry),r.y+2+int(+dirx)), cvScalar(CV_RGB(255,0,0)));
-                cvLine(img_grad, cvPoint(r.x+2,r.y+2), cvPoint(r.x+2+int(+diry),r.y+2+int(-dirx)), cvScalar(CV_RGB(255,0,0)));
+                cv::line(img_grad, cv::Point(r.x+2,r.y+2), cv::Point(r.x+2+int(dirx),r.y+2+int(diry)), cvScalar(CV_RGB(0,0,255)));
+                cv::line(img_grad, cv::Point(r.x+2,r.y+2), cv::Point(r.x+2+int(-diry),r.y+2+int(+dirx)), cvScalar(CV_RGB(255,0,0)));
+                cv::line(img_grad, cv::Point(r.x+2,r.y+2), cv::Point(r.x+2+int(+diry),r.y+2+int(-dirx)), cvScalar(CV_RGB(255,0,0)));
             }
         }
     }

@@ -57,10 +57,10 @@ namespace alvar {
    *
    * \code
    *   Pose P1, P2; // P0 is identity pose.
-   *   CvPoint2D64f proj0, proj1, proj2; // A 3D point projected with poses P0, P1 and P2.
+   *   cv::Point2d proj0, proj1, proj2; // A 3D point projected with poses P0, P1 and P2.
    *
    *   TrifocalTensor T(P1, P2);
-   *   CvPoint2D64f test2;
+   *   cv::Point2d test2;
    *   T.project(proj0, proj1, test2);
    *   assert(proj2.x == test2.x);
    *   assert(proj2.y == test2.y);
@@ -70,7 +70,7 @@ namespace alvar {
   class ALVAR_EXPORT TrifocalTensor {
   private:
     double T[3][3][3];
-    double projectAxis(const CvPoint2D64f &p0, const CvPoint2D64f &p1, int l);
+    double projectAxis(const cv::Point2d &p0, const cv::Point2d &p1, int l);
 
   public:
     TrifocalTensor();
@@ -125,7 +125,7 @@ namespace alvar {
      * \param p1 2D position in a image projected from the second pose.
      * \param p2 Computed 2D position in a image projected form the third pose.
      */
-    void project(const CvPoint2D64f &p0, const CvPoint2D64f &p1, CvPoint2D64f &p2);
+    void project(const cv::Point2d &p0, const cv::Point2d &p1, cv::Point2d &p2);
   
     /** \brief Computes how much three points differ from the tensor.
      *
@@ -143,7 +143,7 @@ namespace alvar {
      * \param p2 2D position in a image projected form the third pose.
      * \return Squared projection error.
      */
-    double projectError(const CvPoint2D64f &p0, const CvPoint2D64f &p1, const CvPoint2D64f &p2);
+    double projectError(const cv::Point2d &p0, const cv::Point2d &p1, const cv::Point2d &p2);
   };
 
 } // namespace alvar

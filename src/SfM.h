@@ -45,9 +45,9 @@ public:
 	public:
 		bool has_stored_pose;
 		Pose pose1;
-		CvPoint2D32f p2d1;
-		CvPoint3D32f p3d_sh;
-		CvPoint2D32f projected_p2d_sh;
+		cv::Point2f p2d1;
+		cv::Point3f p3d_sh;
+		cv::Point2f projected_p2d_sh;
 		int tri_cntr;        // This is needed only by UpdateTriangulateOnly
 		int estimation_type;
 
@@ -110,13 +110,13 @@ public:
 	/** \brief Add an marker to be a basis for tracking. It is good idea to call \e SetResetPoint after these. */
 	void AddMarker(int marker_id, double edge_length, Pose &pose);
 	/** \brief Update position assuming that camera is moving with 6-DOF */
-	bool Update(IplImage *image, bool assume_plane=true, bool triangulate=true, float reproj_err_limit=5.f, float triangulate_angle=15.f);
+	bool Update(cv::Mat&image, bool assume_plane=true, bool triangulate=true, float reproj_err_limit=5.f, float triangulate_angle=15.f);
 	/** \brief Update camera 6-DOF position using triangulated points only (This is the old version of Update) */
-	bool UpdateTriangulateOnly(IplImage *image);
+	bool UpdateTriangulateOnly(cv::Mat&image);
 	/** \brief Update position assuming that user is more standing still and viewing the environment. */
-	bool UpdateRotationsOnly(IplImage *image);
+	bool UpdateRotationsOnly(cv::Mat&image);
 	/** \brief Draw debug information about the tracked features and detected markers. */
-	void Draw(IplImage *rgba);
+	void Draw(cv::Mat&rgba);
 };
 
 }

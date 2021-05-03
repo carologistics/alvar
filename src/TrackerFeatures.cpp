@@ -77,16 +77,16 @@ void TrackerFeatures::ChangeSettings(int _max_features, int _min_features, doubl
 		ids = new int[max_features];
 	}
 	if (features) {
-		CvPoint2D32f *features_new = new CvPoint2D32f[max_features];
-		memcpy(features_new, features, sizeof(CvPoint2D32f)*common_features);
+		cv::Point2f *features_new = new cv::Point2f[max_features];
+		memcpy(features_new, features, sizeof(cv::Point2f)*common_features);
 		delete [] features;
 		features = features_new;
 	} else {
-		features = new CvPoint2D32f[max_features];
+		features = new cv::Point2f[max_features];
 	}
 	status = new char[max_features];
 	prev_ids = new int[max_features];
-	prev_features = new CvPoint2D32f[max_features];
+	prev_features = new cv::Point2f[max_features];
 	prev_feature_count=0;
 	feature_count=common_features;
 
@@ -137,7 +137,7 @@ int TrackerFeatures::Purge() {
 	return removed_count;
 }
 
-double TrackerFeatures::TrackHid(IplImage *img, IplImage *new_features_mask, bool add_features) {
+double TrackerFeatures::TrackHid(cv::Mat&img, cv::Mat&new_features_mask, bool add_features) {
 	if ((x_res != img->width) || (y_res != img->height)) {
 		if (img_eig) cvReleaseImage(&img_eig);
 		if (img_tmp) cvReleaseImage(&img_tmp);
@@ -151,8 +151,8 @@ double TrackerFeatures::TrackHid(IplImage *img, IplImage *new_features_mask, boo
 		img_tmp = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1);
 		gray = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
 		prev_gray = cvCreateImage(cvGetSize(img),IPL_DEPTH_8U, 1);
-		pyramid = cvCreateImage(cvSize(img->width+8,img->height/3), IPL_DEPTH_8U, 1);
-		prev_pyramid = cvCreateImage(cvSize(img->width+8,img->height/3), IPL_DEPTH_8U, 1);
+		pyramid = cvCreateImage(cv::Size(img->width+8,img->height/3), IPL_DEPTH_8U, 1);
+		prev_pyramid = cvCreateImage(cv::Size(img->width+8,img->height/3), IPL_DEPTH_8U, 1);
 		mask = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
 		frame_count=0;
 		if (min_distance == 0) {
@@ -162,7 +162,7 @@ double TrackerFeatures::TrackHid(IplImage *img, IplImage *new_features_mask, boo
 	}
 	// Swap 
 	IplImage* tmp;
-	CvPoint2D32f* tmp2;
+	cv::Point2f* tmp2;
 	CV_SWAP(prev_gray, gray, tmp);
 	CV_SWAP(prev_features, features, tmp2);
 	prev_feature_count=feature_count;
@@ -176,13 +176,13 @@ double TrackerFeatures::TrackHid(IplImage *img, IplImage *new_features_mask, boo
 	//if (prev_feature_count < 1) return -1;
 	frame_count++;
 	if (frame_count <= 1) {
-		memcpy(features, prev_features, sizeof(CvPoint2D32f)*prev_feature_count);
+		memcpy(features, prev_features, sizeof(cv::Point2f)*prev_feature_count);
 		memcpy(ids, prev_ids, sizeof(int)*prev_feature_count);
 		feature_count = prev_feature_count;
 	} else if (prev_feature_count > 0) {
 		// Track
 		cvCalcOpticalFlowPyrLK(prev_gray, gray, prev_pyramid, pyramid,
-			prev_features, features, prev_feature_count, cvSize(win_size, win_size), pyr_levels, status, 0,
+			prev_features, features, prev_feature_count, cv::Size(win_size, win_size), pyr_levels, status, 0,
 			cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), 0);
 		feature_count=0;
 		for (int i=0; i<prev_feature_count; i++) {
@@ -198,13 +198,13 @@ double TrackerFeatures::TrackHid(IplImage *img, IplImage *new_features_mask, boo
 	return 1;
 }
 
-double TrackerFeatures::Reset(IplImage *img, IplImage *new_features_mask) {
+double TrackerFeatures::Reset(cv::Mat&img, cv::Mat&new_features_mask) {
 	feature_count=0;
 	frame_count=0;
 	return TrackHid(img, new_features_mask);
 }
 
-double TrackerFeatures::Track(IplImage *img, bool add_features) {
+double TrackerFeatures::Track(cv::Mat&img, bool add_features) {
 	return TrackHid(img, NULL); //, add_features);
 }
 
@@ -217,14 +217,14 @@ IplImage *TrackerFeatures::NewFeatureMask() {
 	cvSet(mask, cvScalar(255));
 	for (int i=0; i<feature_count; i++) {
 		cvRectangle(mask, 
-					cvPoint(int(features[i].x-min_distance), int(features[i].y-min_distance)), 
-					cvPoint(int(features[i].x+min_distance), int(features[i].y+min_distance)), 
+					cv::Point(int(features[i].x-min_distance), int(features[i].y-min_distance)), 
+					cv::Point(int(features[i].x+min_distance), int(features[i].y+min_distance)), 
 					cvScalar(0), CV_FILLED);
 	}
 	return mask;
 }
 
-int TrackerFeatures::AddFeatures(IplImage *new_features_mask) {
+int TrackerFeatures::AddFeatures(cv::Mat&new_features_mask) {
 	if (gray == NULL) return 0;
 	if (feature_count < min_features) {
 		int new_feature_count=max_features-feature_count;
@@ -232,8 +232,8 @@ int TrackerFeatures::AddFeatures(IplImage *new_features_mask) {
 			cvSet(mask, cvScalar(255));
 			for (int i=0; i<feature_count; i++) {
 				cvRectangle(mask, 
-							cvPoint(int(features[i].x-min_distance), int(features[i].y-min_distance)), 
-							cvPoint(int(features[i].x+min_distance), int(features[i].y+min_distance)), 
+							cv::Point(int(features[i].x-min_distance), int(features[i].y-min_distance)), 
+							cv::Point(int(features[i].x+min_distance), int(features[i].y+min_distance)), 
 							cvScalar(0), CV_FILLED);
 			}
 			// Find new features

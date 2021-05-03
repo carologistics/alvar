@@ -58,12 +58,12 @@ protected:
 	int pyr_levels;
 
 	/** \brief Reset track features on specified mask area */
-	double TrackHid(IplImage *img, IplImage *mask=NULL, bool add_features=true);
+	double TrackHid(cv::Mat&img, cv::Mat&mask=NULL, bool add_features=true);
 public:
 	/** \brief \e Track result: previous features */
-	CvPoint2D32f *prev_features;
+	cv::Point2f *prev_features;
 	/** \brief \e Track result: current features */
-	CvPoint2D32f *features;
+	cv::Point2f *features;
 	/** \brief \e Track result: count of previous features */
 	int prev_feature_count;
 	/** \brief \e Track result: count of current features */
@@ -89,19 +89,19 @@ public:
 	/** \brief Reset */
 	void Reset(); 
 	/** \brief Reset track features on specified mask area */
-	double Reset(IplImage *img, IplImage *mask); 
+	double Reset(cv::Mat&img, cv::Mat&mask); 
 	/** \brief Stop tracking the identified feature (with index for features array)*/
 	bool DelFeature(int index);
 	/** \brief Stop tracking the identified feature (with feature id) */
 	bool DelFeatureId(int id);
 	/** \brief Track features */
-	double Track(IplImage *img) { return Track(img, true); }
+	double Track(cv::Mat&img) { return Track(img, true); }
 	/** \brief Track features */
-	double Track(IplImage *img, bool add_features); 
+	double Track(cv::Mat&img, bool add_features); 
 	/** \brief Track features */
     double Track(IplImage* img, IplImage* mask);
 	/** \brief add features to the previously tracked frame if there are less than min_features */
-	int AddFeatures(IplImage *mask=NULL);
+	int AddFeatures(cv::Mat&mask=NULL);
 	/** \brief Create and get the pointer to new_features_mask */
 	IplImage *NewFeatureMask();
 	/** \brief Purge features that are considerably closer than the defined min_distance. 

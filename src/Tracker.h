@@ -44,7 +44,7 @@ class ALVAR_EXPORT Tracker {
 public:
 	Tracker() {}
 	/** \brief Pure virtual function for making the next track step. This analyses the image and  updates class member variables accordingly */
-	virtual double Track(IplImage *img) = 0;
+	virtual double Track(cv::Mat&img) = 0;
 
 	virtual void Compensate(double *x, double *y) {}
 };

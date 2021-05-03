@@ -18,7 +18,7 @@ std::stringstream calibrationFilename;
 
 MultiMarkerInitializer *multi_marker_init=NULL;
 MultiMarkerBundle *multi_marker_bundle=NULL;
-double GetMultiMarkerPose(IplImage *image, Camera *cam, Pose &pose) {
+double GetMultiMarkerPose(cv::Mat&image, Camera *cam, Pose &pose) {
     static bool init=true;
     if (init) {
         cout<<"Using manual multimarker approach with MultiMarkerInitializer & MultiMarkerBundle."<<endl;
@@ -101,7 +101,7 @@ double GetMultiMarkerPose(IplImage *image, Camera *cam, Pose &pose) {
     return error;
 }
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static Camera cam;
     static Pose pose;

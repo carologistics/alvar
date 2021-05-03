@@ -74,7 +74,7 @@ double ALVAR_EXPORT Deg2Rad(const C& v)
 }
 
 /**
- * \brief Simple \e Point class meant to be inherited from OpenCV point-classes. For example: Point<CvPoint2D64f> p
+ * \brief Simple \e Point class meant to be inherited from OpenCV point-classes. For example: Point<cv::Point2d> p
  */
 template<class C, class D = int> 
 struct ALVAR_EXPORT Point : public C
@@ -99,12 +99,12 @@ struct ALVAR_EXPORT Point : public C
 /** 
   *  \brief The default integer point type.
 */
-typedef ALVAR_EXPORT Point<CvPoint> PointInt;
+typedef ALVAR_EXPORT Point<cv::Point> PointInt;
 
 /**
   *  \brief The default double point type.
 */
-typedef ALVAR_EXPORT Point<CvPoint2D64f> PointDouble;
+typedef ALVAR_EXPORT Point<cv::Point2d> PointDouble;
 
 /** \brief Returns the squared distance of two points. 
   * \param p1	First point.
@@ -125,21 +125,21 @@ double PointSquaredDistance(PointType p1, PointType p2) {
   * \brief  Computes dot product AB.BC
   * \param  A,B and C	points defining lines (line segments) AB and BC
  */
-int ALVAR_EXPORT dot(CvPoint *A, CvPoint *B, CvPoint *C);
+int ALVAR_EXPORT dot(cv::Point *A, cv::Point *B, cv::Point *C);
 
 /** 
   * \brief  Computes the cross product AB x AC
   * \param  A,B and C points defining lines (line segments) AB and AC
   * \param 
  */
-int ALVAR_EXPORT cross(CvPoint *A,CvPoint *B, CvPoint *C);
+int ALVAR_EXPORT cross(cv::Point *A,cv::Point *B, cv::Point *C);
 
 
 /** 
   * \brief  Compute the distance from A to B
   * \param  A and B		points
  */
-double ALVAR_EXPORT distance(CvPoint *A,CvPoint *B);
+double ALVAR_EXPORT distance(cv::Point *A,cv::Point *B);
 
 /** 
   * \brief  Computes the distance from point C to line (segment) AB.
@@ -147,7 +147,7 @@ double ALVAR_EXPORT distance(CvPoint *A,CvPoint *B);
   * \param  C	point
   * \param  A abd B	 points defining line (segment) AB
  */
-double ALVAR_EXPORT linePointDist(CvPoint *A,CvPoint *B,CvPoint *C, bool isSegment);
+double ALVAR_EXPORT linePointDist(cv::Point *A,cv::Point *B,cv::Point *C, bool isSegment);
 
 
 /** 
@@ -158,7 +158,7 @@ double ALVAR_EXPORT linePointDist(CvPoint *A,CvPoint *B,CvPoint *C, bool isSegme
   * \param  C start point of second line
   * \param  D end point of second line
  */
-double ALVAR_EXPORT angle(CvPoint *A,CvPoint *B, CvPoint *C,CvPoint *D, int isDirectionDependent);
+double ALVAR_EXPORT angle(cv::Point *A,cv::Point *B, cv::Point *C,cv::Point *D, int isDirectionDependent);
 
 
 /** 
@@ -167,7 +167,7 @@ double ALVAR_EXPORT angle(CvPoint *A,CvPoint *B, CvPoint *C,CvPoint *D, int isDi
   * \param  index	index of point A in pointlist, where A is the starting point of the closest polygon segment
   * \param  isClosedPolygon is true if polygon is closed (segment of the first and last point is also checked)
  */
-double ALVAR_EXPORT polyLinePointDist(CvPoint *PointList, int nPnts,CvPoint *C, int *index, int isClosedPolygon);
+double ALVAR_EXPORT polyLinePointDist(cv::Point *PointList, int nPnts,cv::Point *C, int *index, int isClosedPolygon);
 
 //ttesis end
 
@@ -215,7 +215,7 @@ int ALVAR_EXPORT find_zero_crossings(const std::vector<double>& v, std::vector<i
 /** 
   * \brief Output OpenCV matrix for debug purposes.
   */
-void ALVAR_EXPORT out_matrix(const CvMat *m, const char *name);
+void ALVAR_EXPORT out_matrix(const cv::Mat *m, const char *name);
 
 /** 
   * \brief Limits a number to between two values. 
@@ -441,8 +441,8 @@ public:
 	bool Serialize(double &data, const std::string &name);
 	/** \brief Method for serializing 'std::string' data element. Used from your serializable class. */
 	bool Serialize(std::string &data, const std::string &name);
-	/** \brief Method for serializing 'CvMat' data element. Used from your serializable class. */
-	bool Serialize(CvMat &data, const std::string &name);
+	/** \brief Method for serializing 'cv::Mat' data element. Used from your serializable class. */
+	bool Serialize(cv::Mat &data, const std::string &name);
 	/** \brief Method for checking if we are inputting or outputting. Can be used from your serializable class. */
 	bool IsInput() { return input; }
 };

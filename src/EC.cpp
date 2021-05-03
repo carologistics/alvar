@@ -31,40 +31,40 @@ namespace alvar {
 struct ProjectParams
 {
 	Camera *camera;
-	const CvMat *object_model;
+	const cv::Mat *object_model;
 };
 
-static void ProjectRot(CvMat* state, CvMat* projection, void* x) 
+static void ProjectRot(cv::Mat* state, cv::Mat* projection, void* x) 
 {
 	ProjectParams *foo = (ProjectParams*)x;
 	Camera *camera = foo->camera;
-	const CvMat *object_model = foo->object_model;
+	const cv::Mat *object_model = foo->object_model;
 	int count = projection->rows;
-	CvMat rot_mat = cvMat(3, 1, CV_64F, &(state->data.db[0+0]));
+	cv::Mat rot_mat = cv::Mat(3, 1, CV_64F, &(state->data.db[0+0]));
 	double zeros[3] = {0};
-	CvMat zero_tra = cvMat(3, 1, CV_64F, zeros);
+	cv::Mat zero_tra = cv::Mat(3, 1, CV_64F, zeros);
 	cvReshape(projection, projection, 2, 1);
 	cvProjectPoints2(object_model, &rot_mat, &zero_tra, &(camera->calib_K), &(camera->calib_D), projection);
 	cvReshape(projection, projection, 1, count);
 }
 
 // TODO: How this differs from the Camera::ProjectPoints ???
-static void Project(CvMat* state, CvMat* projection, void* x)
+static void Project(cv::Mat* state, cv::Mat* projection, void* x)
 {
 	ProjectParams *foo = (ProjectParams*)x;
 	Camera *camera = foo->camera;
-	const CvMat *object_model = foo->object_model;
+	const cv::Mat *object_model = foo->object_model;
 	int count = projection->rows;
-	CvMat rot_mat = cvMat(3, 1, CV_64F, &(state->data.db[0+0]));
-	CvMat tra_mat = cvMat(3, 1, CV_64F, &(state->data.db[0+3]));
+	cv::Mat rot_mat = cv::Mat(3, 1, CV_64F, &(state->data.db[0+0]));
+	cv::Mat tra_mat = cv::Mat(3, 1, CV_64F, &(state->data.db[0+3]));
 	cvReshape(projection, projection, 2, 1);
 	cvProjectPoints2(object_model, &rot_mat, &tra_mat, &(camera->calib_K), &(camera->calib_D), projection);
 	cvReshape(projection, projection, 1, count);
 }
 
-bool CameraEC::UpdatePose(const CvMat* object_points, CvMat* image_points, Pose *pose, CvMat *weights) {
-	double rot[3]; CvMat rotm = cvMat(3, 1, CV_64F, rot);
-	double tra[3]; CvMat tram = cvMat(3, 1, CV_64F, tra);
+bool CameraEC::UpdatePose(const cv::Mat* object_points, cv::Mat* image_points, Pose *pose, cv::Mat *weights) {
+	double rot[3]; cv::Mat rotm = cv::Mat(3, 1, CV_64F, rot);
+	double tra[3]; cv::Mat tram = cv::Mat(3, 1, CV_64F, tra);
 	pose->GetRodriques(&rotm);
 	pose->GetTranslation(&tram);
 	bool ret = UpdatePose(object_points, image_points, &rotm, &tram, weights);
@@ -73,14 +73,14 @@ bool CameraEC::UpdatePose(const CvMat* object_points, CvMat* image_points, Pose 
 	return ret;
 }
 
-bool CameraEC::UpdatePose(const CvMat* object_points, CvMat* image_points, CvMat *rot, CvMat *tra, CvMat *weights) {
+bool CameraEC::UpdatePose(const cv::Mat* object_points, cv::Mat* image_points, cv::Mat *rot, cv::Mat *tra, cv::Mat *weights) {
 	if (object_points->height < 4) return false;
 	/*	if (object_points->height < 6) {
 		return false;
 		// TODO: We need to change image_points into CV_32FC2
 		return Camera::CalcExteriorOrientation(object_points, image_points, rot, tra);
 	}*/
-	CvMat* par = cvCreateMat(6, 1, CV_64F);
+	cv::Mat* par = cvCreateMat(6, 1, CV_64F);
 	memcpy(&(par->data.db[0+0]), rot->data.db, 3*sizeof(double));
 	memcpy(&(par->data.db[0+3]), tra->data.db, 3*sizeof(double));
 
@@ -100,10 +100,10 @@ bool CameraEC::UpdatePose(const CvMat* object_points, CvMat* image_points, CvMat
 	return true;
 }
 
-bool CameraEC::UpdateRotation(const CvMat* object_points, CvMat* image_points, Pose *pose)
+bool CameraEC::UpdateRotation(const cv::Mat* object_points, cv::Mat* image_points, Pose *pose)
 {
-	double rot[3]; CvMat rotm = cvMat(3, 1, CV_64F, rot);
-	double tra[3]; CvMat tram = cvMat(3, 1, CV_64F, tra);
+	double rot[3]; cv::Mat rotm = cv::Mat(3, 1, CV_64F, rot);
+	double tra[3]; cv::Mat tram = cv::Mat(3, 1, CV_64F, tra);
 	pose->GetRodriques(&rotm);
 	pose->GetTranslation(&tram);
 	bool ret = UpdateRotation(object_points, image_points, &rotm, &tram);
@@ -112,9 +112,9 @@ bool CameraEC::UpdateRotation(const CvMat* object_points, CvMat* image_points, P
 	return ret;	
 }
 
-bool CameraEC::UpdateRotation(const CvMat* object_points, CvMat* image_points, CvMat *rot, CvMat *tra) {
+bool CameraEC::UpdateRotation(const cv::Mat* object_points, cv::Mat* image_points, cv::Mat *rot, cv::Mat *tra) {
 
-	CvMat* par = cvCreateMat(3, 1, CV_64F);
+	cv::Mat* par = cvCreateMat(3, 1, CV_64F);
 	memcpy(&(par->data.db[0+0]), rot->data.db, 3*sizeof(double));
 	ProjectParams pparams;
 	pparams.camera = this;
@@ -128,31 +128,31 @@ bool CameraEC::UpdateRotation(const CvMat* object_points, CvMat* image_points, C
 }
 
 // Ol etta mirror asia on kunnossa
-void GetOrigo(Pose* pose, CvMat* O)
+void GetOrigo(Pose* pose, cv::Mat* O)
 {
 	pose->GetTranslation(O);
 }
 
-void GetPointOnLine(const Pose* pose, Camera *camera, const CvPoint2D32f *u, CvMat* P)
+void GetPointOnLine(const Pose* pose, Camera *camera, const cv::Point2f *u, cv::Mat* P)
 {
 	double kid[9], rotd[9], trad[3], ud[3] = {u->x, u->y, 1};
-	CvMat Ki = cvMat(3, 3, CV_64F, kid);
-	CvMat R = cvMat(3, 3, CV_64F, rotd);
-	CvMat T = cvMat(3, 1, CV_64F, trad);
-	CvMat U = cvMat(3, 1, CV_64F, ud);
+	cv::Mat Ki = cv::Mat(3, 3, CV_64F, kid);
+	cv::Mat R = cv::Mat(3, 3, CV_64F, rotd);
+	cv::Mat T = cv::Mat(3, 1, CV_64F, trad);
+	cv::Mat U = cv::Mat(3, 1, CV_64F, ud);
 	pose->GetMatrix(&R);
 	pose->GetTranslation(&T);
 	cvInv(&(camera->calib_K), &Ki);
-	cvMatMul(&R, &Ki, &Ki);
+	cv::MatMul(&R, &Ki, &Ki);
 	cvGEMM(&Ki, &U, 1, &T, 1, P, 0);					
 }
 
-bool MidPointAlgorithm(CvMat* o1, CvMat* o2, CvMat* p1, CvMat* p2, CvPoint3D32f& X, double limit)
+bool MidPointAlgorithm(cv::Mat* o1, cv::Mat* o2, cv::Mat* p1, cv::Mat* p2, cv::Point3f& X, double limit)
 {
 	double ud[3], vd[3], wd[3];
-	CvMat u = cvMat(3, 1, CV_64F, ud);
-	CvMat v = cvMat(3, 1, CV_64F, vd);
-	CvMat w = cvMat(3, 1, CV_64F, wd);
+	cv::Mat u = cv::Mat(3, 1, CV_64F, ud);
+	cv::Mat v = cv::Mat(3, 1, CV_64F, vd);
+	cv::Mat w = cv::Mat(3, 1, CV_64F, wd);
 	
 	cvSub(p1, o1, &u);
 	cvSub(p2, o2, &v);
@@ -181,8 +181,8 @@ bool MidPointAlgorithm(CvMat* o1, CvMat* o2, CvMat* p1, CvMat* p2, CvPoint3D32f&
 	}
 	
 	double m1d[3], m2d[3];
-	CvMat m1 = cvMat(3, 1, CV_64F, m1d);
-	CvMat m2 = cvMat(3, 1, CV_64F, m2d);
+	cv::Mat m1 = cv::Mat(3, 1, CV_64F, m1d);
+	cv::Mat m2 = cv::Mat(3, 1, CV_64F, m2d);
 	cvAddWeighted(&u, sc, o1, 1.0, 0.0, &m1);
 	cvAddWeighted(&v, tc, o2, 1.0, 0.0, &m2);
 	cvAddWeighted(&m1, 0.5, &m2, 0.5, 0.0, &m1);	
@@ -195,12 +195,12 @@ bool MidPointAlgorithm(CvMat* o1, CvMat* o2, CvMat* p1, CvMat* p2, CvPoint3D32f&
 }
 
 // todo
-bool CameraEC::ReconstructFeature(const Pose *pose1, const Pose *pose2, const CvPoint2D32f *u1, const CvPoint2D32f *u2, CvPoint3D32f *p3d, double limit) {
+bool CameraEC::ReconstructFeature(const Pose *pose1, const Pose *pose2, const cv::Point2f *u1, const cv::Point2f *u2, cv::Point3f *p3d, double limit) {
 	double o1d[3], o2d[3], p1d[3], p2d[3];
-	CvMat o1 = cvMat(3, 1, CV_64F, o1d);
-	CvMat o2 = cvMat(3, 1, CV_64F, o2d);
-	CvMat p1 = cvMat(3, 1, CV_64F, p1d);
-	CvMat p2 = cvMat(3, 1, CV_64F, p2d);
+	cv::Mat o1 = cv::Mat(3, 1, CV_64F, o1d);
+	cv::Mat o2 = cv::Mat(3, 1, CV_64F, o2d);
+	cv::Mat p1 = cv::Mat(3, 1, CV_64F, p1d);
+	cv::Mat p2 = cv::Mat(3, 1, CV_64F, p2d);
 
 	Pose po1 = *pose1; // Make copy so that we don't destroy the pose content
 	Pose po2 = *pose2;
@@ -214,11 +214,11 @@ bool CameraEC::ReconstructFeature(const Pose *pose1, const Pose *pose2, const Cv
 	return MidPointAlgorithm(&o1, &o2, &p1, &p2, *p3d, limit);
 }
 
-void CameraEC::Get3dOnPlane(const Pose *pose, CvPoint2D32f p2d, CvPoint3D32f &p3d) {
+void CameraEC::Get3dOnPlane(const Pose *pose, cv::Point2f p2d, cv::Point3f &p3d) {
 	double pd[16], md[9], kd[9];	
-	CvMat P = cvMat(4, 4, CV_64F, pd);
-	CvMat H = cvMat(3, 3, CV_64F, md);
-	CvMat Ki = cvMat(3, 3, CV_64F, kd);
+	cv::Mat P = cv::Mat(4, 4, CV_64F, pd);
+	cv::Mat H = cv::Mat(3, 3, CV_64F, md);
+	cv::Mat Ki = cv::Mat(3, 3, CV_64F, kd);
 	
 	pose->GetMatrix(&P);
 	cvInv(&(calib_K), &Ki);
@@ -228,9 +228,9 @@ void CameraEC::Get3dOnPlane(const Pose *pose, CvPoint2D32f p2d, CvPoint3D32f &p3
 	for(int i = 0; i < 3; ++i)
 	{
 		CvRect r; r.x = ind_s; r.y = 0; r.height = 3; r.width = 1;
-		CvMat sub = cvMat(3, 1, CV_64F);
+		cv::Mat sub = cv::Mat(3, 1, CV_64F);
 		cvGetSubRect(&P, &sub, r);
-		CvMat col = cvMat(3, 1, CV_64F);
+		cv::Mat col = cv::Mat(3, 1, CV_64F);
 		cvGetCol(&H, &col, ind_c);
 		cvCopy(&sub, &col);
 		ind_c++;
@@ -241,17 +241,17 @@ void CameraEC::Get3dOnPlane(const Pose *pose, CvPoint2D32f p2d, CvPoint3D32f &p3
 	// Apply H to get the 3D coordinates
 	Camera::Undistort(p2d);
 	double xd[3] = {p2d.x, p2d.y, 1};
-	CvMat X = cvMat(3, 1, CV_64F, xd);
-	cvMatMul(&Ki, &X, &X);
+	cv::Mat X = cv::Mat(3, 1, CV_64F, xd);
+	cv::MatMul(&Ki, &X, &X);
 	cvInv(&H, &H);
-	cvMatMul(&H, &X, &X);
+	cv::MatMul(&H, &X, &X);
 
 	p3d.x = (float)(xd[0] / xd[2]);
 	p3d.y = (float)(xd[1] / xd[2]);
 	p3d.z = 0;
 }
 
-void CameraEC::Get3dOnDepth(const Pose *pose, CvPoint2D32f p2d, float depth, CvPoint3D32f &p3d)
+void CameraEC::Get3dOnDepth(const Pose *pose, cv::Point2f p2d, float depth, cv::Point3f &p3d)
 {
 	double wx, wy, wz;
 	Camera::Undistort(p2d);
@@ -269,11 +269,11 @@ void CameraEC::Get3dOnDepth(const Pose *pose, CvPoint2D32f p2d, float depth, CvP
 	p.Invert();
 	
 	double Xd[4] = {wx, wy, wz, 1};
-	CvMat Xdm = cvMat(4, 1, CV_64F, Xd);
+	cv::Mat Xdm = cv::Mat(4, 1, CV_64F, Xd);
 	double Pd[16];
-	CvMat Pdm = cvMat(4, 4, CV_64F, Pd);
+	cv::Mat Pdm = cv::Mat(4, 4, CV_64F, Pd);
 	p.GetMatrix(&Pdm);
-	cvMatMul(&Pdm, &Xdm, &Xdm);
+	cv::MatMul(&Pdm, &Xdm, &Xdm);
 	p3d.x = float(Xd[0]/Xd[3]);
 	p3d.y = float(Xd[1]/Xd[3]);
 	p3d.z = float(Xd[2]/Xd[3]);

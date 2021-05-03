@@ -17,7 +17,7 @@ CvTestbed::~CvTestbed() {
 	images.clear();
 }
 
-void CvTestbed::default_videocallback(IplImage *image) {
+void CvTestbed::default_videocallback(cv::Mat&image) {
 	// TODO: Skip frames if we are too slow? Impossible using OpenCV?
 	/*
 	static bool semaphore=false;
@@ -38,7 +38,7 @@ void CvTestbed::WaitKeys() {
 	static bool pause = false;
 	while (running) {
 		if (cap) {
-			IplImage *frame = cap->captureImage();
+			cv::Mat&frame = cap->captureImage();
 			if (frame) {
 				default_videocallback(frame);
 				if (wintitle.size() > 0) {
@@ -90,7 +90,7 @@ CvTestbed& CvTestbed::Instance() {
 	return obj;
 }
 
-void CvTestbed::SetVideoCallback(void (*_videocallback)(IplImage *image)) {
+void CvTestbed::SetVideoCallback(void (*_videocallback)(cv::Mat&image)) {
 	videocallback=_videocallback;
 }
 
@@ -140,17 +140,17 @@ size_t CvTestbed::SetImage(const char *title, IplImage *ipl, bool release_at_exi
 	return index;
 }
 
-IplImage *CvTestbed::CreateImage(const char *title, CvSize size, int depth, int channels ) {
+IplImage *CvTestbed::CreateImage(const char *title, cv::Size size, int depth, int channels ) {
 	IplImage *ipl=cvCreateImage(size, depth, channels);
 	if (!ipl) return NULL;
 	SetImage(title, ipl, true);
 	return ipl;
 }
 
-IplImage *CvTestbed::CreateImageWithProto(const char *title, IplImage *proto, int depth /* =0 */, int channels /* =0 */) {
+IplImage *CvTestbed::CreateImageWithProto(const char *title, cv::Mat&proto, int depth /* =0 */, int channels /* =0 */) {
 	if (depth == 0) depth = proto->depth;
 	if (channels == 0) channels = proto->nChannels;
-	IplImage *ipl= cvCreateImage(cvSize(proto->width, proto->height), depth, channels);
+	IplImage *ipl= cvCreateImage(cv::Size(proto->width, proto->height), depth, channels);
 	if (!ipl) return NULL;
 	ipl->origin = proto->origin;
 	SetImage(title, ipl, true);

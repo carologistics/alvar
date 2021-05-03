@@ -29,31 +29,31 @@ using namespace std;
 namespace alvar {
 using namespace std;
 
-void DrawPoints(IplImage *image, const vector<CvPoint>& points, CvScalar color)
+void DrawPoints(cv::Mat&image, const vector<cv::Point>& points, CvScalar color)
 {
 	for(unsigned i = 0; i < points.size(); ++i)
-		cvLine(image, cvPoint(points[i].x,points[i].y), cvPoint(points[i].x,points[i].y), color);
+		cv::line(image, cv::Point(points[i].x,points[i].y), cv::Point(points[i].x,points[i].y), color);
 }
 
 void DrawLine(IplImage* image, const Line line, CvScalar color)
 {
 	double len = 100;
-	CvPoint p1, p2;
+	cv::Point p1, p2;
 	p1.x = int(line.c.x); p1.y = int(line.c.y);
 	p2.x = int(line.c.x+line.s.x*len); p2.y = int(line.c.y+line.s.y*len);
-	cvLine(image, p1, p2, color);
+	cv::line(image, p1, p2, color);
 
 	p1.x = int(line.c.x); p1.y = int(line.c.y);
 	p2.x = int(line.c.x-line.s.x*len); p2.y = int(line.c.y-line.s.y*len);
-	cvLine(image, p1, p2, color);
+	cv::line(image, p1, p2, color);
 }
 
 void DrawPoints(IplImage* image, const CvSeq* contour, CvScalar color)
 {
 	for(int i = 0; i < contour->total; ++i)
 	{
-		CvPoint* pt = (CvPoint*)cvGetSeqElem( contour, i);
-		cvLine(image, cvPoint(pt->x, pt->y), cvPoint(pt->x, pt->y), color);
+		cv::Point* pt = (cv::Point*)cvGetSeqElem( contour, i);
+		cv::line(image, cv::Point(pt->x, pt->y), cv::Point(pt->x, pt->y), color);
 	}
 }
 
@@ -61,8 +61,8 @@ void DrawCircles(IplImage* image, const CvSeq* contour, int radius, CvScalar col
 {
 	for(int i = 0; i < contour->total; ++i)
 	{
-		CvPoint* pt = (CvPoint*)cvGetSeqElem( contour, i);
-		cvCircle(image, cvPoint(pt->x, pt->y), radius, color);
+		cv::Point* pt = (cv::Point*)cvGetSeqElem( contour, i);
+		cvCircle(image, cv::Point(pt->x, pt->y), radius, color);
 	}
 }
 
@@ -72,16 +72,16 @@ void DrawLines(IplImage* image, const CvSeq* contour, CvScalar color)
 	{
 		for(int i = 0; i < contour->total; ++i)
 		{
-			CvPoint* pt1 = (CvPoint*)cvGetSeqElem( contour, i);
-			CvPoint* pt2 = (CvPoint*)cvGetSeqElem( contour, (i+1)%(contour->total));
-			cvLine(image, cvPoint(pt1->x, pt1->y), cvPoint(pt2->x, pt2->y), color);
+			cv::Point* pt1 = (cv::Point*)cvGetSeqElem( contour, i);
+			cv::Point* pt2 = (cv::Point*)cvGetSeqElem( contour, (i+1)%(contour->total));
+			cv::line(image, cv::Point(pt1->x, pt1->y), cv::Point(pt2->x, pt2->y), color);
 		}
 	}
 }
 
 void DrawCVEllipse(IplImage* image, CvBox2D& ellipse, CvScalar color, bool fill/*=false*/, double par)
 {
-	CvPoint center;
+	cv::Point center;
 	center.x = static_cast<int>(ellipse.center.x);
 	center.y = static_cast<int>(ellipse.center.y);
 	int type = 1;
@@ -89,10 +89,10 @@ void DrawCVEllipse(IplImage* image, CvBox2D& ellipse, CvScalar color, bool fill/
 		type = CV_FILLED;
 
 	//cout<<center.x<<" "<<center.y<<" "<<ellipse.size.width/2<<" "<<ellipse.size.height/2<<" "<<ellipse.angle<<endl;
-	cvEllipse(image, center, cvSize(static_cast<int>(par+ellipse.size.width/2), static_cast<int>(par+ellipse.size.height/2)), -ellipse.angle, 0, 360, color, type);
+	cvEllipse(image, center, cv::Size(static_cast<int>(par+ellipse.size.width/2), static_cast<int>(par+ellipse.size.height/2)), -ellipse.angle, 0, 360, color, type);
 }
 
-void BuildHideTexture(IplImage *image, IplImage *hide_texture, 
+void BuildHideTexture(cv::Mat&image, cv::Mat&hide_texture, 
 	Camera *cam, double gl_modelview[16], 
 	PointDouble topleft, PointDouble botright) 
 {
@@ -164,7 +164,7 @@ void BuildHideTexture(IplImage *image, IplImage *hide_texture,
 				xd, oy, 0,
 			};
 			double points2d[4][2];
-			CvMat points3d_mat, points2d_mat;
+			cv::Mat points3d_mat, points2d_mat;
 			cvInitMatHeader(&points3d_mat, 4, 3, CV_64F, points3d);
 			cvInitMatHeader(&points2d_mat, 4, 2, CV_64F, points2d);
 			cam->ProjectPoints(&points3d_mat, gl_modelview, &points2d_mat);
@@ -210,7 +210,7 @@ void BuildHideTexture(IplImage *image, IplImage *hide_texture,
 	}
 }
 
-void DrawTexture(IplImage *image, IplImage *texture, 
+void DrawTexture(cv::Mat&image, cv::Mat&texture, 
 	Camera *cam, double gl_modelview[16], 
 	PointDouble topleft, PointDouble botright) 
 {
@@ -228,21 +228,21 @@ void DrawTexture(IplImage *image, IplImage *texture,
 		objx, -objy, 0,
 	};
 	double points2d[4][2];
-	CvMat points3d_mat, points2d_mat;
+	cv::Mat points3d_mat, points2d_mat;
 	cvInitMatHeader(&points3d_mat, 4, 3, CV_64F, points3d);
 	cvInitMatHeader(&points2d_mat, 4, 2, CV_64F, points2d);
 	cam->ProjectPoints(&points3d_mat, gl_modelview, &points2d_mat);
 	
 	// Warp texture and mask using the perspective that is based on the corners
 	double map[9];
-	CvMat map_mat = cvMat(3, 3, CV_64F, map);
-	CvPoint2D32f src[4] = {
+	cv::Mat map_mat = cv::Mat(3, 3, CV_64F, map);
+	cv::Point2f src[4] = {
 		{ 0, 0 },
 		{ 0, float(texture->height-1) },
 		{ float(texture->width-1), float(texture->height-1) },
 		{ float(texture->width-1), 0 },
 	};
-	CvPoint2D32f dst[4] = {
+	cv::Point2f dst[4] = {
 		{ float(points2d[0][0]), float(points2d[0][1]) },
 		{ float(points2d[1][0]), float(points2d[1][1]) },
 		{ float(points2d[2][0]), float(points2d[2][1]) },
@@ -251,8 +251,8 @@ void DrawTexture(IplImage *image, IplImage *texture,
 	cvGetPerspectiveTransform(src, dst, &map_mat);
 	IplImage *img = cvCloneImage(image);
 	IplImage *img2 = cvCloneImage(image);
-	IplImage *mask = cvCreateImage(cvSize(image->width, image->height), 8, 1);
-	IplImage *mask2 = cvCreateImage(cvSize(image->width, image->height), 8, 1);
+	IplImage *mask = cvCreateImage(cv::Size(image->width, image->height), 8, 1);
+	IplImage *mask2 = cvCreateImage(cv::Size(image->width, image->height), 8, 1);
 	cvZero(img);
 	cvZero(img2);
 	cvZero(mask);

@@ -57,7 +57,7 @@ public:
 	/** \brief Destructor */
 	~TrackerPsa();
 	/** \brief Track using PSA */
-	double Track(IplImage *img);
+	double Track(cv::Mat&img);
 
 	virtual void Compensate(double *x, double *y);
 };
@@ -78,7 +78,7 @@ public:
 	/** \brief Destructor */
 	~TrackerPsaRot();
 	/** \brief Track using PSA with rotation*/
-	double Track(IplImage *img);
+	double Track(cv::Mat&img);
 
 	virtual void Compensate(double *x, double *y);
 };

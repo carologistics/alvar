@@ -57,8 +57,8 @@ UnscentedKalman::UnscentedKalman(int state_n, int obs_n, int state_k, double alp
   kalmanGain = cvCreateMat(state_n, obs_n, CV_64F); cvSetZero(kalmanGain);
   kalmanTmp = cvCreateMat(state_n, obs_n, CV_64F); cvSetZero(kalmanTmp);
 
-  sigma_state = new CvMat*[sigma_n];
-  sigma_predObs = new CvMat*[sigma_n];
+  sigma_state = new cv::Mat*[sigma_n];
+  sigma_predObs = new cv::Mat*[sigma_n];
 
   for (int i = 0; i < sigma_n; i++) {
     sigma_state[i] = cvCreateMat(state_n, 1, CV_64F); cvSetZero(sigma_state[i]);
@@ -146,7 +146,7 @@ void UnscentedKalman::initialize() {
   int sigma_i = 0;
   cvCopy(state, sigma_state[sigma_i++]);
   for (int i = 0; i < state_n; i++) {
-    CvMat col;
+    cv::Mat col;
     cvGetCol(sqrtStateCovariance, &col, i);
     cvAdd(state, &col, sigma_state[sigma_i++]);
     cvSub(state, &col, sigma_state[sigma_i++]);
@@ -169,7 +169,7 @@ void UnscentedKalman::predict(UnscentedProcess *process_model) {
 	totalWeight += weight;
   }
   for (int i = 0; i < sigma_n; i++) {
-    CvMat *sigma = sigma_state[i];
+    cv::Mat *sigma = sigma_state[i];
     process_model->f(sigma);
     double weight = i == 0 
       ? lambda / (L + lambda)
@@ -198,7 +198,7 @@ void UnscentedKalman::predict(UnscentedProcess *process_model) {
   }
 
   // Add any additive noise.
-  CvMat *noise = process_model->getProcessNoise();
+  cv::Mat *noise = process_model->getProcessNoise();
   if (noise) cvAdd(stateCovariance, noise, stateCovariance);
 
 #ifdef MYDEBUG
@@ -217,7 +217,7 @@ void UnscentedKalman::predict(UnscentedProcess *process_model) {
 
 void UnscentedKalman::update(UnscentedObservation *obs) {
   if (!sigmasUpdated) initialize();
-  CvMat *innovation = obs->getObservation();
+  cv::Mat *innovation = obs->getObservation();
   int obs_n = innovation->rows;
   if (obs_n > this->obs_n) {
     printf("Observation exceeds maximum size!\n");
@@ -225,10 +225,10 @@ void UnscentedKalman::update(UnscentedObservation *obs) {
   }
 
   // Map sigma points through the observation model and compute predicted mean.
-  CvMat predObs = cvMat(obs_n, 1, CV_64F, this->predObs->data.db);
+  cv::Mat predObs = cv::Mat(obs_n, 1, CV_64F, this->predObs->data.db);
   cvSetZero(&predObs);
   for (int i = 0; i < sigma_n; i++) {
-    CvMat sigma_h = cvMat(obs_n, 1, CV_64F, sigma_predObs[i]->data.db);
+    cv::Mat sigma_h = cv::Mat(obs_n, 1, CV_64F, sigma_predObs[i]->data.db);
     double scale = i == 0 
       ? (double)state_k / (double)(state_n + state_k)
       : .5 / (double)(state_n + state_k);
@@ -237,15 +237,15 @@ void UnscentedKalman::update(UnscentedObservation *obs) {
   }
 
   // Compute predicted observation co-variance.
-  CvMat predObsCovariance = cvMat(obs_n, obs_n, CV_64F, 
+  cv::Mat predObsCovariance = cv::Mat(obs_n, obs_n, CV_64F, 
                                   this->predObsCovariance->data.db);
-  CvMat statePredObsCrossCorrelation = cvMat(state_n, obs_n, CV_64F, 
+  cv::Mat statePredObsCrossCorrelation = cv::Mat(state_n, obs_n, CV_64F, 
                                              this->statePredObsCrossCorrelation->data.db);
-  CvMat predObsDiff = cvMat(obs_n, 1, CV_64F, this->predObsDiff->data.db);
+  cv::Mat predObsDiff = cv::Mat(obs_n, 1, CV_64F, this->predObsDiff->data.db);
   cvSetZero(&predObsCovariance);
   cvSetZero(&statePredObsCrossCorrelation);
   for (int i = 0; i < sigma_n; i++) {
-    CvMat sigma_h = cvMat(obs_n, 1, CV_64F, sigma_predObs[i]->data.db);
+    cv::Mat sigma_h = cv::Mat(obs_n, 1, CV_64F, sigma_predObs[i]->data.db);
     double scale = i == 0 
       ? (double)state_k / (double)(state_n + state_k)
       : .5 / (double)(state_n + state_k);
@@ -258,7 +258,7 @@ void UnscentedKalman::update(UnscentedObservation *obs) {
   }
 
   // Add any additive noise.
-  CvMat *noise = obs->getObservationNoise();
+  cv::Mat *noise = obs->getObservationNoise();
   if (noise) cvAdd(&predObsCovariance, noise, &predObsCovariance);
 
 #ifdef MYDEBUG
@@ -286,10 +286,10 @@ void UnscentedKalman::update(UnscentedObservation *obs) {
   //  state: x = x + _W * v
   //  co-var: P = P - W * (R + Z) * W^T
 
-  CvMat invPredObsCovariance = cvMat(obs_n, obs_n, CV_64F, 
+  cv::Mat invPredObsCovariance = cv::Mat(obs_n, obs_n, CV_64F, 
                                      this->invPredObsCovariance->data.db);
-  CvMat kalmanGain = cvMat(state_n, obs_n, CV_64F, this->kalmanGain->data.db);
-  CvMat kalmanTmp = cvMat(state_n, obs_n, CV_64F, this->kalmanTmp->data.db);
+  cv::Mat kalmanGain = cv::Mat(state_n, obs_n, CV_64F, this->kalmanGain->data.db);
+  cv::Mat kalmanTmp = cv::Mat(state_n, obs_n, CV_64F, this->kalmanTmp->data.db);
 
   cvSub(innovation, &predObs, innovation);
   //double inno_norm = cvNorm(innovation) / obs_n;
@@ -306,9 +306,9 @@ void UnscentedKalman::update(UnscentedObservation *obs) {
 #endif
 
   cvInvert(&predObsCovariance, &invPredObsCovariance, CV_SVD_SYM);
-  cvMatMul(&statePredObsCrossCorrelation, &invPredObsCovariance, &kalmanGain);
+  cv::MatMul(&statePredObsCrossCorrelation, &invPredObsCovariance, &kalmanGain);
   cvGEMM(&kalmanGain, innovation, 1., state, 1., state);
-  cvMatMul(&kalmanGain, &predObsCovariance, &kalmanTmp);
+  cv::MatMul(&kalmanGain, &predObsCovariance, &kalmanTmp);
   cvGEMM(&kalmanTmp, &kalmanGain, -1., stateCovariance, 1., stateCovariance,
 	       CV_GEMM_B_T);
 #ifdef MYDEBUG

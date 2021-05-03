@@ -45,7 +45,7 @@
 #include "Capture.h"
 #include "CapturePlugin.h"
 
-#include "highgui.h"
+#include <opencv2/highgui.hpp>
 
 namespace alvar {
   

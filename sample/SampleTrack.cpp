@@ -15,10 +15,10 @@ bool reset = true;
 CvFont font;
 std::stringstream calibrationFilename;
 
-void track_none(IplImage *image, IplImage *img_gray) {
+void track_none(cv::Mat&image, cv::Mat&img_gray) {
 }
 
-void track_psa(IplImage *image, IplImage *img_gray) {
+void track_psa(cv::Mat&image, cv::Mat&img_gray) {
     static TrackerPsa tracker_psa;
     static double x, y;
     if (reset) {
@@ -29,10 +29,10 @@ void track_psa(IplImage *image, IplImage *img_gray) {
     }
     tracker_psa.Track(img_gray);
     tracker_psa.Compensate(&x, &y);
-    cvCircle(image, cvPoint(int(x), int(y)), 10, cvScalar(CV_RGB(255,0,0)));
+    cvCircle(image, cv::Point(int(x), int(y)), 10, cvScalar(CV_RGB(255,0,0)));
 }
 
-void track_psa_rot(IplImage *image, IplImage *img_gray) {
+void track_psa_rot(cv::Mat&image, cv::Mat&img_gray) {
     static TrackerPsaRot tracker_psa_rot;
     static double x, y, r;
     if (reset) {
@@ -45,12 +45,12 @@ void track_psa_rot(IplImage *image, IplImage *img_gray) {
     tracker_psa_rot.Track(img_gray);
     tracker_psa_rot.Compensate(&x, &y);
     r += tracker_psa_rot.rotd;
-    cvCircle(image, cvPoint(int(x), int(y)), 15, cvScalar(CV_RGB(255,0,0)));
+    cvCircle(image, cv::Point(int(x), int(y)), 15, cvScalar(CV_RGB(255,0,0)));
     double r_rad = r*3.1415926535/180;
-    cvLine(image, cvPoint(int(x), int(y)), cvPoint(int(x-sin(r_rad)*15), int(y+cos(r_rad)*15)), cvScalar(CV_RGB(255,0,0)));
+    cv::line(image, cv::Point(int(x), int(y)), cv::Point(int(x-sin(r_rad)*15), int(y+cos(r_rad)*15)), cvScalar(CV_RGB(255,0,0)));
 }
 
-void track_stat(IplImage *image, IplImage *img_gray) {
+void track_stat(cv::Mat&image, cv::Mat&img_gray) {
     static TrackerStat tracker_stat;
     static double x, y;
     if (reset) {
@@ -61,10 +61,10 @@ void track_stat(IplImage *image, IplImage *img_gray) {
     }
     tracker_stat.Track(img_gray);
     tracker_stat.Compensate(&x, &y);
-    cvCircle(image, cvPoint(int(x), int(y)), 10, cvScalar(CV_RGB(0,255,0)));
+    cvCircle(image, cv::Point(int(x), int(y)), 10, cvScalar(CV_RGB(0,255,0)));
 }
 
-void track_stat_rot(IplImage *image, IplImage *img_gray) {
+void track_stat_rot(cv::Mat&image, cv::Mat&img_gray) {
     static TrackerStatRot tracker_stat_rot;
     static double x, y, r;
     if (reset) {
@@ -77,12 +77,12 @@ void track_stat_rot(IplImage *image, IplImage *img_gray) {
     tracker_stat_rot.Track(img_gray);
     tracker_stat_rot.Compensate(&x, &y);
     r += tracker_stat_rot.rotd;
-    cvCircle(image, cvPoint(int(x), int(y)), 15, cvScalar(CV_RGB(0,255,0)));
+    cvCircle(image, cv::Point(int(x), int(y)), 15, cvScalar(CV_RGB(0,255,0)));
     double r_rad = r*3.1415926535/180;
-    cvLine(image, cvPoint(int(x), int(y)), cvPoint(int(x-sin(r_rad)*15), int(y+cos(r_rad)*15)), cvScalar(CV_RGB(0,255,0)));
+    cv::line(image, cv::Point(int(x), int(y)), cv::Point(int(x-sin(r_rad)*15), int(y+cos(r_rad)*15)), cvScalar(CV_RGB(0,255,0)));
 }
 
-void track_features(IplImage *image, IplImage *img_gray) {
+void track_features(cv::Mat&image, cv::Mat&img_gray) {
     static TrackerFeatures tracker_features(200, 190, 0.01, 0, 4, 6);
     if (reset) {
         reset = false;
@@ -92,13 +92,13 @@ void track_features(IplImage *image, IplImage *img_gray) {
     tracker_features.Track(img_gray);
     for (int i=0; i<tracker_features.feature_count; i++) {
         cvCircle(image, 
-            cvPoint(int(tracker_features.features[i].x), int(tracker_features.features[i].y)), 2, 
+            cv::Point(int(tracker_features.features[i].x), int(tracker_features.features[i].y)), 2, 
             cvScalar(CV_RGB(tracker_features.ids[i]%255,(tracker_features.ids[i]*7)%255,(tracker_features.ids[i]*11)%255)));
     }
 }
 
 const int nof_trackers = 6;
-void (*(trackers[nof_trackers]))(IplImage *image, IplImage *img_gray) = {
+void (*(trackers[nof_trackers]))(cv::Mat&image, cv::Mat&img_gray) = {
     track_none,
     track_psa,
     track_psa_rot,
@@ -115,7 +115,7 @@ char tracker_names[nof_trackers][64]={
     "TrackerFeatures",
 };
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     assert(image);
     static Camera cam;
@@ -138,7 +138,7 @@ void videocallback(IplImage *image)
     else cvCvtColor(image, img_gray, CV_RGB2GRAY);
 
     trackers[tracker](image, img_gray);
-    cvPutText(image, tracker_names[tracker], cvPoint(3, image->height - 20), &font, cvScalar(CV_RGB(255, 255, 255)));
+    cvPutText(image, tracker_names[tracker], cv::Point(3, image->height - 20), &font, cvScalar(CV_RGB(255, 255, 255)));
 }
 
 int keycallback(int key) {

@@ -37,7 +37,7 @@ void TrackerStat::Reset() {
 	f.Reset();
 }
 
-double TrackerStat::Track(IplImage *img) 
+double TrackerStat::Track(cv::Mat&img) 
 {
 	if (img == NULL) return -1;
 	f.Track(img);
@@ -62,7 +62,7 @@ TrackerStatRot::TrackerStatRot(int binsize /*=8*/, int binsize_rot/*=3*/) : Trac
 	hist_rot.AddDimension(binsize_rot);
 }
 
-double TrackerStatRot::Track(IplImage *img)
+double TrackerStatRot::Track(cv::Mat&img)
 {
 	if (img == NULL) return -1;
 	f.Track(img);

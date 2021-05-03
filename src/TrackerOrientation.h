@@ -77,8 +77,8 @@ private:
 	 
 		~Feature() {}
 
-		CvPoint2D32f point;
-		CvPoint3D64f point3d;
+		cv::Point2f point;
+		cv::Point3d point3d;
 	};
 
 	TrackerFeatures		  _ft;
@@ -92,7 +92,7 @@ private:
 	Pose				  _pose;
 	IplImage			 *_grsc;
 	Camera				 *_camera;
-	CvMat				 *_object_model;
+	cv::Mat				 *_object_model;
 
 public:
 	void SetCamera(Camera *camera) {
@@ -103,12 +103,12 @@ public:
 		_pose.GetMatrixGL(gl_mat);
 	}
 	void Reset();
-	double Track(IplImage *image);
+	double Track(cv::Mat&image);
 
 private:
-	static void Project(CvMat* state, CvMat* projection, void *param);
+	static void Project(cv::Mat* state, cv::Mat* projection, void *param);
 	bool UpdatePose(IplImage* image=0);
-	bool UpdateRotationOnly(IplImage *gray, IplImage *image=0);
+	bool UpdateRotationOnly(cv::Mat&gray, cv::Mat&image=0);
 
 };
 

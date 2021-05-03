@@ -15,7 +15,7 @@ MarkerDetector<MarkerData> marker_detector;
 MultiMarker *multi_marker;
 std::stringstream calibrationFilename;
 
-void videocallback(IplImage *image)
+void videocallback(cv::Mat&image)
 {
     static Camera cam;
     Pose pose;
