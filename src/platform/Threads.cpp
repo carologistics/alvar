@@ -27,19 +27,19 @@
 
 namespace alvar {
 
-Threads::Threads()
-    : d(new ThreadsPrivate())
+Threads::Threads() : d(new ThreadsPrivate())
 {
 }
 
 Threads::~Threads()
 {
-    delete d;
+	delete d;
 }
 
-bool Threads::create(void *(*method)(void *), void *parameters)
+bool
+Threads::create(void *(*method)(void *), void *parameters)
 {
-    return d->create(method, parameters);
+	return d->create(method, parameters);
 }
 
 } // namespace alvar

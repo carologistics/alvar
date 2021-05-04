@@ -30,34 +30,34 @@ namespace alvar {
 class MutexPrivateData
 {
 public:
-    MutexPrivateData()
-        : mMutex()
-    {
-    }
+	MutexPrivateData() : mMutex()
+	{
+	}
 
-    pthread_mutex_t mMutex;
+	pthread_mutex_t mMutex;
 };
 
-MutexPrivate::MutexPrivate()
-    : d(new MutexPrivateData())
+MutexPrivate::MutexPrivate() : d(new MutexPrivateData())
 {
-    pthread_mutex_init(&d->mMutex, NULL);
+	pthread_mutex_init(&d->mMutex, NULL);
 }
 
 MutexPrivate::~MutexPrivate()
 {
-    pthread_mutex_destroy(&d->mMutex);
-    delete d;
+	pthread_mutex_destroy(&d->mMutex);
+	delete d;
 }
 
-void MutexPrivate::lock()
+void
+MutexPrivate::lock()
 {
-    pthread_mutex_lock(&d->mMutex);
+	pthread_mutex_lock(&d->mMutex);
 }
 
-void MutexPrivate::unlock()
+void
+MutexPrivate::unlock()
 {
-    pthread_mutex_unlock(&d->mMutex);
+	pthread_mutex_unlock(&d->mMutex);
 }
 
 } // namespace alvar

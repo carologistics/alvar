@@ -31,44 +31,55 @@
  */
 
 #include "Alvar.h"
-#include "Rotation.h"
-#include "MarkerDetector.h"
 #include "Camera.h"
-#include "Filter.h"
 #include "FileFormat.h"
+#include "Filter.h"
+#include "MarkerDetector.h"
+#include "Rotation.h"
+
+#include <eigen3/Eigen/Dense>
 
 namespace alvar {
 
 /**
  * \brief Base class for using MultiMarker.
  */
-class ALVAR_EXPORT MultiMarker {
+class ALVAR_EXPORT MultiMarker
+{
 protected:
-	// The marker information is stored in all three tables using 
-	// the indices-order given in constructor. 
-	// One idea is that the same 'pointcloud' could contain feature 
+	// The marker information is stored in all three tables using
+	// the indices-order given in constructor.
+	// One idea is that the same 'pointcloud' could contain feature
 	// points after marker-corner-points. This way they would be
 	// optimized simultaneously with marker corners...
 	std::map<int, cv::Point3d> pointcloud;
-	std::vector<int> marker_indices; // The marker id's to be used in marker field (first being the base)
-	std::vector<int> marker_status;  // 0: not in point cloud, 1: in point cloud, 2: used in GetPose()
+	std::vector<int>
+	  marker_indices; // The marker id's to be used in marker field (first being the base)
+	std::vector<int> marker_status; // 0: not in point cloud, 1: in point cloud, 2: used in GetPose()
 
-	int pointcloud_index(int marker_id, int marker_corner, bool add_if_missing=false);
-	int get_id_index(int id, bool add_if_missing=false);
+	int pointcloud_index(int marker_id, int marker_corner, bool add_if_missing = false);
+	int get_id_index(int id, bool add_if_missing = false);
 
-	double _GetPose(MarkerIterator &begin, MarkerIterator &end, Camera* cam, Pose& pose, IplImage* image);
+	double
+	_GetPose(MarkerIterator &begin, MarkerIterator &end, Camera *cam, Pose &pose, cv::Mat &image);
 
-	int _SetTrackMarkers(MarkerDetectorImpl &marker_detector, Camera* cam, Pose& pose, cv::Mat&image);
+	double
+	_GetPose(MarkerIterator &begin, MarkerIterator &end, Camera *cam, Pose &pose)
+	{
+		cv::Mat empty_img;
+		return _GetPose(begin, end, cam, pose, empty_img);
+	}
+
+	int
+	_SetTrackMarkers(MarkerDetectorImpl &marker_detector, Camera *cam, Pose &pose, cv::Mat &image);
 
 private:
-
-	bool SaveXML(const char* fname);
-	bool SaveText(const char* fname);
-	bool LoadText(const char* fname);
-	bool LoadXML(const char* fname);
+	bool SaveXML(const char *fname);
+	bool SaveText(const char *fname);
+	bool LoadText(const char *fname);
+	bool LoadXML(const char *fname);
 
 public:
-
 	/** \brief Resets the multi marker. */
 	virtual void Reset();
 
@@ -76,21 +87,23 @@ public:
 	 * \param fname file name
 	 * \param format FILE_FORMAT_TEXT (default) or FILE_FORMAT_XML (see doc/MultiMarker.xsd).
 	 */
-	bool Save(const char* fname, FILE_FORMAT format = FILE_FORMAT_DEFAULT);
+	bool Save(const char *fname, FILE_FORMAT format = FILE_FORMAT_DEFAULT);
 
 	/** \brief Loads multi marker configuration from a text file.
 	 * \param fname file name
 	 * \param format FILE_FORMAT_TEXT (default) or FILE_FORMAT_XML (see doc/MultiMarker.xsd).
 	 */
-	bool Load(const char* fname, FILE_FORMAT format = FILE_FORMAT_DEFAULT);
+	bool Load(const char *fname, FILE_FORMAT format = FILE_FORMAT_DEFAULT);
 
 	/** \brief Constructor.
 		\param indices Vector of marker codes that are included into multi marker. The first element defines origin.
 	*/
-	MultiMarker(std::vector<int>& indices);
+	MultiMarker(std::vector<int> &indices);
 
 	/** \brief Default constructor */
-	MultiMarker() {}
+	MultiMarker()
+	{
+	}
 
 	/** \brief Calculates the pose of the camera from multi marker. Method uses the true 3D coordinates of 
 		 markers to get the initial pose and then optimizes it by minimizing the reprojection error.
@@ -101,22 +114,42 @@ public:
 		\param image If != 0 some visualizations are drawn.
 	*/
 	template <class M>
-	double GetPose(const std::vector<M>* markers, Camera* cam, Pose& pose, IplImage* image = 0)
+	double
+	GetPose(const std::vector<M> *markers, Camera *cam, Pose &pose, cv::Mat &image)
 	{
 		MarkerIteratorImpl<M> begin(markers->begin());
 		MarkerIteratorImpl<M> end(markers->end());
-		return _GetPose(begin, end,
-						cam, pose, image);
+		return _GetPose(begin, end, cam, pose, image);
 	}
 
+	template <class M>
+	double
+	GetPose(const std::vector<M, Eigen::aligned_allocator<M>> *markers, Camera *cam, Pose &pose)
+	{
+		MarkerIteratorImpl<M> begin(markers->begin());
+		MarkerIteratorImpl<M> end(markers->end());
+		return _GetPose(begin, end, cam, pose);
+	}
 	/** \brief Calls GetPose to obtain camera pose.
 	*/
 	template <class M>
-	double Update(const std::vector<M>* markers, Camera* cam, Pose& pose, IplImage* image = 0)
+	double
+	Update(const std::vector<M> *markers, Camera *cam, Pose &pose, cv::Mat &image)
 	{
-		if(markers->size() < 1) return -1.0;
+		if (markers->size() < 1)
+			return -1.0;
 
 		return GetPose(markers, cam, pose, image);
+	}
+
+	template <class M>
+	double
+	Update(const std::vector<M, Eigen::aligned_allocator<M>> *markers, Camera *cam, Pose &pose)
+	{
+		if (markers->size() < 1)
+			return -1.0;
+
+		return GetPose(markers, cam, pose);
 	}
 
 	/** \brief Reserts the 3D point cloud of the markers.
@@ -144,12 +177,16 @@ public:
 
 	/** \brief Returns true if the are not points in the 3D opint cloud.
 	 */
-	bool PointCloudIsEmpty() {
+	bool
+	PointCloudIsEmpty()
+	{
 		return pointcloud.empty();
 	}
 
 	/** \brief Return the number of markers added using PointCloudAdd */
-	size_t Size() {
+	size_t
+	Size()
+	{
 		return marker_indices.size();
 	}
 
@@ -160,8 +197,7 @@ public:
 	 * \param y y co-ordinate is returned.
 	 * \param z z co-ordinate is returned.
 	 */
-	void PointCloudGet(int marker_id, int point,
-	double &x, double &y, double &z);
+	void PointCloudGet(int marker_id, int point, double &x, double &y, double &z);
 
 	/** \brief Returns true if the marker is in the point cloud.
 	 * \param marker_id ID of the marker.
@@ -175,8 +211,10 @@ public:
 	 * also these markers.
 	*/
 	template <class M>
-	int SetTrackMarkers(MarkerDetector<M> &marker_detector, Camera* cam, Pose& pose, cv::Mat&image=0) {
-    return _SetTrackMarkers(marker_detector, cam, pose, image);
+	int
+	SetTrackMarkers(MarkerDetector<M> &marker_detector, Camera *cam, Pose &pose, cv::Mat &image)
+	{
+		return _SetTrackMarkers(marker_detector, cam, pose, image);
 	}
 };
 

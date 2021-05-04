@@ -45,17 +45,17 @@ namespace alvar {
 class ALVAR_EXPORT MultiMarkerFiltered : public MultiMarker
 {
 protected:
-	static const int filter_buffer_max=15;
-	FilterMedian *pointcloud_filtered;
+	static const int filter_buffer_max = 15;
+	FilterMedian *   pointcloud_filtered;
 
-	double _Update(MarkerIterator &begin, MarkerIterator &end, 
-                 Camera* cam, Pose& pose, IplImage* image);
+	double
+	_Update(MarkerIterator &begin, MarkerIterator &end, Camera *cam, Pose &pose, cv::Mat &image);
 
 public:
 	/** \brief Constructor.
 		\param indices Vector of marker codes that are included into multi marker. The first element defines origin.
 	*/
-	MultiMarkerFiltered(std::vector<int>& indices);
+	MultiMarkerFiltered(std::vector<int> &indices);
 
 	/** \brief Destructor. */
 	~MultiMarkerFiltered();
@@ -74,19 +74,22 @@ public:
 		\param image If != 0 some visualization will be drawn.
 	*/
 	template <class M>
-	double Update(const std::vector<M>* markers, Camera* cam, Pose& pose, IplImage* image = 0)
+	double
+	Update(const std::vector<M> *markers, Camera *cam, Pose &pose, cv::Mat &image)
 	{
-		if(markers->size() < 1) return false;
+		if (markers->size() < 1)
+			return false;
 		MarkerIteratorImpl<M> begin(markers->begin());
 		MarkerIteratorImpl<M> end(markers->end());
-    return _Update(begin, end, 
-                   cam, pose, image);
+		return _Update(begin, end, cam, pose, image);
 	}
 
 	/**
 	 * \brief Reset the measurements
 	 */
-	void MeasurementsReset() {
+	void
+	MeasurementsReset()
+	{
 		pointcloud_filtered->reset();
 	}
 };

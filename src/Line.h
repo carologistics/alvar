@@ -33,6 +33,8 @@
 #include "Alvar.h"
 #include "Util.h"
 
+#include <opencv2/opencv.hpp>
+
 namespace alvar {
 
 /**
@@ -44,9 +46,10 @@ struct ALVAR_EXPORT Line
 	* \brief Constructor.
 	* \param params params[0] and params[1] are the x and y components of the direction vector, params[2] and params[3] are the x and y coordinates of the line center.
 	*/
-	Line(const cv::Vec4f& params);
+	Line(const cv::Vec4f &params);
 	Line()
-	{}
+	{
+	}
 
 	/**
 	 * \brief Line center.
@@ -65,10 +68,9 @@ struct ALVAR_EXPORT Line
  * \param edge		Vector of points (pixels) where the line is fitted.
  * \param grey		In the future, we may want to fit lines directly to grayscale image instead of thresholded edge.
  */
-int ALVAR_EXPORT FitLines(std::vector<Line> &lines,
-			 const std::vector<int>& corners,
-			 const std::vector<PointInt >& edge,
-					IplImage *grey=0); 
+int ALVAR_EXPORT FitLines(std::vector<Line> &          lines,
+                          const std::vector<int> &     corners,
+                          const std::vector<PointInt> &edge);
 
 /**
  * \brief Calculates an intersection point of two lines.
@@ -76,17 +78,8 @@ int ALVAR_EXPORT FitLines(std::vector<Line> &lines,
  * \param l2	Second line.
  * \return		Intersection point.
  */
-PointDouble ALVAR_EXPORT Intersection(const Line& l1, const Line& l2);
+PointDouble ALVAR_EXPORT Intersection(const Line &l1, const Line &l2);
 
-} // namespace alvar 
+} // namespace alvar
 
 #endif
-
-
-
-
-
-
-
-
-

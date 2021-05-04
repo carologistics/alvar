@@ -37,28 +37,30 @@ namespace alvar {
 /**
  * \brief \e TrackerFeatures tracks features using OpenCV's cvGoodFeaturesToTrack and cvCalcOpticalFlowPyrLK
  */
-class ALVAR_EXPORT TrackerFeatures : public Tracker {
+class ALVAR_EXPORT TrackerFeatures : public Tracker
+{
 protected:
-	int x_res, y_res;
-	int frame_count;
-	double quality_level;
-	double min_distance;
-	int min_features;
-	int max_features;
-	char *status;
-	IplImage *img_eig;
-	IplImage *img_tmp;
-	IplImage *gray;
-	IplImage *prev_gray;
-	IplImage *pyramid;
-	IplImage *prev_pyramid;
-	IplImage *mask;
-	int next_id;
-	int win_size;
-	int pyr_levels;
+	int     x_res, y_res;
+	int     frame_count;
+	double  quality_level;
+	double  min_distance;
+	int     min_features;
+	int     max_features;
+	char *  status;
+	cv::Mat img_eig;
+	cv::Mat img_tmp;
+	cv::Mat gray;
+	cv::Mat prev_gray;
+	cv::Mat pyramid;
+	cv::Mat prev_pyramid;
+	cv::Mat mask;
+	int     next_id;
+	int     win_size;
+	int     pyr_levels;
 
 	/** \brief Reset track features on specified mask area */
-	double TrackHid(cv::Mat&img, cv::Mat&mask=NULL, bool add_features=true);
+	double TrackHid(cv::Mat &img, cv::Mat &mask = NULL, bool add_features = true);
+
 public:
 	/** \brief \e Track result: previous features */
 	cv::Point2f *prev_features;
@@ -81,29 +83,41 @@ public:
 	 *         If 0 given we use default value aiming for uniform cover: _min_distance = 0.8*sqrt(x_res*y_res/max_features))
      * \param _pyr_levels Number of pyramid levels
 	 */
-	TrackerFeatures(int _max_features=100, int _min_features=90, double _quality_level=0.01, double _min_distance=10, int _pyr_levels=1, int _win_size=3);
+	TrackerFeatures(int    _max_features  = 100,
+	                int    _min_features  = 90,
+	                double _quality_level = 0.01,
+	                double _min_distance  = 10,
+	                int    _pyr_levels    = 1,
+	                int    _win_size      = 3);
 	/** \brief Destructor */
-	~TrackerFeatures(); 
+	~TrackerFeatures();
 	/** \brief Change settings while running */
-	void ChangeSettings(int _max_features=100, int _min_features=90, double _quality_level=0.01, double _min_distance=10);
+	void ChangeSettings(int    _max_features  = 100,
+	                    int    _min_features  = 90,
+	                    double _quality_level = 0.01,
+	                    double _min_distance  = 10);
 	/** \brief Reset */
-	void Reset(); 
+	void Reset();
 	/** \brief Reset track features on specified mask area */
-	double Reset(cv::Mat&img, cv::Mat&mask); 
+	double Reset(cv::Mat &img, cv::Mat &mask);
 	/** \brief Stop tracking the identified feature (with index for features array)*/
 	bool DelFeature(int index);
 	/** \brief Stop tracking the identified feature (with feature id) */
 	bool DelFeatureId(int id);
 	/** \brief Track features */
-	double Track(cv::Mat&img) { return Track(img, true); }
+	double
+	Track(cv::Mat &img)
+	{
+		return Track(img, true);
+	}
 	/** \brief Track features */
-	double Track(cv::Mat&img, bool add_features); 
+	double Track(cv::Mat &img, bool add_features);
 	/** \brief Track features */
-    double Track(IplImage* img, IplImage* mask);
+	double Track(cv::Mat &img, cv::Mat &mask);
 	/** \brief add features to the previously tracked frame if there are less than min_features */
-	int AddFeatures(cv::Mat&mask=NULL);
+	int AddFeatures(cv::Mat &mask = NULL);
 	/** \brief Create and get the pointer to new_features_mask */
-	IplImage *NewFeatureMask();
+	cv::Mat NewFeatureMask();
 	/** \brief Purge features that are considerably closer than the defined min_distance. 
 	 *
 	 * Note, that we always try to maintain the smaller id's assuming that they are older ones

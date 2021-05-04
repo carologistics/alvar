@@ -39,13 +39,14 @@ namespace alvar {
  *
  * (See Drab, Stephan A. & Artner, Nicole M. "Motion Detection as Interaction Technique for Games & Applications on Mobile Devices" PERMID 2005) 
  */
-class ALVAR_EXPORT TrackerPsa : public Tracker {
+class ALVAR_EXPORT TrackerPsa : public Tracker
+{
 protected:
-	int max_shift;
-	int x_res, y_res;
+	int   max_shift;
+	int   x_res, y_res;
 	long *hor, *horprev;
 	long *ver, *verprev;
-	long framecount;
+	long  framecount;
 
 public:
 	/** \brief \e Track result x-translation in pixels */
@@ -57,7 +58,7 @@ public:
 	/** \brief Destructor */
 	~TrackerPsa();
 	/** \brief Track using PSA */
-	double Track(cv::Mat&img);
+	double Track(cv::Mat &img);
 
 	virtual void Compensate(double *x, double *y);
 };
@@ -65,10 +66,11 @@ public:
 /**
  * \brief \e TrackerPsaRot implements a slightly extended version of a \e TrackerPsa which can also detect sideways rotation
  */
-class ALVAR_EXPORT TrackerPsaRot : public TrackerPsa {
+class ALVAR_EXPORT TrackerPsaRot : public TrackerPsa
+{
 protected:
 	double *rot, *rotprev;
-	int *rot_count;
+	int *   rot_count;
 
 public:
 	/** \brief \e Track result rotation in degrees */
@@ -78,7 +80,7 @@ public:
 	/** \brief Destructor */
 	~TrackerPsaRot();
 	/** \brief Track using PSA with rotation*/
-	double Track(cv::Mat&img);
+	double Track(cv::Mat &img);
 
 	virtual void Compensate(double *x, double *y);
 };
@@ -86,5 +88,3 @@ public:
 } // namespace alvar
 
 #endif
-
-

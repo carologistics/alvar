@@ -23,51 +23,52 @@
 
 #include "Platform.h"
 
-#include <stdio.h>
 #include <stdarg.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #ifdef WIN32
-    #include <windows.h>
+#	include <windows.h>
 #else
-    #include <time.h>
+#	include <time.h>
 #endif
 
 namespace alvar {
 
-void errorAtLine(int status, int error, const char *filename,
-                 unsigned int line, const char *format, ...)
+void
+errorAtLine(int status, int error, const char *filename, unsigned int line, const char *format, ...)
 {
-    fflush(stdout);
-    if (filename) {
-        fprintf(stderr, "%s:%d: ", filename, line);
-    }
-    if (format) {
-        va_list args;
-        va_start(args, format);
-        vfprintf(stderr, format, args);
-        va_end(args);
-    }
-    if (error) {
-        fprintf(stderr, ": %s", strerror(error));
-    }
-    fprintf(stderr, "\n");
-    fflush(stderr);
-    if (status) {
-        exit(status);
-    }
+	fflush(stdout);
+	if (filename) {
+		fprintf(stderr, "%s:%d: ", filename, line);
+	}
+	if (format) {
+		va_list args;
+		va_start(args, format);
+		vfprintf(stderr, format, args);
+		va_end(args);
+	}
+	if (error) {
+		fprintf(stderr, ": %s", strerror(error));
+	}
+	fprintf(stderr, "\n");
+	fflush(stderr);
+	if (status) {
+		exit(status);
+	}
 }
 
-void sleep(unsigned long milliseconds)
+void
+sleep(unsigned long milliseconds)
 {
-    #ifdef WIN32
-        Sleep(milliseconds);
-    #else
-        struct timespec t;
-        t.tv_sec = 0;
-        t.tv_nsec = 1000 * 1000 * milliseconds;
-        nanosleep(&t, NULL);
-    #endif
+#ifdef WIN32
+	Sleep(milliseconds);
+#else
+	struct timespec t;
+	t.tv_sec  = 0;
+	t.tv_nsec = 1000 * 1000 * milliseconds;
+	nanosleep(&t, NULL);
+#endif
 }
 
 } // namespace alvar

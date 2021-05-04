@@ -31,22 +31,21 @@
  */
 
 #ifdef WIN32
-    #ifdef ALVAR_Capture_Plugin_CMU_BUILD
-        #define ALVAR_CAPTURE_PLUGIN_CMU_EXPORT __declspec(dllexport)
-    #else
-        #define ALVAR_CAPTURE_PLUGIN_CMU_EXPORT __declspec(dllimport)
-    #endif
+#	ifdef ALVAR_Capture_Plugin_CMU_BUILD
+#		define ALVAR_CAPTURE_PLUGIN_CMU_EXPORT __declspec(dllexport)
+#	else
+#		define ALVAR_CAPTURE_PLUGIN_CMU_EXPORT __declspec(dllimport)
+#	endif
 #else
-    #define ALVAR_CAPTURE_PLUGIN_CMU_EXPORT
+#	define ALVAR_CAPTURE_PLUGIN_CMU_EXPORT
 #endif
 
+#include "1394camera.h"
 #include "Capture.h"
 #include "CapturePlugin.h"
 
-#include "1394camera.h"
-
 namespace alvar {
-  
+
 /**
  * \brief Dynamically loaded plugins namespace.
  */
@@ -55,54 +54,54 @@ namespace plugins {
 /**
  * \brief Implementation of Capture interface for Cmu plugin.
  */
-class ALVAR_CAPTURE_PLUGIN_CMU_EXPORT CaptureCmu
-    : public alvar::Capture
+class ALVAR_CAPTURE_PLUGIN_CMU_EXPORT CaptureCmu : public alvar::Capture
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param captureDevice Information of which camera to create.
      */
-    CaptureCmu(const CaptureDevice captureDevice);
-    /**
+	CaptureCmu(const CaptureDevice captureDevice);
+	/**
      * \brief Destructor.
      */
-    ~CaptureCmu();
-    bool start();
-    void stop();
-    IplImage *captureImage();
-    bool showSettingsDialog();
+	~CaptureCmu();
+	bool        start();
+	void        stop();
+	cv::Mat     captureImage();
+	bool        showSettingsDialog();
 	std::string SerializeId();
-	bool Serialize(Serialization *serialization);
+	bool        Serialize(Serialization *serialization);
+
 private:
-    C1394Camera *mCamera;
-    int mChannels;
-    IplImage *mReturnFrame;
+	C1394Camera *mCamera;
+	int          mChannels;
+	cv::Mat      mReturnFrame;
 };
 
 /**
  * \brief Implementation of CapturePlugin interface for Cmu plugin.
  */
-class ALVAR_CAPTURE_PLUGIN_CMU_EXPORT CapturePluginCmu
-    : public alvar::CapturePlugin
+class ALVAR_CAPTURE_PLUGIN_CMU_EXPORT CapturePluginCmu : public alvar::CapturePlugin
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param captureType A unique identifier for the capture plugin.
      */
-    CapturePluginCmu(const std::string &captureType);
-    /**
+	CapturePluginCmu(const std::string &captureType);
+	/**
      * \brief Destructor.
      */
-    ~CapturePluginCmu();
-    CaptureDeviceVector enumerateDevices();
-    Capture *createCapture(const CaptureDevice captureDevice);
+	~CapturePluginCmu();
+	CaptureDeviceVector enumerateDevices();
+	Capture *           createCapture(const CaptureDevice captureDevice);
 };
 
-extern "C" ALVAR_CAPTURE_PLUGIN_CMU_EXPORT void registerPlugin(const std::string &captureType, alvar::CapturePlugin *&capturePlugin);
+extern "C" ALVAR_CAPTURE_PLUGIN_CMU_EXPORT void
+registerPlugin(const std::string &captureType, alvar::CapturePlugin *&capturePlugin);
 
 } // namespace plugins
 } // namespace alvar

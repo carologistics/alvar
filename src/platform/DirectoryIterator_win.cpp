@@ -30,78 +30,75 @@ namespace alvar {
 class DirectoryIteratorPrivateData
 {
 public:
-    DirectoryIteratorPrivateData()
-        : mHandle(INVALID_HANDLE_VALUE)
-        , mData()
-    {
-    }
-    
-    HANDLE mHandle;
-    WIN32_FIND_DATA mData;
+	DirectoryIteratorPrivateData() : mHandle(INVALID_HANDLE_VALUE), mData()
+	{
+	}
+
+	HANDLE          mHandle;
+	WIN32_FIND_DATA mData;
 };
 
 DirectoryIteratorPrivate::DirectoryIteratorPrivate(const std::string &path)
-    : d(new DirectoryIteratorPrivateData())
-    , mDirectory(path)
-    , mEntry()
-    , mValid(false)
+: d(new DirectoryIteratorPrivateData()), mDirectory(path), mEntry(), mValid(false)
 {
-    if (mDirectory.at(mDirectory.length() - 1) != '\\') {
-        mDirectory.append("\\");
-    }
+	if (mDirectory.at(mDirectory.length() - 1) != '\\') {
+		mDirectory.append("\\");
+	}
 }
 
 DirectoryIteratorPrivate::~DirectoryIteratorPrivate()
 {
-    FindClose(d->mHandle);
-    delete d;
+	FindClose(d->mHandle);
+	delete d;
 }
 
-bool DirectoryIteratorPrivate::hasNext()
+bool
+DirectoryIteratorPrivate::hasNext()
 {
-    if (d->mHandle == INVALID_HANDLE_VALUE) {
-        std::string search = mDirectory + "*";
-        d->mHandle = FindFirstFile(search.data(), &d->mData);
+	if (d->mHandle == INVALID_HANDLE_VALUE) {
+		std::string search = mDirectory + "*";
+		d->mHandle         = FindFirstFile(search.data(), &d->mData);
 
-        if (d->mHandle != INVALID_HANDLE_VALUE) {
-            mValid = true;
-            skip();
-        }
-    }
+		if (d->mHandle != INVALID_HANDLE_VALUE) {
+			mValid = true;
+			skip();
+		}
+	}
 
-    return mValid;
+	return mValid;
 }
 
-std::string DirectoryIteratorPrivate::next()
+std::string
+DirectoryIteratorPrivate::next()
 {
-    if (!hasNext()) {
-        return "";
-    }
+	if (!hasNext()) {
+		return "";
+	}
 
-    mEntry = std::string(d->mData.cFileName);
+	mEntry = std::string(d->mData.cFileName);
 
-    if (!FindNextFile(d->mHandle, &d->mData)) {
-        mValid = false;
-    }
-    else {
-        skip();
-    }
+	if (!FindNextFile(d->mHandle, &d->mData)) {
+		mValid = false;
+	} else {
+		skip();
+	}
 
-    return mEntry;
+	return mEntry;
 }
 
-void DirectoryIteratorPrivate::skip()
+void
+DirectoryIteratorPrivate::skip()
 {
-    while (true) {
-        if (std::string(d->mData.cFileName) != "." && std::string(d->mData.cFileName) != "..") {
-            return;
-        }
+	while (true) {
+		if (std::string(d->mData.cFileName) != "." && std::string(d->mData.cFileName) != "..") {
+			return;
+		}
 
-        if (!FindNextFile(d->mHandle, &d->mData)) {
-            mValid = false;
-            return;
-        }
-    }
+		if (!FindNextFile(d->mHandle, &d->mData)) {
+			mValid = false;
+			return;
+		}
+	}
 }
 
 } // namespace alvar

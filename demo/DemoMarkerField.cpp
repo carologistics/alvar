@@ -18,65 +18,65 @@
 **************************************************************************************/
 
 //OSG includes
+#include <osg/Geode>
+#include <osg/Geometry>
+#include <osg/Group>
+#include <osg/Image>
+#include <osg/MatrixTransform>
+#include <osg/Projection>
+#include <osg/Switch>
+#include <osg/Texture2D>
+#include <osgDB/ReadFile>
 #include <osgViewer/Viewer>
 #include <osgViewer/ViewerEventHandlers>
-#include <osgDB/ReadFile>
-#include <osg/Texture2D> 
-#include <osg/Projection>
-#include <osg/MatrixTransform>
-#include <osg/Image>
-#include <osg/Group>
-#include <osg/Geometry>
-#include <osg/Geode>
-#include <osg/Switch>
 
 //ALVAR includes
 #include "CaptureFactory.h" // Video capturing
 #include "MarkerDetector.h" // Marker detector
 #include "MultiMarker.h"    // Multimarker system (marker field)
-#include "TrackerStat.h"    // Visual based tracking system
-
 #include "Shared.h"
+#include "TrackerStat.h" // Visual based tracking system
 
-osg::ref_ptr<osgViewer::Viewer>		viewer; // The OSG viewer
-osg::ref_ptr<osg::Group>			arRoot; // The main group for scene
-osg::ref_ptr<osg::Image>			videoImage; // camera video frame image in OSG image format
-osg::ref_ptr<osg::MatrixTransform>	mtForMarkerField; // Matrix transformation for marker field
+osg::ref_ptr<osgViewer::Viewer>    viewer;           // The OSG viewer
+osg::ref_ptr<osg::Group>           arRoot;           // The main group for scene
+osg::ref_ptr<osg::Image>           videoImage;       // camera video frame image in OSG image format
+osg::ref_ptr<osg::MatrixTransform> mtForMarkerField; // Matrix transformation for marker field
 
-osg::ref_ptr<osg::Node>				modelNode=NULL; //This contains the model
+osg::ref_ptr<osg::Node> modelNode = NULL; //This contains the model
 
-int videoXRes=0; // Video capture width (x)
-int videoYRes=0; // video capture height (y)
-float video_X_FOV; // Video horizontal field of view
-float video_Y_FOV; // Video vertical field of view
-alvar::Capture*	capture = NULL; // ALVAR Capture
+int             videoXRes = 0;  // Video capture width (x)
+int             videoYRes = 0;  // video capture height (y)
+float           video_X_FOV;    // Video horizontal field of view
+float           video_Y_FOV;    // Video vertical field of view
+alvar::Capture *capture = NULL; // ALVAR Capture
 
-alvar::Camera camera; // ALVAR camera (do not confuse to the OSG)
+alvar::Camera                            camera;         // ALVAR camera (do not confuse to the OSG)
 alvar::MarkerDetector<alvar::MarkerData> markerDetector; // Marker detector
-alvar::TrackerStat trackerStat; // Visual tracker
-alvar::MultiMarker *multiMarker;// MultiMarker
-std::vector<int> markerIdVector;// vector that contains marker field marker ids
+alvar::TrackerStat                       trackerStat;    // Visual tracker
+alvar::MultiMarker *                     multiMarker;    // MultiMarker
+std::vector<int> markerIdVector; // vector that contains marker field marker ids
 
 // Size of the markers in the marker field
-// The size is an "abstract value" for library, but using normal, logical values (mm, cm, m, inch) will help 
+// The size is an "abstract value" for library, but using normal, logical values (mm, cm, m, inch) will help
 // understanding the model scaling and positioning in human point of view.
-#define CORNER_MARKER_SIZE	4 // as in centimeters
-#define CENTRE_MARKER_SIZE  8 // as in centimeters
-#define MARKER_COUNT		5 // marker count in the field
+#define CORNER_MARKER_SIZE 4 // as in centimeters
+#define CENTRE_MARKER_SIZE 8 // as in centimeters
+#define MARKER_COUNT 5 // marker count in the field
 
 CVideoBG videoBG;
 
 /*
 	The main rendering function.
 */
-void renderer()
+void
+renderer()
 {
 	alvar::Pose pose;
 	// Capture the image
 	IplImage *image = capture->captureImage();
 
 	// Check if we need to change image origin and is so, flip the image.
-	bool flip_image = (image->origin?true:false);
+	bool flip_image = (image->origin ? true : false);
 	if (flip_image) {
 		cvFlip(image);
 		image->origin = !image->origin;
@@ -97,33 +97,41 @@ void renderer()
 		pose.GetMatrixGL(temp_mat);
 		mtForMarkerField->setMatrix(osg::Matrix(temp_mat));
 		trackerStat.Reset();
-	}else
-	{
+	} else {
 		// The field is not on sight, so let's try to use the model in
 		// right position by using tracking system
-		double trackerStat_dx_Angle = -(video_X_FOV * trackerStat.xd  / float(videoXRes));
+		double trackerStat_dx_Angle = -(video_X_FOV * trackerStat.xd / float(videoXRes));
 		double trackerStat_dy_Angle = -(trackerStat.yd * video_Y_FOV / float(videoYRes));
-		float z = 0.0;
+		float  z                    = 0.0;
 
 		osg::Matrix m(mtForMarkerField->getMatrix());
-				
-		m.postMult(osg::Matrix::rotate(trackerStat_dy_Angle, osg::Vec3(1,0,0),
-									   trackerStat_dx_Angle, osg::Vec3(0,1,0),
-									   0.0, osg::Vec3(0,0,1)));
+
+		m.postMult(osg::Matrix::rotate(trackerStat_dy_Angle,
+		                               osg::Vec3(1, 0, 0),
+		                               trackerStat_dx_Angle,
+		                               osg::Vec3(0, 1, 0),
+		                               0.0,
+		                               osg::Vec3(0, 0, 1)));
 
 		mtForMarkerField->setMatrix(m);
 	}
-	
 
-	// In case we flipped the image, it's time to flip it back 
+	// In case we flipped the image, it's time to flip it back
 	if (flip_image) {
 		cvFlip(image);
 		image->origin = !image->origin;
 	}
 
 	// "copy" the raw image data from IplImage to the Osg::Image
-	videoImage->setImage(image->width, image->height, 1, 4, GL_BGR, GL_UNSIGNED_BYTE, (unsigned char*)image->imageData, osg::Image::NO_DELETE);
-	if(videoImage.valid()){
+	videoImage->setImage(image->width,
+	                     image->height,
+	                     1,
+	                     4,
+	                     GL_BGR,
+	                     GL_UNSIGNED_BYTE,
+	                     (unsigned char *)image->imageData,
+	                     osg::Image::NO_DELETE);
+	if (videoImage.valid()) {
 		// Set the latest frame to the view as an background texture
 		videoBG.SetBGImage(videoImage.get());
 	}
@@ -132,31 +140,31 @@ void renderer()
 }
 
 // main
-int main(int argc, char** argv)
+int
+main(int argc, char **argv)
 {
 	osg::ArgumentParser arguments(&argc, argv);
 
 	// Let's use the convenience system from ALVAR for capturing.
 	// We initialize Highgui through the CaptureFactory (see manual for other options like AVI)
-	alvar::CaptureFactory *factory = alvar::CaptureFactory::instance();
-    alvar::CaptureFactory::CaptureDeviceVector devices = factory->enumerateDevices("highgui");
+	alvar::CaptureFactory *                    factory = alvar::CaptureFactory::instance();
+	alvar::CaptureFactory::CaptureDeviceVector devices = factory->enumerateDevices("highgui");
 
-    // Check to ensure that a device was found
-    if (devices.size() > 0) {
-        capture = factory->createCapture(devices.front());
-    }
+	// Check to ensure that a device was found
+	if (devices.size() > 0) {
+		capture = factory->createCapture(devices.front());
+	}
 
 	// Capture is central feature, so if we fail, we get out of here.
 	if (capture && capture->start()) {
-	   
 		// Let's capture one frame to get video resolution
 		IplImage *tempImg = capture->captureImage();
-		videoXRes = tempImg->width;
-		videoYRes = tempImg->height;
+		videoXRes         = tempImg->width;
+		videoYRes         = tempImg->height;
 
 		// Calibration. See manual and ALVAR internal samples how to calibrate your camera
 		// Calibration will make the marker detecting and marker pose calculation more accurate.
-		if (! camera.SetCalib("calib.xml", videoXRes, videoYRes)) {
+		if (!camera.SetCalib("calib.xml", videoXRes, videoYRes)) {
 			camera.SetRes(videoXRes, videoYRes);
 		}
 
@@ -164,91 +172,88 @@ int main(int argc, char** argv)
 		video_X_FOV = camera.GetFovX();
 		video_Y_FOV = camera.GetFovY();
 
-
 		//Create the osg::Image for the video
 		videoImage = new osg::Image;
 
 		// construct the viewer
 		viewer = new osgViewer::Viewer(arguments);
 		// Let's use window size of the video (approximate).
-		viewer->setUpViewInWindow (200, 200, videoXRes, videoYRes);
+		viewer->setUpViewInWindow(200, 200, videoXRes, videoYRes);
 		// Viewport is the same
-		viewer->getCamera()->setViewport(0,0,videoXRes,videoYRes);
+		viewer->getCamera()->setViewport(0, 0, videoXRes, videoYRes);
 		viewer->setLightingMode(osg::View::HEADLIGHT);
 
 		// Attach our own event handler to the system so we can catch the resizing events
-		viewer->addEventHandler(new CSimpleWndSizeHandler(videoXRes,videoYRes));
-		
+		viewer->addEventHandler(new CSimpleWndSizeHandler(videoXRes, videoYRes));
+
 		// Set projection matrix as ALVAR recommends (based on the camera calibration)
 		double p[16];
-		camera.GetOpenglProjectionMatrix(p,videoXRes,videoYRes);
+		camera.GetOpenglProjectionMatrix(p, videoXRes, videoYRes);
 		viewer->getCamera()->setProjectionMatrix(osg::Matrix(p));
 
 		// Create main root for everything
 		arRoot = new osg::Group;
 		arRoot->setName("ALVAR stuff (c) VTT");
-		
+
 		// Init the video background class and add it to the graph
-        videoBG.Init(videoXRes,videoYRes,(tempImg->origin?true:false));
+		videoBG.Init(videoXRes, videoYRes, (tempImg->origin ? true : false));
 		arRoot->addChild(videoBG.GetOSGGroup());
 
 		// Create model transformation for the markerfield and add it to the scene
 		mtForMarkerField = new osg::MatrixTransform;
 		//At start we scale the model zero (invisible)
-		mtForMarkerField->preMult(osg::Matrix::scale(osg::Vec3(0,0,0)));
+		mtForMarkerField->preMult(osg::Matrix::scale(osg::Vec3(0, 0, 0)));
 		arRoot->addChild(mtForMarkerField.get());
 
 		modelNode = osgDB::readNodeFile("axes.osg");
-	    
+
 		// If loading ok, add models under the matrixtransformation nodes.
-		if(modelNode)
+		if (modelNode)
 			mtForMarkerField->addChild(modelNode.get());
 
 		//Initialize the multimarker system
 
-		for(int i = 0; i < MARKER_COUNT; ++i)
+		for (int i = 0; i < MARKER_COUNT; ++i)
 			markerIdVector.push_back(i);
 
 		// We make the initialization for MultiMarkerBundle using a fixed marker field (can be printed from MultiMarker.ppt)
-		
+
 		markerDetector.SetMarkerSize(CORNER_MARKER_SIZE);
 		markerDetector.SetMarkerSizeForId(0, CENTRE_MARKER_SIZE);
-		
+
 		multiMarker = new alvar::MultiMarker(markerIdVector);
-		
+
 		alvar::Pose pose;
 		pose.Reset();
 		multiMarker->PointCloudAdd(0, CENTRE_MARKER_SIZE, pose);
-		
+
 		pose.SetTranslation(-10, 6, 0);
 		multiMarker->PointCloudAdd(1, CORNER_MARKER_SIZE, pose);
-		
+
 		pose.SetTranslation(10, 6, 0);
 		multiMarker->PointCloudAdd(2, CORNER_MARKER_SIZE, pose);
-		
+
 		pose.SetTranslation(-10, -6, 0);
 		multiMarker->PointCloudAdd(3, CORNER_MARKER_SIZE, pose);
-		
+
 		pose.SetTranslation(+10, -6, 0);
 		multiMarker->PointCloudAdd(4, CORNER_MARKER_SIZE, pose);
-	
 
-		// Set scene data 
+		// Set scene data
 		viewer->setSceneData(arRoot.get());
 
 		trackerStat.Reset();
 		// And start the main loop
-		while(!viewer->done()){
+		while (!viewer->done()) {
 			//Call the rendering function over and over again.
 			renderer();
 		}
-	} 
+	}
 	// Time to close the system
-	if(capture){
+	if (capture) {
 		capture->stop();
 		delete capture;
 	}
-	
+
 	return 0; // bye bye. Happy coding!
 }
-

@@ -21,68 +21,73 @@
  * <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>.
  */
 
+#include "Ransac.h"
+
 #include <cxxtest/TestSuite.h>
+
 #include <math.h>
 #include <stdio.h>
-#include "Ransac.h"
 
 using namespace alvar;
 
-class TestRansac : public CxxTest::TestSuite {
+class TestRansac : public CxxTest::TestSuite
+{
+	typedef float MyModel;
 
-  typedef float MyModel;
+	typedef float MyParameter;
 
-  typedef float MyParameter;
+	class MyEstimator : public Ransac<MyModel, MyParameter>
+	{
+	public:
+		MyEstimator() : Ransac<MyModel, MyParameter>(1, 10)
+		{
+		} // min params, max params
 
-  class MyEstimator : public Ransac<MyModel, MyParameter> {
-  public:
-    MyEstimator() : Ransac<MyModel, MyParameter>(1, 10) {} // min params, max params
+	protected:
+		void
+		doEstimate(MyParameter **params, int param_c, MyModel *model)
+		{
+			float avg = 0;
+			for (int i = 0; i < param_c; i++) {
+				avg += *params[i];
+			}
+			*model = avg / param_c;
+		}
 
-  protected:
-    void doEstimate(MyParameter** params, int param_c,
-                    MyModel* model) {
-      float avg = 0;
-      for (int i = 0; i < param_c; i++) {
-        avg += *params[i];
-      }
-      *model = avg / param_c;
-    }
-
-    bool doSupports(MyParameter* param, MyModel* model) {
-      return fabs(*model - *param) < 1.5;
-    }
-  };
+		bool
+		doSupports(MyParameter *param, MyModel *model)
+		{
+			return fabs(*model - *param) < 1.5;
+		}
+	};
 
 public:
-  void testRansac() {
-    printf("\n");
+	void
+	testRansac()
+	{
+		printf("\n");
 
 #define param_c 10
-    MyParameter params[param_c] = {
-      0, -1, 1, 0.5, -0.5, 3, 4, 5, -3, 0.25
-    };
+		MyParameter params[param_c] = {0, -1, 1, 0.5, -0.5, 3, 4, 5, -3, 0.25};
 
-    MyEstimator estimator;
-    MyModel model = -100;
-    int support = estimator.estimate(params, param_c, 
-                                     5, 10, // support limit, max rounds
+		MyEstimator estimator;
+		MyModel     model   = -100;
+		int         support = estimator.estimate(params,
+                                     param_c,
+                                     5,
+                                     10, // support limit, max rounds
                                      &model);
 
-    printf("Estimated model: %f, supporting parameters: %d\n", 
-           model, support);
+		printf("Estimated model: %f, supporting parameters: %d\n", model, support);
 
-    TS_ASSERT_EQUALS( 5, support );
-    TS_ASSERT_DELTA( 0, model, 0.5 );
+		TS_ASSERT_EQUALS(5, support);
+		TS_ASSERT_DELTA(0, model, 0.5);
 
-    support = estimator.refine(params, param_c,
-                               6, 10,
-                               &model); 
+		support = estimator.refine(params, param_c, 6, 10, &model);
 
-    printf("Refined model: %f, supporting parameters: %d\n", 
-           model, support);
+		printf("Refined model: %f, supporting parameters: %d\n", model, support);
 
-    TS_ASSERT_EQUALS( 6, support );
-    TS_ASSERT_DELTA( 0.042, model, 0.001 );
-  }
-
+		TS_ASSERT_EQUALS(6, support);
+		TS_ASSERT_DELTA(0.042, model, 0.001);
+	}
 };

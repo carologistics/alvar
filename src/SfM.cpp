@@ -27,44 +27,45 @@ namespace alvar {
 
 class CameraMoves
 {
-	bool is_initialized;
+	bool   is_initialized;
 	double prev[3];
 
 public:
-
 	CameraMoves()
 	{
 		is_initialized = false;
-		memset(prev, 0, 3*sizeof(double));
+		memset(prev, 0, 3 * sizeof(double));
 	}
 
-	bool UpdateDistance(Pose* pose, double limit=10)
+	bool
+	UpdateDistance(Pose *pose, double limit = 10)
 	{
-		double trad[3]; cv::Mat tra = cv::Mat(3, 1, CV_64F, trad);
-		Pose p = *pose;
+		double  trad[3];
+		cv::Mat tra = cv::Mat(3, 1, CV_64F, trad);
+		Pose    p   = *pose;
 		p.Invert();
 		p.GetTranslation(&tra);
-		if(is_initialized == false)
-		{
-			memcpy(prev, trad, 3*sizeof(double));
+		if (is_initialized == false) {
+			memcpy(prev, trad, 3 * sizeof(double));
 			is_initialized = true;
 			return false;
 		}
-		double dist = (prev[0]-trad[0])*(prev[0]-trad[0]) + 
-						(prev[1]-trad[1])*(prev[1]-trad[1]) + 
-						(prev[2]-trad[2])*(prev[2]-trad[2]);
-		if(dist > limit)
-		{
-			memcpy(prev, trad, 3*sizeof(double));
+		double dist = (prev[0] - trad[0]) * (prev[0] - trad[0])
+		              + (prev[1] - trad[1]) * (prev[1] - trad[1])
+		              + (prev[2] - trad[2]) * (prev[2] - trad[2]);
+		if (dist > limit) {
+			memcpy(prev, trad, 3 * sizeof(double));
 			return true;
 		}
-		return false;		
+		return false;
 	}
 };
 CameraMoves moving;
 
-void SimpleSfM::Reset(bool reset_also_triangulated) {
-	pose_ok = false;
+void
+SimpleSfM::Reset(bool reset_also_triangulated)
+{
+	pose_ok   = false;
 	container = container_reset_point;
 	if (reset_also_triangulated) {
 		container_triangulated = container_triangulated_reset_point;
@@ -73,36 +74,56 @@ void SimpleSfM::Reset(bool reset_also_triangulated) {
 	pose_difference.Mirror(false, true, true);
 }
 
-void SimpleSfM::SetResetPoint() {
-	container_reset_point = container;
+void
+SimpleSfM::SetResetPoint()
+{
+	container_reset_point              = container;
 	container_triangulated_reset_point = container_triangulated;
 }
 
-void SimpleSfM::Clear() {
+void
+SimpleSfM::Clear()
+{
 	container.clear();
 }
 
-CameraEC *SimpleSfM::GetCamera() { return &cam; }
-
-Pose *SimpleSfM::GetPose() { return &pose; }
-
-bool SimpleSfM::AddMultiMarker(const char *fname, FILE_FORMAT format/* = FILE_FORMAT_XML*/) {
-	MultiMarkerEC mm;
-	return mm.Load(container, fname, format, 0, 0,1023);
+CameraEC *
+SimpleSfM::GetCamera()
+{
+	return &cam;
 }
 
-bool SimpleSfM::AddMultiMarker(MultiMarkerEC *mm) {
+Pose *
+SimpleSfM::GetPose()
+{
+	return &pose;
+}
+
+bool
+SimpleSfM::AddMultiMarker(const char *fname, FILE_FORMAT format /* = FILE_FORMAT_XML*/)
+{
+	MultiMarkerEC mm;
+	return mm.Load(container, fname, format, 0, 0, 1023);
+}
+
+bool
+SimpleSfM::AddMultiMarker(MultiMarkerEC *mm)
+{
 	return mm->MarkersToEC(container, 0, 0, 1023);
 }
 
-void SimpleSfM::AddMarker(int marker_id, double edge_length, Pose &pose) {
+void
+SimpleSfM::AddMarker(int marker_id, double edge_length, Pose &pose)
+{
 	marker_detector.MarkerToEC(container, marker_id, edge_length, pose, 0, 0, 1023);
 }
 
-float PointVectorFromCamera(cv::Point3f p3d, cv::Point3f &p3d_vec, Pose *camera_pose) {
-	double pd[16], v[4] = {0,0,0,1};	
+float
+PointVectorFromCamera(cv::Point3f p3d, cv::Point3f &p3d_vec, Pose *camera_pose)
+{
+	double  pd[16], v[4] = {0, 0, 0, 1};
 	cv::Mat Pi = cv::Mat(4, 4, CV_64F, pd);
-	cv::Mat V = cv::Mat(4, 1, CV_64F, v);
+	cv::Mat V  = cv::Mat(4, 1, CV_64F, v);
 
 	// Camera location in marker coordinates
 	camera_pose->GetMatrix(&Pi);
@@ -117,10 +138,17 @@ float PointVectorFromCamera(cv::Point3f p3d, cv::Point3f &p3d_vec, Pose *camera_
 	p3d_vec.y = float(p3d.y - v[1]);
 	p3d_vec.z = float(p3d.z - v[2]);
 
-	return std::sqrt(p3d_vec.x*p3d_vec.x + p3d_vec.y*p3d_vec.y + p3d_vec.z*p3d_vec.z);
+	return std::sqrt(p3d_vec.x * p3d_vec.x + p3d_vec.y * p3d_vec.y + p3d_vec.z * p3d_vec.z);
 }
 
-void CreateShadowPoint(cv::Point3f &p3d_sh, cv::Point3f p3d, CameraEC *cam, Pose *camera_pose, float parallax_length, float triangulate_angle) {
+void
+CreateShadowPoint(cv::Point3f &p3d_sh,
+                  cv::Point3f  p3d,
+                  CameraEC *   cam,
+                  Pose *       camera_pose,
+                  float        parallax_length,
+                  float        triangulate_angle)
+{
 	// Vector from camera-point to the 3D-point in marker coordinates
 	float l = PointVectorFromCamera(p3d, p3d_sh, camera_pose);
 
@@ -133,8 +161,11 @@ void CreateShadowPoint(cv::Point3f &p3d_sh, cv::Point3f p3d, CameraEC *cam, Pose
 	p3d2.x -= p3d.x;
 	p3d2.y -= p3d.y;
 	p3d2.z -= p3d.z;
-	float pl = std::sqrt(p3d2.x*p3d2.x + p3d2.y*p3d2.y + p3d2.z*p3d2.z);
-	float shadow_point_dist = float(pl / std::abs(tan(triangulate_angle*3.1415926535/180.))); // How far we need the shadow point to have the parallax limit match
+	float pl                = std::sqrt(p3d2.x * p3d2.x + p3d2.y * p3d2.y + p3d2.z * p3d2.z);
+	float shadow_point_dist = float(
+	  pl
+	  / std::abs(tan(triangulate_angle * 3.1415926535
+	                 / 180.))); // How far we need the shadow point to have the parallax limit match
 
 	// Create the shadow point
 	p3d_sh.x /= l;
@@ -147,18 +178,24 @@ void CreateShadowPoint(cv::Point3f &p3d_sh, cv::Point3f p3d, CameraEC *cam, Pose
 	p3d_sh.y += p3d.y;
 	p3d_sh.z += p3d.z;
 
-	//std::cout<<"p  : "<<p3d.x<<","<<p3d.y<<","<<p3d.z<<std::endl;	
-	//std::cout<<"psh: "<<p3d_sh.x<<","<<p3d_sh.y<<","<<p3d_sh.z<<std::endl;	
+	//std::cout<<"p  : "<<p3d.x<<","<<p3d.y<<","<<p3d.z<<std::endl;
+	//std::cout<<"psh: "<<p3d_sh.x<<","<<p3d_sh.y<<","<<p3d_sh.z<<std::endl;
 }
 
-bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float reproj_err_limit, float triangulate_angle) {
-	const int min_triangulate=50, max_triangulate=150;
-	const float plane_dist_limit = 100.f;
-	const bool remember_3d_points = true;
-	const float parallax_length = 10.f;
-	const float parallax_length_sq = parallax_length*parallax_length;
-	float reproj_err_limit_sq = reproj_err_limit*reproj_err_limit;
-	std::map<int, Feature>::iterator  iter;
+bool
+SimpleSfM::Update(cv::Mat &image,
+                  bool     assume_plane,
+                  bool     triangulate,
+                  float    reproj_err_limit,
+                  float    triangulate_angle)
+{
+	const int                        min_triangulate = 50, max_triangulate = 150;
+	const float                      plane_dist_limit    = 100.f;
+	const bool                       remember_3d_points  = true;
+	const float                      parallax_length     = 10.f;
+	const float                      parallax_length_sq  = parallax_length * parallax_length;
+	float                            reproj_err_limit_sq = reproj_err_limit * reproj_err_limit;
+	std::map<int, Feature>::iterator iter;
 	std::map<int, Feature>::iterator iter_end = container.end();
 
 	// #1. Detect marker corners and track features
@@ -169,16 +206,22 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 	tf.EraseNonTracked(container, 1);
 
 	// #2. Update pose
-	if (!pose_ok) pose_ok = cam.CalcExteriorOrientation(container, &pose);
+	if (!pose_ok)
+		pose_ok = cam.CalcExteriorOrientation(container, &pose);
 	pose_ok = cam.UpdatePose(container, &pose);
-	if (!pose_ok) pose_ok = cam.UpdatePose(container, &pose, 0); // Only markers
-	if (!pose_ok) return false;
+	if (!pose_ok)
+		pose_ok = cam.UpdatePose(container, &pose, 0); // Only markers
+	if (!pose_ok)
+		return false;
 
 	// #3. Reproject features and their shadows
-	double err_markers  = cam.Reproject(container, &pose, 0, true, false, 100);
-	if (err_markers > reproj_err_limit*2) { Reset(false); return false;}
+	double err_markers = cam.Reproject(container, &pose, 0, true, false, 100);
+	if (err_markers > reproj_err_limit * 2) {
+		Reset(false);
+		return false;
+	}
 	double err_features = cam.Reproject(container, &pose, 1, false, false, 100);
-	if ((err_markers == 0) && (err_features > reproj_err_limit*2)) {
+	if ((err_markers == 0) && (err_features > reproj_err_limit * 2)) {
 		// Error is so large, that we just are satisfied we have some pose
 		// Don't triangulate and remove points based on this result
 		return true;
@@ -186,22 +229,21 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 
 	// #4. Add previously triangulated features to container if they are visible...
 	if (remember_3d_points) {
-		IplImage *mask = tf.NewFeatureMask();
-		iter = container_triangulated.begin();
-		while(iter != container_triangulated.end()) {
+		cv::Mat mask = tf.NewFeatureMask();
+		iter         = container_triangulated.begin();
+		while (iter != container_triangulated.end()) {
 			if (container.find(iter->first) == container.end()) {
 				Camera *c = &cam;
 				c->ProjectPoint(iter->second.p3d, &pose, iter->second.projected_p2d);
-				if ((iter->second.projected_p2d.x >= 0) &&
-					(iter->second.projected_p2d.y >= 0) &&
-					(iter->second.projected_p2d.x < image->width) &&
-					(iter->second.projected_p2d.y < image->height))
-				{
-					CvScalar s = cvGet2D(mask, int(iter->second.projected_p2d.y), int(iter->second.projected_p2d.x));
+				if ((iter->second.projected_p2d.x >= 0) && (iter->second.projected_p2d.y >= 0)
+				    && (iter->second.projected_p2d.x < image->width)
+				    && (iter->second.projected_p2d.y < image->height)) {
+					CvScalar s =
+					  cvGet2D(mask, int(iter->second.projected_p2d.y), int(iter->second.projected_p2d.x));
 					if (s.val[0] == 0) {
-						container[iter->first] = iter->second;
+						container[iter->first]                 = iter->second;
 						container[iter->first].estimation_type = 3;
-						container[iter->first].p2d = container[iter->first].projected_p2d;
+						container[iter->first].p2d             = container[iter->first].projected_p2d;
 					}
 				}
 			}
@@ -230,7 +272,7 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 				//CreateShadowPoint(f.p3d_sh, f.p3d, &pose, shadow_point_dist);
 				f.p3d_sh = f.p3d;
 
-				f.has_p3d = true;
+				f.has_p3d         = true;
 				f.estimation_type = 1;
 			}
 		}
@@ -242,22 +284,24 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 			Feature &f = iter->second;
 			//if (f.type_id == 0) continue;
 			if (!f.has_p3d && !f.has_stored_pose) {
-				f.pose1 = pose;
-				f.p2d1 = f.p2d;
+				f.pose1           = pose;
+				f.p2d1            = f.p2d;
 				f.has_stored_pose = true;
 				cam.Get3dOnDepth(&pose, f.p2d, 8, f.p3d);
 				CreateShadowPoint(f.p3d_sh, f.p3d, &cam, &pose, parallax_length, triangulate_angle);
 			}
 			if (!f.has_p3d && f.has_stored_pose && f.estimation_type < 2) {
-				double dist_sh_sq = (f.projected_p2d_sh.x-f.projected_p2d.x)*(f.projected_p2d_sh.x-f.projected_p2d.x);
-				dist_sh_sq       += (f.projected_p2d_sh.y-f.projected_p2d.y)*(f.projected_p2d_sh.y-f.projected_p2d.y);
+				double dist_sh_sq =
+				  (f.projected_p2d_sh.x - f.projected_p2d.x) * (f.projected_p2d_sh.x - f.projected_p2d.x);
+				dist_sh_sq +=
+				  (f.projected_p2d_sh.y - f.projected_p2d.y) * (f.projected_p2d_sh.y - f.projected_p2d.y);
 				if (dist_sh_sq > parallax_length_sq) {
 					cv::Point2f u1 = f.p2d1;
 					cv::Point2f u2 = f.p2d;
 					cam.Camera::Undistort(u1);
 					cam.Camera::Undistort(u2);
-					if(cam.ReconstructFeature(&f.pose1, &pose, &u1, &u2, &f.p3d, 10e-6)) {
-						CreateShadowPoint(f.p3d_sh, f.p3d,  &cam, &pose, parallax_length, triangulate_angle);
+					if (cam.ReconstructFeature(&f.pose1, &pose, &u1, &u2, &f.p3d, 10e-6)) {
+						CreateShadowPoint(f.p3d_sh, f.p3d, &cam, &pose, parallax_length, triangulate_angle);
 						f.has_p3d = true;
 					} else
 						f.has_stored_pose = false;
@@ -270,18 +314,20 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 	// #7. Erase poor features
 	cam.Reproject(container, &pose, 1, false, false, 100); // TODO: Why again...
 	iter = container.begin();
-	while(iter != container.end()) {
+	while (iter != container.end()) {
 		bool iter_inc = true;
 		if (iter->second.type_id > 0) {
 			Feature &f = iter->second;
-			if ((f.estimation_type == 0) || !f.has_p2d || !f.has_p3d);
+			if ((f.estimation_type == 0) || !f.has_p2d || !f.has_p3d)
+				;
 			else {
 				// Note that the projected_p2d needs to have valid content at this point
-				double dist_sq = (f.p2d.x-f.projected_p2d.x)*(f.p2d.x-f.projected_p2d.x);
-				dist_sq       += (f.p2d.y-f.projected_p2d.y)*(f.p2d.y-f.projected_p2d.y);
+				double dist_sq = (f.p2d.x - f.projected_p2d.x) * (f.p2d.x - f.projected_p2d.x);
+				dist_sq += (f.p2d.y - f.projected_p2d.y) * (f.p2d.y - f.projected_p2d.y);
 
 				if (f.estimation_type == 1) {
-					if (dist_sq > (reproj_err_limit_sq)) f.has_p3d = false;
+					if (dist_sq > (reproj_err_limit_sq))
+						f.has_p3d = false;
 				} else if (f.estimation_type == 2) {
 					if (dist_sq > (reproj_err_limit_sq)) {
 						container.erase(iter++);
@@ -294,8 +340,9 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 							iter_inc = false;
 						}
 					} else {
-						if (dist_sq > (reproj_err_limit_sq)) f.has_p3d = false;
-						if (dist_sq > (reproj_err_limit_sq*2)) {
+						if (dist_sq > (reproj_err_limit_sq))
+							f.has_p3d = false;
+						if (dist_sq > (reproj_err_limit_sq * 2)) {
 							std::map<int, Feature>::iterator iter_tmp;
 							iter_tmp = container_triangulated.find(iter->first);
 							if (iter_tmp != container_triangulated.end()) {
@@ -308,64 +355,72 @@ bool SimpleSfM::Update(cv::Mat&image, bool assume_plane, bool triangulate, float
 				}
 			}
 		}
-		if (iter_inc) iter++;
+		if (iter_inc)
+			iter++;
 	}
 
 	// #8. Remember good features that have little reprojection error while the parallax is noticeable
 	if (remember_3d_points && (container_triangulated.size() < max_triangulate)) {
 		iter = container.begin();
-		while(iter != container.end()) {
-			if ((iter->second.type_id > 0) &&
-				(container_triangulated.find(iter->first) == container_triangulated.end()))
-			{
-				Feature &f = iter->second;
-				double dist_sq = (f.p2d.x-f.projected_p2d.x)*(f.p2d.x-f.projected_p2d.x);
-				dist_sq       += (f.p2d.y-f.projected_p2d.y)*(f.p2d.y-f.projected_p2d.y);
-				double dist_sh_sq = (f.projected_p2d_sh.x-f.projected_p2d.x)*(f.projected_p2d_sh.x-f.projected_p2d.x);
-				dist_sh_sq       += (f.projected_p2d_sh.y-f.projected_p2d.y)*(f.projected_p2d_sh.y-f.projected_p2d.y);
-				if ((dist_sq < reproj_err_limit_sq) && (dist_sh_sq > parallax_length_sq)) { 
+		while (iter != container.end()) {
+			if ((iter->second.type_id > 0)
+			    && (container_triangulated.find(iter->first) == container_triangulated.end())) {
+				Feature &f       = iter->second;
+				double   dist_sq = (f.p2d.x - f.projected_p2d.x) * (f.p2d.x - f.projected_p2d.x);
+				dist_sq += (f.p2d.y - f.projected_p2d.y) * (f.p2d.y - f.projected_p2d.y);
+				double dist_sh_sq =
+				  (f.projected_p2d_sh.x - f.projected_p2d.x) * (f.projected_p2d_sh.x - f.projected_p2d.x);
+				dist_sh_sq +=
+				  (f.projected_p2d_sh.y - f.projected_p2d.y) * (f.projected_p2d_sh.y - f.projected_p2d.y);
+				if ((dist_sq < reproj_err_limit_sq) && (dist_sh_sq > parallax_length_sq)) {
 					container_triangulated[iter->first] = iter->second;
-					f.estimation_type = 3;
+					f.estimation_type                   = 3;
 				}
 			}
 			iter++;
-			if (container_triangulated.size() >= max_triangulate) break;
+			if (container_triangulated.size() >= max_triangulate)
+				break;
 		}
 	}
 
 	return true;
 }
 
-bool SimpleSfM::UpdateTriangulateOnly(cv::Mat&image) {
+bool
+SimpleSfM::UpdateTriangulateOnly(cv::Mat &image)
+{
 	marker_detector.Detect(image, &cam, container, 0, 0, 1023, true, false);
 	tf.Purge();
 	tf.Track(image, 0, container, 1, 1024, 65535);
 	tf.EraseNonTracked(container, 1);
-	if (!pose_ok) pose_ok = cam.CalcExteriorOrientation(container, &pose);
-	else pose_ok = cam.UpdatePose(container, &pose);
-	if(pose_ok) update_tri = moving.UpdateDistance(&pose, scale);
-	std::map<int,Feature>::iterator iter = container.begin();
-	std::map<int,Feature>::iterator iter_end = container.end();
-	for(;iter != iter_end; iter++) {
-		if (pose_ok && (iter->second.type_id == 1) && (!iter->second.has_stored_pose) && (!iter->second.has_p3d)) {
-			iter->second.pose1 = pose;
-			iter->second.p2d1 = iter->second.p2d;
+	if (!pose_ok)
+		pose_ok = cam.CalcExteriorOrientation(container, &pose);
+	else
+		pose_ok = cam.UpdatePose(container, &pose);
+	if (pose_ok)
+		update_tri = moving.UpdateDistance(&pose, scale);
+	std::map<int, Feature>::iterator iter     = container.begin();
+	std::map<int, Feature>::iterator iter_end = container.end();
+	for (; iter != iter_end; iter++) {
+		if (pose_ok && (iter->second.type_id == 1) && (!iter->second.has_stored_pose)
+		    && (!iter->second.has_p3d)) {
+			iter->second.pose1           = pose;
+			iter->second.p2d1            = iter->second.p2d;
 			iter->second.has_stored_pose = true;
 		}
 	}
 	iter = container.begin();
-	for(;iter != iter_end; iter++)
-	{
+	for (; iter != iter_end; iter++) {
 		Feature &f = iter->second;
-		if(update_tri && f.has_stored_pose && !f.has_p3d) {
+		if (update_tri && f.has_stored_pose && !f.has_p3d) {
 			f.tri_cntr++;
 		}
-		if(f.tri_cntr==3) {
+		if (f.tri_cntr == 3) {
 			cv::Point2f u1 = f.p2d1;
 			cv::Point2f u2 = f.p2d;
 			cam.Camera::Undistort(u1);
 			cam.Camera::Undistort(u2);
-			if(cam.ReconstructFeature(&f.pose1, &pose, &u1, &u2, &f.p3d, 10e-6))
+			if (cam.ReconstructFeature(&f.pose1, &pose, &u1, &u2, &f.p3d, 10e-6))
 				f.has_p3d = true;
 			else
 				f.has_stored_pose = false;
@@ -373,43 +428,47 @@ bool SimpleSfM::UpdateTriangulateOnly(cv::Mat&image) {
 		}
 	}
 	if (pose_ok) {
-		double err_markers  = cam.Reproject(container, &pose, 0, true, false, 100);
-		if(err_markers > 30) { Reset(false); return false;}
+		double err_markers = cam.Reproject(container, &pose, 0, true, false, 100);
+		if (err_markers > 30) {
+			Reset(false);
+			return false;
+		}
 		double err_features = cam.Reproject(container, &pose, 1, false, false, 100);
 		cam.EraseUsingReprojectionError(container, 30, 1);
 	}
 	return pose_ok;
 }
 
-bool SimpleSfM::UpdateRotationsOnly(cv::Mat&image) {
-	int n_markers = marker_detector.Detect(image, &cam, container, 0, 0, 1023, true, false);
+bool
+SimpleSfM::UpdateRotationsOnly(cv::Mat &image)
+{
+	int        n_markers = marker_detector.Detect(image, &cam, container, 0, 0, 1023, true, false);
 	static int n_markers_prev = 0;
 	tf.Purge();
 	tf.Track(image, 0, container, 1, 1024, 65535);
 	tf.EraseNonTracked(container, 1);
 	int type_id = -1;
-	if(n_markers>=1) type_id = 0;
-	if (n_markers==1)
-	{
+	if (n_markers >= 1)
+		type_id = 0;
+	if (n_markers == 1) {
 		pose_ok = cam.CalcExteriorOrientation(container, &pose, 0);
-		if(pose_ok) pose_original = pose;
-	}
-	else if(n_markers>1)
-	{
-		if(pose_ok)
+		if (pose_ok)
+			pose_original = pose;
+	} else if (n_markers > 1) {
+		if (pose_ok)
 			pose_ok = cam.UpdatePose(container, &pose, 0);
 		else
 			pose_ok = cam.CalcExteriorOrientation(container, &pose, 0);
-		if(pose_ok) pose_original = pose;
-	}
-	else //if(pose_ok) // Tracking going on...
+		if (pose_ok)
+			pose_original = pose;
+	} else //if(pose_ok) // Tracking going on...
 	{
 		if (n_markers_prev > 0) {
 			pose_difference.Reset();
 			pose_difference.Mirror(false, true, true);
-			std::map<int,Feature>::iterator iter = container.begin();
-			std::map<int,Feature>::iterator iter_end = container.end();
-			for(;iter != iter_end; iter++) {
+			std::map<int, Feature>::iterator iter     = container.begin();
+			std::map<int, Feature>::iterator iter_end = container.end();
+			for (; iter != iter_end; iter++) {
 				if ((iter->second.type_id == 1) && (iter->second.has_p2d)) {
 					cv::Point2f _p2d = iter->second.p2d;
 					cam.Get3dOnDepth(&pose_difference, _p2d, 1, iter->second.p3d);
@@ -418,14 +477,13 @@ bool SimpleSfM::UpdateRotationsOnly(cv::Mat&image) {
 			}
 		}
 		cam.UpdateRotation(container, &pose_difference, 1);
-		if(pose_ok)
-		{
+		if (pose_ok) {
 			double rot_mat[16];
 			double gl_mat[16];
 			pose_difference.GetMatrixGL(rot_mat);
 			pose_original.GetMatrixGL(gl_mat);
-			cv::Mat rot = cv::Mat(4, 4, CV_64F, rot_mat);// Rotation matrix (difference) from the tracker
-			cv::Mat mod = cv::Mat(4, 4, CV_64F, gl_mat); // Original modelview matrix (camera location)
+			cv::Mat rot = cv::Mat(4, 4, CV_64F, rot_mat); // Rotation matrix (difference) from the tracker
+			cv::Mat mod = cv::Mat(4, 4, CV_64F, gl_mat);  // Original modelview matrix (camera location)
 			cv::MatMul(&mod, &rot, &rot);
 			/*if(pose_ok)*/ pose.SetMatrixGL(rot_mat);
 		}
@@ -434,9 +492,9 @@ bool SimpleSfM::UpdateRotationsOnly(cv::Mat&image) {
 	n_markers_prev = n_markers;
 	if (pose_ok) {
 		if (n_markers < 1) {
-			std::map<int,Feature>::iterator iter = container.begin();
-			std::map<int,Feature>::iterator iter_end = container.end();
-			for(;iter != iter_end; iter++) {
+			std::map<int, Feature>::iterator iter     = container.begin();
+			std::map<int, Feature>::iterator iter_end = container.end();
+			for (; iter != iter_end; iter++) {
 				if ((iter->second.type_id == 1) && (!iter->second.has_p3d) && (iter->second.has_p2d)) {
 					cv::Point2f _p2d = iter->second.p2d;
 					cam.Get3dOnDepth(&pose_difference, _p2d, 1, iter->second.p3d);
@@ -445,42 +503,75 @@ bool SimpleSfM::UpdateRotationsOnly(cv::Mat&image) {
 			}
 		}
 
-		double err_markers  = cam.Reproject(container, &pose, 0, true, false, 100);
-		if(err_markers > 10) { Reset(false); return false;}
+		double err_markers = cam.Reproject(container, &pose, 0, true, false, 100);
+		if (err_markers > 10) {
+			Reset(false);
+			return false;
+		}
 		double err_features = cam.Reproject(container, &pose_difference, 1, false, false, 100);
 		cam.EraseUsingReprojectionError(container, 10, 1);
 	}
 	return pose_ok;
 }
 
-void SimpleSfM::Draw(cv::Mat&rgba) {
-	if(markers_found) return;
-	std::map<int,Feature>::iterator iter = container.begin();
-	std::map<int,Feature>::iterator iter_end = container.end();
-	for(;iter != iter_end;iter++) {
+void
+SimpleSfM::Draw(cv::Mat &rgba)
+{
+	if (markers_found)
+		return;
+	std::map<int, Feature>::iterator iter     = container.begin();
+	std::map<int, Feature>::iterator iter_end = container.end();
+	for (; iter != iter_end; iter++) {
 		Feature &f = iter->second;
 		if (f.has_p2d) {
-			int r=0, g=0, b=0, rad=1;
-			if (f.type_id == 0)              {r=255; g=0; b=0;}
-			else if (f.estimation_type == 0) {
-				if (f.has_stored_pose) {r=255; g=0; b=255;}
-				else                   {r=0; g=255; b=255;}
+			int r = 0, g = 0, b = 0, rad = 1;
+			if (f.type_id == 0) {
+				r = 255;
+				g = 0;
+				b = 0;
+			} else if (f.estimation_type == 0) {
+				if (f.has_stored_pose) {
+					r = 255;
+					g = 0;
+					b = 255;
+				} else {
+					r = 0;
+					g = 255;
+					b = 255;
+				}
+			} else if (f.estimation_type == 1) {
+				r = 0;
+				g = 255;
+				b = 0;
+			} else if (f.estimation_type == 2) {
+				r = 255;
+				g = 0;
+				b = 255;
+			} else if (f.estimation_type == 3) {
+				r = 0;
+				g = 0;
+				b = 255;
 			}
-			else if (f.estimation_type == 1) {r=0; g=255; b=0;}
-			else if (f.estimation_type == 2) {r=255; g=0; b=255;}
-			else if (f.estimation_type == 3) {r=0; g=0; b=255;}
-			if (f.has_p3d) rad=5;
-			else rad = f.tri_cntr+1;
+			if (f.has_p3d)
+				rad = 5;
+			else
+				rad = f.tri_cntr + 1;
 
-			cvCircle(rgba, cvPointFrom32f(f.p2d), rad, cvScalar(CV_RGB(r,g,b)));
+			cv::circle(rgba, cvPointFrom32f(f.p2d), rad, cvScalar(CV_RGB(r, g, b)));
 			if (pose_ok) {
 				// The shadow point line
 				if (f.type_id > 0 && f.estimation_type < 3 && f.p3d_sh.x != 0.f) {
-					cv::line(rgba, cvPointFrom32f(f.projected_p2d), cvPointFrom32f(f.projected_p2d_sh), cvScalar(CV_RGB(0,255,0)));
+					cv::line(rgba,
+					         cvPointFrom32f(f.projected_p2d),
+					         cvPointFrom32f(f.projected_p2d_sh),
+					         cvScalar(CV_RGB(0, 255, 0)));
 				}
 				// Reprojection error
 				if (f.has_p3d) {
-					cv::line(rgba, cvPointFrom32f(f.p2d), cvPointFrom32f(f.projected_p2d), cvScalar(CV_RGB(255,0,255)));
+					cv::line(rgba,
+					         cvPointFrom32f(f.p2d),
+					         cvPointFrom32f(f.projected_p2d),
+					         cvScalar(CV_RGB(255, 0, 255)));
 				}
 			}
 			//if (pose_ok && f.has_p3d) {
@@ -488,20 +579,19 @@ void SimpleSfM::Draw(cv::Mat&rgba) {
 			//}
 			//if (f.type_id == 0) {
 			//	int id = iter->first;
-			//	cvCircle(rgba, cvPointFrom32f(f.p2d), 7, CV_RGB(255,0,0));
+			//	cv::circle(rgba, cvPointFrom32f(f.p2d), 7, CV_RGB(255,0,0));
 			//} else {
 			//	int id = iter->first-1024+1;
-			//	if (f.has_p3d) { 
-			//		cvCircle(rgba, cvPointFrom32f(f.p2d), 5, CV_RGB(0,255,0));
+			//	if (f.has_p3d) {
+			//		cv::circle(rgba, cvPointFrom32f(f.p2d), 5, CV_RGB(0,255,0));
 			//	}
-			//	else if (f.has_stored_pose) 
-			//		cvCircle(rgba, cvPointFrom32f(f.p2d), f.tri_cntr+1, CV_RGB(255,0,255));
-			//	else 
-			//		cvCircle(rgba, cvPointFrom32f(f.p2d), 5, CV_RGB(0,255,255));
+			//	else if (f.has_stored_pose)
+			//		cv::circle(rgba, cvPointFrom32f(f.p2d), f.tri_cntr+1, CV_RGB(255,0,255));
+			//	else
+			//		cv::circle(rgba, cvPointFrom32f(f.p2d), 5, CV_RGB(0,255,255));
 			//}
 		}
 	}
 }
 
 } // namespace alvar
-

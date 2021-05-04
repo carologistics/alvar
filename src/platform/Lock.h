@@ -46,27 +46,26 @@ namespace alvar {
 class ALVAR_EXPORT Lock : private Uncopyable
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param mutex The mutex to lock.
      */
-    Lock(Mutex *mutex)
-        : mMutex(mutex)
+	Lock(Mutex *mutex) : mMutex(mutex)
 	{
-        mMutex->lock();
+		mMutex->lock();
 	}
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~Lock()
+	~Lock()
 	{
-        mMutex->unlock();
+		mMutex->unlock();
 	}
 
 private:
-    Mutex *mMutex;
+	Mutex *mMutex;
 };
 
 } // namespace alvar

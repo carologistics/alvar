@@ -25,9 +25,9 @@
 #define OPTIMIZATION_H
 
 #include "Alvar.h"
-#include <cxcore.h>
-//#include <float.h>
 
+#include <opencv2/core/mat.hpp>
+//#include <float.h>
 
 /**
  * \file Optimization.h
@@ -41,24 +41,22 @@ namespace alvar {
   * \brief Non-linear optimization routines. There are three methods implemented that include Gauss-Newton, Levenberg-Marquardt and Tukey m-estimator.
   *  
   */
-class ALVAR_EXPORT Optimization 
+class ALVAR_EXPORT Optimization
 {
-
 private:
-
-	void *estimate_param;
-	cv::Mat *J;
-	cv::Mat *JtJ;
-	cv::Mat *W;
-	cv::Mat *diag;
-	cv::Mat *tmp;
-	cv::Mat *err;
-	cv::Mat *delta;
-	cv::Mat *x_plus;
-	cv::Mat *x_minus;
-	cv::Mat *x_tmp1;
-	cv::Mat *x_tmp2;
-	cv::Mat *tmp_par;
+	void *  estimate_param;
+	cv::Mat J;
+	cv::Mat JtJ;
+	cv::Mat W;
+	cv::Mat diag;
+	cv::Mat tmp;
+	cv::Mat err;
+	cv::Mat delta;
+	cv::Mat x_plus;
+	cv::Mat x_minus;
+	cv::Mat x_tmp1;
+	cv::Mat x_tmp2;
+	cv::Mat tmp_par;
 
 	double CalcTukeyWeight(double residual, double c);
 	double CalcTukeyWeightSimple(double residual, double c);
@@ -66,17 +64,11 @@ private:
 	double lambda;
 
 public:
-
 	/**
 	  * \brief Selection between the algorithm used in optimization. Following should be noticed:
 	  * \li GAUSSNEWTON
 	  */
-	enum OptimizeMethod
-	{
-		GAUSSNEWTON,
-		LEVENBERGMARQUARDT,
-		TUKEY_LM
-	};
+	enum OptimizeMethod { GAUSSNEWTON, LEVENBERGMARQUARDT, TUKEY_LM };
 
 	/**
       * \brief Constructor.
@@ -90,7 +82,11 @@ public:
 	  * \brief Returns the current residual vector.
 	  * \return Pointer to the residual vector.
 	  */
-	cv::Mat *GetErr() { return err; }
+	cv::Mat
+	GetErr()
+	{
+		return err;
+	}
 
 	/**
 	  * \brief Pointer to the function that projects the state of the system to the measurements.
@@ -98,7 +94,7 @@ public:
 	  * \param projection	The system state projection is stored here. E.g image measurements in optical tracking.
 	  * \param param		Additional parameters to the function. E.g. some constant parameters that are not optimized.
 	  */
-	typedef void (*EstimateCallback)(cv::Mat* state, cv::Mat *projection, void *param);
+	typedef void (*EstimateCallback)(cv::Mat &state, cv::Mat &projection, void *param);
 
 	/** 
 	  * \brief Numerically differentiates and calculates the Jacobian around x.
@@ -106,7 +102,7 @@ public:
 	  * \param J		Resulting Jacobian matrix is stored here.
 	  * \param Estimate	The function to be differentiated.
 	  */
-	void CalcJacobian(cv::Mat* x, cv::Mat* J, EstimateCallback Estimate);
+	void CalcJacobian(cv::Mat &x, cv::Mat &J, EstimateCallback Estimate);
 
 	/**
 	  * \brief Runs the optimization loop with selected parameters.
@@ -120,17 +116,16 @@ public:
 	  * \param J_mat			Jacobian matrix. If not given, numerical differentation is used.
 	  * \param weights			Weight vector that can be submitted to give different weights to different measurements. Currently works only with OptimizeMethod::TUKEY_LM.
 	  */
-	double Optimize(cv::Mat*					parameters,
-				    cv::Mat*					measurements,
-					double					stop,
-					int						max_iter,
-					EstimateCallback		Estimate,
-					void *param				= 0,
-					OptimizeMethod method	= LEVENBERGMARQUARDT,
-					cv::Mat* parameters_mask	= 0,
-					cv::Mat* J_mat			= 0,
-					cv::Mat* weights			= 0); 
-
+	double Optimize(cv::Mat &        parameters,
+	                cv::Mat &        measurements,
+	                double           stop,
+	                int              max_iter,
+	                EstimateCallback Estimate,
+	                void *           param           = 0,
+	                OptimizeMethod   method          = LEVENBERGMARQUARDT,
+	                const cv::Mat &  parameters_mask = cv::Mat(),
+	                const cv::Mat &  J_mat           = cv::Mat(),
+	                const cv::Mat &  weights         = cv::Mat());
 };
 
 } // namespace alvar

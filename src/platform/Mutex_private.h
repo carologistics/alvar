@@ -31,12 +31,12 @@ class MutexPrivateData;
 class MutexPrivate
 {
 public:
-    MutexPrivate();
-    ~MutexPrivate();
-    void lock();
-    void unlock();
+	MutexPrivate();
+	~MutexPrivate();
+	void lock();
+	void unlock();
 
-    MutexPrivateData *d;
+	MutexPrivateData *d;
 };
 
 } // namespace alvar

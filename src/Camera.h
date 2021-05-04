@@ -32,28 +32,30 @@
  */
 
 #include "Alvar.h"
+#include "FileFormat.h"
 #include "Pose.h"
 #include "Util.h"
-#include "FileFormat.h"
-#include <vector>
+
 #include <opencv2/core.hpp>
+#include <vector>
 
 namespace alvar {
 
 /** \brief Simple structure for collecting 2D and 3D points e.g. for camera calibration */
-struct ALVAR_EXPORT ProjPoints {
+struct ALVAR_EXPORT ProjPoints
+{
 	int width;
 	int height;
 
 	/** \brief 3D object points corresponding with the detected 2D image points. */
-    std::vector<cv::Point3d> object_points;
+	std::vector<cv::Point3d> object_points;
 	/** \brief Detected 2D object points
 	 * If point_counts[0] == 10, then the 
 	 * first 10 points are detected in the first frame. If 
 	 * point_counts[1]	== 6, then the next 6 of these points are 
 	 * detected in the next frame... etc.
 	 */
-    std::vector<cv::Point2d> image_points;
+	std::vector<cv::Point2d> image_points;
 	/** \brief Vector indicating how many points are detected for each frame */
 	std::vector<int> point_counts;
 
@@ -61,25 +63,30 @@ struct ALVAR_EXPORT ProjPoints {
 	void Reset();
 
 	/** \brief Add elements to \e object_points , \e  image_points and \e point_counts using Chessboard pattern */
-    bool AddPointsUsingChessboard(const cv::Mat&, double etalon_square_size, int etalon_rows, int etalon_columns, bool visualize);
+	bool AddPointsUsingChessboard(const cv::Mat &,
+	                              double etalon_square_size,
+	                              int    etalon_rows,
+	                              int    etalon_columns,
+	                              bool   visualize);
 
 	/** \brief Add elements to \e object_points , \e  image_points and \e point_counts using detected markers */
-    bool AddPointsUsingMarkers(std::vector<PointDouble> &marker_corners, std::vector<PointDouble> &marker_corners_img, cv::Mat& image);
+	bool AddPointsUsingMarkers(std::vector<PointDouble> &marker_corners,
+	                           std::vector<PointDouble> &marker_corners_img,
+	                           cv::Mat &                 image);
 };
-
 
 /**
  * \brief Simple \e Camera class for calculating distortions, orientation or projections with pre-calibrated camera
  */
-class ALVAR_EXPORT Camera {
-
+class ALVAR_EXPORT Camera
+{
 public:
-
-    cv::Mat calib_K; double calib_K_data[3][3];
-    cv::Mat calib_D; double calib_D_data[4];
+	cv::Mat calib_K;
+	double  calib_K_data[3][3];
+	cv::Mat calib_D;
+	double  calib_D_data[4];
 
 protected:
-
 	int calib_x_res;
 	int calib_y_res;
 	int x_res;
@@ -93,7 +100,11 @@ private:
 
 public:
 	/** \brief One of the two methods to make this class serializable by \e Serialization class */
-	std::string SerializeId() { return "camera"; };
+	std::string
+	SerializeId()
+	{
+		return "camera";
+	};
 	/** \brief One of the two methods to make this class serializable by \e Serialization class
 	 *
 	 * You can serialize the \e Camera class using filename or any std::iostream 
@@ -120,11 +131,17 @@ public:
 	 * seri>>cam;
 	 * \endcode
 	 */
-	bool Serialize(Serialization *ser) {
-		if (!ser->Serialize(calib_x_res, "width")) return false;
-		if (!ser->Serialize(calib_y_res, "height")) return false;
-		if (!ser->Serialize(calib_K, "intrinsic_matrix")) return false;
-		if (!ser->Serialize(calib_D, "distortion")) return false;
+	bool
+	Serialize(Serialization *ser)
+	{
+		if (!ser->Serialize(calib_x_res, "width"))
+			return false;
+		if (!ser->Serialize(calib_y_res, "height"))
+			return false;
+		if (!ser->Serialize(calib_K, "intrinsic_matrix"))
+			return false;
+		if (!ser->Serialize(calib_D, "distortion"))
+			return false;
 		return true;
 	}
 
@@ -132,15 +149,19 @@ public:
 	Camera();
 
 	/** \brief Get x-direction FOV in radians */
-	double GetFovX() {
-		return (2.0f * atan2(double(x_res) / 2.0f, (double)calib_K_data[0][0]));	
+	double
+	GetFovX()
+	{
+		return (2.0f * atan2(double(x_res) / 2.0f, (double)calib_K_data[0][0]));
 	}
 	/** \brief Get y-direction FOV in radians */
-	double GetFovY() {
+	double
+	GetFovY()
+	{
 		return (2.0f * atan2(double(y_res) / 2.0f, (double)calib_K_data[1][1]));
 	}
-	
-	void SetSimpleCalib(int _x_res, int _y_res, double f_fac=1.);
+
+	void SetSimpleCalib(int _x_res, int _y_res, double f_fac = 1.);
 
 	/** \brief Set the calibration file and the current resolution for which the calibration is adjusted to 
 	 * \param calibfile File to load.
@@ -148,8 +169,8 @@ public:
 	 * \param _y_res Height of images captured from the real camera.
 	 * \param format FILE_FORMAT_OPENCV (default) or FILE_FORMAT_XML (see doc/Camera.xsd).
 	 */
-	bool SetCalib(const char *calibfile, int _x_res, int _y_res, 
-	              FILE_FORMAT format = FILE_FORMAT_DEFAULT);
+	bool
+	SetCalib(const char *calibfile, int _x_res, int _y_res, FILE_FORMAT format = FILE_FORMAT_DEFAULT);
 
 	/** \brief Save the current calibration information to a file
 	 * \param calibfile File to save.
@@ -182,89 +203,91 @@ public:
 	 * the sign changes eliminate each other, but with principal point
 	 * in x-direction we need to make the change by hand.
 	 */
-	void GetOpenglProjectionMatrix(double proj_matrix[16], const int width, const int height, const float far_clip = 1000.0f, const float near_clip = 0.1f);
+	void GetOpenglProjectionMatrix(double      proj_matrix[16],
+	                               const int   width,
+	                               const int   height,
+	                               const float far_clip  = 1000.0f,
+	                               const float near_clip = 0.1f);
 
 	/** \brief Invert operation for \e GetOpenglProjectionMatrix */
 	void SetOpenglProjectionMatrix(double proj_matrix[16], const int width, const int height);
 
 	/** \brief Unapplys the lens distortion for points on image plane. */
-	void Undistort(std::vector<PointDouble >& points);
+	void Undistort(std::vector<PointDouble> &points);
 
 	/** \brief Unapplys the lens distortion for one point on an image plane. */
 	void Undistort(PointDouble &point);
 
 	/** \brief Unapplys the lens distortion for one point on an image plane. */
-    void Undistort(cv::Point2f& point);
+	void Undistort(cv::Point2f &point);
 
 	/** \brief Applys the lens distortion for one point on an image plane. */
-    void Distort(cv::Point2f& point);
+	void Distort(cv::Point2f &point);
 
 	/** \brief Applys the lens distortion for points on image plane. */
-	void Distort(std::vector<PointDouble>& points);
+	void Distort(std::vector<PointDouble> &points);
 
 	/** \brief Applys the lens distortion for points on image plane. */
 	void Distort(PointDouble &point);
 
-	/** \brief Calculate exterior orientation */
-    void CalcExteriorOrientation(std::vector<cv::Point3d>& pw, std::vector<cv::Point2d>& pi, Pose *pose);
+	/** \brief Calculate exterior orientation
+	 */
+	void CalcExteriorOrientation(const std::vector<cv::Point3d> &pw,
+	                             const std::vector<PointDouble> &pi,
+	                             cv::Mat &                       rodriques,
+	                             cv::Mat &                       tra) const;
 
 	/** \brief Calculate exterior orientation
 	 */
-    void CalcExteriorOrientation(std::vector<cv::Point3d>& pw, std::vector<PointDouble >& pi,
-                        cv::Mat& rodriques, cv::Mat& tra);
-
-	/** \brief Calculate exterior orientation
-	 */
-	void CalcExteriorOrientation(std::vector<PointDouble >& pw, std::vector<PointDouble >& pi,
-                        cv::Mat& rodriques, cv::Mat& tra);
-
-	/** \brief Calculate exterior orientation
-	 */
-	void CalcExteriorOrientation(std::vector<PointDouble>& pw, std::vector<PointDouble >& pi, Pose *pose);
-
-	/** \brief Update existing pose based on new observations. Use (CV_32FC3 and CV_32FC2) for matrices. */
-    bool CalcExteriorOrientation(const cv::Mat& object_points, cv::Mat& image_points, Pose *pose);
+	void CalcExteriorOrientation(const std::vector<PointDouble> &pw,
+	                             const std::vector<PointDouble> &pi,
+	                             cv::Mat &                       rodriques,
+	                             cv::Mat &                       tra) const;
 
 	/** \brief Update existing pose (in rodriques&tra) based on new observations. Use (CV_32FC3 and CV_32FC2) for matrices. */
-    bool CalcExteriorOrientation(const cv::Mat& object_points, cv::Mat& image_points, cv::Mat& rodriques, cv::Mat& tra);
+	void CalcExteriorOrientation(const std::vector<PointDouble> &pw,
+	                             const std::vector<PointDouble> &pi,
+	                             Pose *                          pose) const;
 
 	/** \brief Project one point */
-    void ProjectPoint(const cv::Point3d pw, const Pose *pose, cv::Point2d &pi) const;
+	void ProjectPoint(const cv::Point3d &pw, const Pose *pose, cv::Point2d &pi) const;
 
 	/** \brief Project one point */
-    void ProjectPoint(const cv::Point3f pw, const Pose *pose, cv::Point2f &pi) const;
+	void ProjectPoint(const cv::Point3f &pw, const Pose *pose, cv::Point2f &pi) const;
 
 	/** \brief Project points */
-    void ProjectPoints(std::vector<cv::Point3d>& pw, Pose *pose, std::vector<cv::Point2d>& pi) const;
+	void ProjectPoints(std::vector<cv::Point3d> &pw, Pose *pose, std::vector<cv::Point2d> &pi) const;
 
 	/** \brief Project points
 	 */
-    void ProjectPoints(const cv::Mat& object_points, const cv::Mat& rotation_vector,
-                       const cv::Mat& translation_vector, cv::Mat& image_points) const;
-	
+	void ProjectPoints(const cv::Mat &object_points,
+	                   const cv::Mat &rotation_vector,
+	                   const cv::Mat &translation_vector,
+	                   cv::Mat &      image_points) const;
+
 	/** \brief Project points
 	 */
-    void ProjectPoints(const cv::Mat& object_points, double gl[16], cv::Mat& image_points) const;
+	void ProjectPoints(const cv::Mat &object_points, double gl[16], cv::Mat &image_points) const;
 
 	/** \brief Project points  */
-    void ProjectPoints(const cv::Mat& object_points, const Pose* pose, cv::Mat& image_points) const;
+	void ProjectPoints(const cv::Mat &object_points, const Pose *pose, cv::Mat &image_points) const;
 };
 
 /**
  * \brief Simple \e Homography class for finding and projecting points between two planes.
  */
-struct ALVAR_EXPORT Homography {
-	double H_data[3][3];
-    cv::Mat H;
-	
+struct ALVAR_EXPORT Homography
+{
+	cv::Mat H;
+
 	/** \brief Constructor  */
 	Homography();
-	
+
 	/** \brief Find Homography for two point-sets */
-	void Find(const std::vector<PointDouble>& pw, const std::vector<PointDouble>& pi);
-	
+	void Find(const std::vector<PointDouble> &pw, const std::vector<PointDouble> &pi);
+
 	/** \brief Project points using the Homography */
-	void ProjectPoints(const std::vector<PointDouble>& from, std::vector<PointDouble>& to);
+	void ProjectPoints(const std::vector<PointDouble> &from, std::vector<PointDouble> &to) const;
 };
 
 } // namespace alvar

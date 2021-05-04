@@ -49,30 +49,44 @@ namespace alvar {
 class ALVAR_EXPORT MultiMarkerInitializer : public MultiMarker
 {
 public:
-    /**
+	/**
      * \brief MarkerMeasurement that holds the maker id.
      */
-	class MarkerMeasurement : public Marker {
+	class MarkerMeasurement : public Marker
+	{
 		long _id;
+
 	public:
-		MarkerMeasurement() : globalPose(false) {}
+		MarkerMeasurement() : globalPose(false)
+		{
+		}
 		bool globalPose;
-		unsigned long GetId() const { return _id; }
-		void SetId(unsigned long _id) { this->_id = _id; }
-    };
+		unsigned long
+		GetId() const
+		{
+			return _id;
+		}
+		void
+		SetId(unsigned long _id)
+		{
+			this->_id = _id;
+		}
+	};
 
 protected:
-	std::vector<bool> marker_detected;
-	std::vector<std::vector<MarkerMeasurement> > measurements;
-	typedef std::vector<std::vector<MarkerMeasurement> >::iterator MeasurementIterator;
-	FilterMedian *pointcloud_filtered;
-	int filter_buffer_min;
+	std::vector<bool>                                             marker_detected;
+	std::vector<std::vector<MarkerMeasurement>>                   measurements;
+	typedef std::vector<std::vector<MarkerMeasurement>>::iterator MeasurementIterator;
+	FilterMedian *                                                pointcloud_filtered;
+	int                                                           filter_buffer_min;
 
 	bool updateMarkerPoses(std::vector<MarkerMeasurement> &markers, const Pose &pose);
 	void MeasurementsAdd(MarkerIterator &begin, MarkerIterator &end);
 
 public:
-	MultiMarkerInitializer(std::vector<int>& indices, int filter_buffer_min = 4, int filter_buffer_max = 15);
+	MultiMarkerInitializer(std::vector<int> &indices,
+	                       int               filter_buffer_min = 4,
+	                       int               filter_buffer_max = 15);
 	~MultiMarkerInitializer();
 
 	/**
@@ -91,10 +105,12 @@ public:
 	 * and then the pose of B.
 	 */
 	template <class M>
-	void MeasurementsAdd(const std::vector<M> *markers) {
-	    MarkerIteratorImpl<M> begin(markers->begin());
-	    MarkerIteratorImpl<M> end(markers->end());
-        MeasurementsAdd(begin, end);
+	void
+	MeasurementsAdd(const std::vector<M> *markers)
+	{
+		MarkerIteratorImpl<M> begin(markers->begin());
+		MarkerIteratorImpl<M> end(markers->end());
+		MeasurementsAdd(begin, end);
 	}
 
 	/**
@@ -107,18 +123,26 @@ public:
 	 *
 	 * Returns the number of initialized markers.
 	 */
-	int Initialize(Camera* cam);
+	int Initialize(Camera *cam);
 
-	int getMeasurementCount() { return measurements.size(); }
+	int
+	getMeasurementCount()
+	{
+		return measurements.size();
+	}
 
-	const std::vector<MarkerMeasurement>& getMeasurementMarkers(int measurement) { 
+	const std::vector<MarkerMeasurement> &
+	getMeasurementMarkers(int measurement)
+	{
 		return measurements[measurement];
 	}
 
-	double getMeasurementPose(int measurement, Camera *cam, Pose &pose) {
+	double
+	getMeasurementPose(int measurement, Camera *cam, Pose &pose)
+	{
 		MarkerIteratorImpl<MarkerMeasurement> m_begin(measurements[measurement].begin());
 		MarkerIteratorImpl<MarkerMeasurement> m_end(measurements[measurement].end());
-		return _GetPose(m_begin, m_end, cam, pose, NULL);
+		return _GetPose(m_begin, m_end, cam, pose);
 	}
 };
 

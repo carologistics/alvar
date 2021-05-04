@@ -25,6 +25,7 @@
 #define __Ransac_h__
 
 #include "Alvar.h"
+
 #include <stdlib.h>
 
 /**
@@ -38,51 +39,54 @@ namespace alvar {
 /**
  * \brief Internal implementation of RANSAC. Please use Ransac or IndexRansac.
  */
-class ALVAR_EXPORT RansacImpl {
+class ALVAR_EXPORT RansacImpl
+{
+protected:
+	void **samples;
+	void * hypothesis;
+	int    min_params;
+	int    max_params;
+	int    sizeof_param;
+	int    sizeof_model;
 
- protected:
-  void** samples;
-  void* hypothesis;
-  int min_params;
-  int max_params;
-  int sizeof_param;
-  int sizeof_model;
+	RansacImpl(int min_params, int max_params, int sizeof_param, int sizeof_model);
+	virtual ~RansacImpl();
 
-  RansacImpl(int min_params, int max_params, 
-             int sizeof_param, int sizeof_model);
-  virtual ~RansacImpl();
+	int _estimate(void *params, int param_c, int support_limit, int max_rounds, void *model);
 
-  int _estimate(void* params, int param_c,
-		int support_limit, int max_rounds,
-		void* model);
+	int _refine(void *params,
+	            int   param_c,
+	            int   support_limit,
+	            int   max_rounds,
+	            void *model,
+	            char *inlier_mask = NULL);
 
-  int _refine(void* params, int param_c,
-	      int support_limit, int max_rounds,
-	      void* model, char *inlier_mask = NULL);
+	virtual void _doEstimate(void **params, int param_c, void *model){};
+	virtual bool
+	_doSupports(void *param, void *model)
+	{
+		return false;
+	};
 
-  virtual void _doEstimate(void** params, int param_c, void* model) {};
-  virtual bool _doSupports(void* param, void* model) { return false; };
+	/** IndexRansac version */
+	int *indices;
 
-  /** IndexRansac version */
-  int *indices;
+	RansacImpl(int min_params, int max_params, int sizeof_model);
 
-  RansacImpl(int min_params, int max_params, 
-             int sizeof_model);
+	int _estimate(int param_c, int support_limit, int max_rounds, void *model);
 
-  int _estimate(int param_c,
-		int support_limit, int max_rounds,
-		void* model);
+	int
+	_refine(int param_c, int support_limit, int max_rounds, void *model, char *inlier_mask = NULL);
 
-  int _refine(int param_c,
-	      int support_limit, int max_rounds,
-	      void* model, char *inlier_mask = NULL);
+	virtual void _doEstimate(int *params, int param_c, void *model){};
+	virtual bool
+	_doSupports(int param, void *model)
+	{
+		return false;
+	};
 
-  virtual void _doEstimate(int* params, int param_c, void* model) {};
-  virtual bool _doSupports(int param, void* model) { return false; };
-
- public:
-
-  /** \brief How many rounds are needed for the Ransac to work.
+public:
+	/** \brief How many rounds are needed for the Ransac to work.
    *
    * Computes the required amount of rounds from the estimated
    * inlier percentage and required propability of successfully
@@ -95,12 +99,10 @@ class ALVAR_EXPORT RansacImpl {
    * \return The required number of rounds that can be used as
    * max_rounds when calling the estimate method.
    */
-  int estimateRequiredRounds(float success_propability,
-			     float inlier_percentage);
-
+	int estimateRequiredRounds(float success_propability, float inlier_percentage);
 };
 
-  /**
+/**
    * \brief Implementation of a general RANdom SAmple Consensus algorithm.
    *
    * This implementation can be used to estimate model from a set of input
@@ -167,11 +169,11 @@ class ALVAR_EXPORT RansacImpl {
    *
    * \endcode
    */
-  template <typename MODEL, typename PARAMETER>
-    class Ransac : public RansacImpl {
-
-    protected:
-    /** \brief Creates a model estimate from a set of parameters.
+template <typename MODEL, typename PARAMETER>
+class Ransac : public RansacImpl
+{
+protected:
+	/** \brief Creates a model estimate from a set of parameters.
      *
      * The user must implement this method to compute model parameters
      * from the input data.
@@ -180,9 +182,9 @@ class ALVAR_EXPORT RansacImpl {
      * \param param_c The number of parameter pointers in the params array.
      * \param model Pointer to the model where to store the estimate.
      */
-    virtual void doEstimate(PARAMETER** params, int param_c, MODEL* model) = 0;
+	virtual void doEstimate(PARAMETER **params, int param_c, MODEL *model) = 0;
 
-    /** \brief Computes how well a parameters supports a model.
+	/** \brief Computes how well a parameters supports a model.
      *
      * This method is used by the RANSAC algorithm to count how many
      * parameters support the estimated model (inliers). Althought this
@@ -193,24 +195,28 @@ class ALVAR_EXPORT RansacImpl {
      * \param model Pointer to the model to check the parameter against.
      * \return True when the parameter supports the model.
      */
-    virtual bool doSupports(PARAMETER* param, MODEL* model) = 0;
+	virtual bool doSupports(PARAMETER *param, MODEL *model) = 0;
 
-    /**
+	/**
      * Wrapper for templated parameters.
      */
-    void _doEstimate(void** params, int param_c, void* model) {
-      doEstimate((PARAMETER**)params, param_c, (MODEL*)model);
-    }
+	void
+	_doEstimate(void **params, int param_c, void *model)
+	{
+		doEstimate((PARAMETER **)params, param_c, (MODEL *)model);
+	}
 
-    /**
+	/**
      * Wrapper for templated parameters.
      */
-    bool _doSupports(void* param, void* model) {
-      return doSupports((PARAMETER*)param, (MODEL*)model);
-    }
+	bool
+	_doSupports(void *param, void *model)
+	{
+		return doSupports((PARAMETER *)param, (MODEL *)model);
+	}
 
-    public:
-    /** \brief Initialize the algorithm.
+public:
+	/** \brief Initialize the algorithm.
      *
      * Uses at least min_params and at most max_params number of input data
      * elements for model estimation.
@@ -222,12 +228,16 @@ class ALVAR_EXPORT RansacImpl {
      * \param max_params is the maximum number of parameters to using in refining
      * the model.
      */
-    Ransac(int min_params, int max_params) 
-      : RansacImpl(min_params, max_params, sizeof(PARAMETER), sizeof(MODEL)) {}
+	Ransac(int min_params, int max_params)
+	: RansacImpl(min_params, max_params, sizeof(PARAMETER), sizeof(MODEL))
+	{
+	}
 
-    virtual ~Ransac() {}
+	virtual ~Ransac()
+	{
+	}
 
-    /** \brief Estimates a model from input data parameters.
+	/** \brief Estimates a model from input data parameters.
      *
      * Randomly samples min_params number of input data elements from params array
      * and chooses the model that has the largest set of supporting parameters
@@ -247,13 +257,13 @@ class ALVAR_EXPORT RansacImpl {
      * \return the number of parameters supporting the model, or 0
      * if a suitable model could not be build at all.
      */
-    int estimate(PARAMETER* params, int param_c,
-		 int support_limit, int max_rounds,
-		 MODEL* model) {
-      return _estimate(params, param_c, support_limit, max_rounds, model);
-    }
+	int
+	estimate(PARAMETER *params, int param_c, int support_limit, int max_rounds, MODEL *model)
+	{
+		return _estimate(params, param_c, support_limit, max_rounds, model);
+	}
 
-    /** \brief Iteratively makes the estimated model better.
+	/** \brief Iteratively makes the estimated model better.
      *
      * Starting with the estimated model, computes the model from all
      * inlier parameters and interates until no new parameters support
@@ -272,16 +282,19 @@ class ALVAR_EXPORT RansacImpl {
      * \param inlier_mask Byte array where 1 is stored for inliers and 0 for outliers.
      * \return the number of parameters supporting the model.
      */
-    int refine(PARAMETER* params, int param_c,
-	       int support_limit, int max_rounds,
-	       MODEL* model, char *inlier_mask = NULL) {
-      return _refine(params, param_c, support_limit, max_rounds, model, inlier_mask);
-    }
+	int
+	refine(PARAMETER *params,
+	       int        param_c,
+	       int        support_limit,
+	       int        max_rounds,
+	       MODEL *    model,
+	       char *     inlier_mask = NULL)
+	{
+		return _refine(params, param_c, support_limit, max_rounds, model, inlier_mask);
+	}
+};
 
-  };
-
-
-  /**
+/**
    * \brief Implementation of a general RANdom SAmple Consensus algorithm
    * with implicit parameters.
    * 
@@ -339,11 +352,11 @@ class ALVAR_EXPORT RansacImpl {
    *
    * \endcode
    */
-  template <typename MODEL>
-    class IndexRansac : public RansacImpl {
-
-  protected:
-    /** \brief Creates a model estimate from a set of parameters.
+template <typename MODEL>
+class IndexRansac : public RansacImpl
+{
+protected:
+	/** \brief Creates a model estimate from a set of parameters.
      *
      * The user must implement this method to compute model parameters
      * from the input data.
@@ -352,9 +365,9 @@ class ALVAR_EXPORT RansacImpl {
      * \param param_c The number of parameter indises in the params array.
      * \param model Pointer to the model where to store the estimate.
      */
-    virtual void doEstimate(int* params, int param_c, MODEL* model) = 0;
+	virtual void doEstimate(int *params, int param_c, MODEL *model) = 0;
 
-    /** \brief Computes how well a parameters supports a model.
+	/** \brief Computes how well a parameters supports a model.
      *
      * This method is used by the RANSAC algorithm to count how many
      * parameters support the estimated model (inliers). Althought this
@@ -365,24 +378,28 @@ class ALVAR_EXPORT RansacImpl {
      * \param model Pointer to the model to check the parameter against.
      * \return True when the parameter supports the model.
      */
-    virtual bool doSupports(int param, MODEL* model) = 0;
+	virtual bool doSupports(int param, MODEL *model) = 0;
 
-    /**
+	/**
      * Wrapper for templated parameters.
      */
-    void _doEstimate(int* params, int param_c, void* model) {
-      doEstimate(params, param_c, (MODEL*)model);
-    }
+	void
+	_doEstimate(int *params, int param_c, void *model)
+	{
+		doEstimate(params, param_c, (MODEL *)model);
+	}
 
-    /**
+	/**
      * Wrapper for templated parameters.
      */
-    bool _doSupports(int param, void* model) {
-      return doSupports(param, (MODEL*)model);
-    }
+	bool
+	_doSupports(int param, void *model)
+	{
+		return doSupports(param, (MODEL *)model);
+	}
 
-  public:
-    /** \brief Initialize the algorithm.
+public:
+	/** \brief Initialize the algorithm.
      *
      * Uses at least min_params and at most max_params number of input data
      * elements for model estimation.
@@ -394,12 +411,15 @@ class ALVAR_EXPORT RansacImpl {
      * \param max_params is the maximum number of parameters to using in refining
      * the model.
      */
-    IndexRansac(int min_params, int max_params) 
-      : RansacImpl(min_params, max_params, sizeof(MODEL)) {}
+	IndexRansac(int min_params, int max_params) : RansacImpl(min_params, max_params, sizeof(MODEL))
+	{
+	}
 
-    virtual ~IndexRansac() {}
+	virtual ~IndexRansac()
+	{
+	}
 
-    /** \brief Estimates a model from input data parameters.
+	/** \brief Estimates a model from input data parameters.
      *
      * Randomly samples min_params number of input data elements from params array
      * and chooses the model that has the largest set of supporting parameters
@@ -418,13 +438,13 @@ class ALVAR_EXPORT RansacImpl {
      * \return the number of parameters supporting the model, or 0
      * if a suitable model could not be build at all.
      */
-    int estimate(int param_c,
-		 int support_limit, int max_rounds,
-		 MODEL* model) {
-      return _estimate(param_c, support_limit, max_rounds, model);
-    }
+	int
+	estimate(int param_c, int support_limit, int max_rounds, MODEL *model)
+	{
+		return _estimate(param_c, support_limit, max_rounds, model);
+	}
 
-    /** \brief Iteratively makes the estimated model better.
+	/** \brief Iteratively makes the estimated model better.
      *
      * Starting with the estimated model, computes the model from all
      * inlier parameters and interates until no new parameters support
@@ -442,13 +462,12 @@ class ALVAR_EXPORT RansacImpl {
      * \param inlier_mask Byte array where 1 is stored for inliers and 0 for outliers.
      * \return the number of parameters supporting the model.
      */
-    int refine(int param_c,
-	       int support_limit, int max_rounds,
-	       MODEL* model, char *inlier_mask = NULL) {
-      return _refine(param_c, support_limit, max_rounds, model, inlier_mask);
-    }
-
-  };
+	int
+	refine(int param_c, int support_limit, int max_rounds, MODEL *model, char *inlier_mask = NULL)
+	{
+		return _refine(param_c, support_limit, max_rounds, model, inlier_mask);
+	}
+};
 
 } // namespace alvar
 

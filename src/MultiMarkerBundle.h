@@ -44,25 +44,26 @@ namespace alvar {
 class ALVAR_EXPORT MultiMarkerBundle : public MultiMarker
 {
 protected:
-	int optimization_keyframes;
-	int optimization_markers;
-	double optimization_error;
-	bool optimizing;
-	std::vector<Pose> camera_poses; // Estimated camera pose for every frame
+	int                        optimization_keyframes;
+	int                        optimization_markers;
+	double                     optimization_error;
+	bool                       optimizing;
+	std::vector<Pose>          camera_poses; // Estimated camera pose for every frame
 	std::map<int, PointDouble> measurements; //
-	int measurements_index(int frame, int marker_id, int marker_corner) {
+	int
+	measurements_index(int frame, int marker_id, int marker_corner)
+	{
 		// hop return (int) (frame*marker_indices.size()*4)+(marker_id*4)+marker_corner;
-		return (int) (frame*marker_indices.size()*4)+(get_id_index(marker_id)*4)+marker_corner;
+		return (int)(frame * marker_indices.size() * 4) + (get_id_index(marker_id) * 4) + marker_corner;
 	}
 
-	void _MeasurementsAdd(MarkerIterator &begin, MarkerIterator &end, const Pose& camera_pose);
+	void _MeasurementsAdd(MarkerIterator &begin, MarkerIterator &end, const Pose &camera_pose);
 
 public:
-
 	/** \brief Constructor.
 		\param indices Vector of marker codes that are included into multi marker. The first element defines origin.
 	*/
-	MultiMarkerBundle(std::vector<int>& indices);
+	MultiMarkerBundle(std::vector<int> &indices);
 
 	~MultiMarkerBundle();
 
@@ -71,21 +72,38 @@ public:
 	*/
 	void MeasurementsReset();
 
-	double GetOptimizationError() { return optimization_error; }
-	int GetOptimizationKeyframes() { return optimization_keyframes; }
-	int GetOptimizationMarkers() { return optimization_markers; }
-	bool GetOptimizing() { return optimizing; }
+	double
+	GetOptimizationError()
+	{
+		return optimization_error;
+	}
+	int
+	GetOptimizationKeyframes()
+	{
+		return optimization_keyframes;
+	}
+	int
+	GetOptimizationMarkers()
+	{
+		return optimization_markers;
+	}
+	bool
+	GetOptimizing()
+	{
+		return optimizing;
+	}
 
 	/** \brief Adds new measurements that are used in bundle adjustment.
 		\param markers Vector of markers detected by MarkerDetector.
 		\param camera_pose Current camera pose.
 	*/
 	template <class M>
-	void MeasurementsAdd(const std::vector<M> *markers, const Pose& camera_pose) {
-	    MarkerIteratorImpl<M> begin(markers->begin());
-	    MarkerIteratorImpl<M> end(markers->end());
-        _MeasurementsAdd(begin, end,
-                     camera_pose);
+	void
+	MeasurementsAdd(const std::vector<M> *markers, const Pose &camera_pose)
+	{
+		MarkerIteratorImpl<M> begin(markers->begin());
+		MarkerIteratorImpl<M> end(markers->end());
+		_MeasurementsAdd(begin, end, camera_pose);
 	}
 
 	/** \brief Runs the bundle adjustment optimization.
@@ -94,7 +112,10 @@ public:
 		\param max_iter Maximum number of iteration loops.
 		\param method The method that is applied inside optimization. Try Optimization::LEVENBERGMARQUARDT or Optimization::GAUSSNEWTON or Optmization::TUKEY_LM
 	*/																											//LEVENBERGMARQUARDT
-	bool Optimize(Camera *_cam, double stop, int max_iter, Optimization::OptimizeMethod method = Optimization::TUKEY_LM); //TUKEY_LM
+	bool Optimize(Camera *                     _cam,
+	              double                       stop,
+	              int                          max_iter,
+	              Optimization::OptimizeMethod method = Optimization::TUKEY_LM); //TUKEY_LM
 };
 
 } // namespace alvar

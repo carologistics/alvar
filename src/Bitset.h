@@ -31,11 +31,12 @@
  */
 
 #include "Alvar.h"
-#include <iostream>
+
 #include <deque>
-#include <string>
-#include <sstream>
 #include <iomanip>
+#include <iostream>
+#include <sstream>
+#include <string>
 
 namespace alvar {
 
@@ -59,10 +60,11 @@ namespace alvar {
  * b.Output(std::cout); // b contains now: 00000000 00000000 10001000 10001000
  * \endcode
  */
-class ALVAR_EXPORT Bitset {
+class ALVAR_EXPORT Bitset
+{
 protected:
 	std::deque<bool> bits;
-	
+
 public:
 	/** \brief The length of the \e Bitset */
 	int Length();
@@ -80,17 +82,17 @@ public:
 	 *  \param b Unsigned character (8-bits) to be pushed to the end of bit sequence.
 	 *  \param bit_count Number of bits to be pushed (default/max is 8 bits)
 	 */
-	void push_back(const unsigned char b, const int bit_count=8);
+	void push_back(const unsigned char b, const int bit_count = 8);
 	/** \brief Push back \e bit_count bits from 'short' \e s
 	 *  \param s Unsigned short (16-bits) to be pushed to the end of bit sequence.
 	 *  \param bit_count Number of bits to be pushed (default/max is 16 bits)
 	 */
-	void push_back(const unsigned short s, const int bit_count=16);
+	void push_back(const unsigned short s, const int bit_count = 16);
 	/** \brief Push back \e bit_count bits from 'long' \e l
 	 *  \param l Unsigned long (32-bits) to be pushed to the end of bit sequence.
 	 *  \param bit_count Number of bits to be pushed (default/max is 32 bits)
 	 */
-	void push_back(const unsigned long l, const int bit_count=32);
+	void push_back(const unsigned long l, const int bit_count = 32);
 	/** \brief Push back meaningful bits from 'long' \e l
 	 *  \param l The meaningful bits of the given unsigned long (32-bits) are pushed to the end of bit sequence.
 	 */
@@ -118,7 +120,8 @@ public:
 	/** \brief The \e Bitset as 'unsigned char' */
 	unsigned char uchar();
 	/** \brief The \e Bitset as 'deque<bool>' */
-	inline std::deque<bool>& GetBits()
+	inline std::deque<bool> &
+	GetBits()
 	{
 		return bits;
 	}
@@ -132,11 +135,13 @@ public:
  *
  * The \e BitsetExt is used e.g by \e MarkerData
  */
-class ALVAR_EXPORT BitsetExt : public Bitset {
+class ALVAR_EXPORT BitsetExt : public Bitset
+{
 protected:
 	bool verbose;
 	void hamming_enc_block(unsigned long block_len, std::deque<bool>::iterator &iter);
-	int hamming_dec_block(unsigned long block_len, std::deque<bool>::iterator &iter);
+	int  hamming_dec_block(unsigned long block_len, std::deque<bool>::iterator &iter);
+
 public:
 	/** \brief Constructor */
 	BitsetExt();

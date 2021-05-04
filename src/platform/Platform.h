@@ -47,8 +47,12 @@ namespace alvar {
  * the corresponding error message from strerror(). If status is not zero, it
  * exits the process.
  */
-void ALVAR_EXPORT errorAtLine(int status, int error, const char *filename,
-                              unsigned int line, const char *format, ...);
+void ALVAR_EXPORT errorAtLine(int          status,
+                              int          error,
+                              const char * filename,
+                              unsigned int line,
+                              const char * format,
+                              ...);
 
 /**
  * \brief Sleep for a specified amount of milliseconds.
@@ -58,11 +62,11 @@ void ALVAR_EXPORT sleep(unsigned long milliseconds);
 } // namespace alvar
 
 #ifdef min
-	#undef min
+#	undef min
 #endif
 
 #ifdef max
-	#undef max
+#	undef max
 #endif
 
 #endif

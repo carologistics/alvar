@@ -31,29 +31,33 @@
  */
 
 #include "Alvar.h"
+
 #include <opencv2/core.hpp>
 
 namespace alvar {
 
 /** \brief Core implementation for Kalman sensor */
-class ALVAR_EXPORT KalmanSensorCore {
+class ALVAR_EXPORT KalmanSensorCore
+{
 	friend class KalmanVisualize;
+
 protected:
-	int n;
-	int m; 
-	cv::Mat *H_trans;
-	cv::Mat *z_pred;
-	cv::Mat *z_residual;
-	cv::Mat *x_gain;
+	int     n;
+	int     m;
+	cv::Mat H_trans;
+	cv::Mat z_pred;
+	cv::Mat z_residual;
+	cv::Mat x_gain;
+
 public:
 	/** \brief Latest measurement vector (m*1) */
-	cv::Mat *z; 
+	cv::Mat z;
 	/** \brief The matrix (m*n) mapping Kalman state vector into this sensor's measurements vector */
-	cv::Mat *H;
+	cv::Mat H;
 	/** \brief The matrix (n*m) containing Kalman gain (something between 0 and H^-1). 
 	* In this core-implementation we assume this to be precalculated. In \e KalmanSensor this is updated using \e update_K .
 	*/
-	cv::Mat *K;
+	cv::Mat K;
 	/** \brief Copy constructor */
 	KalmanSensorCore(const KalmanSensorCore &k);
 	/** 
@@ -65,30 +69,41 @@ public:
 	/** \brief Destructor */
 	~KalmanSensorCore();
 	/** \brief Accessor for n */
-	int get_n() { return n; }
+	int
+	get_n()
+	{
+		return n;
+	}
 	/** \brief Accessor for m */
-	int get_m() { return m; }
+	int
+	get_m()
+	{
+		return m;
+	}
 	/** \brief Method for updating the state estimate x
 	* This is called from \e predict_update() of \e Kalman.
 	* In \e KalmanSensorCore and in \e KalmanSensor this update is made linearly 
 	* but \e KalmanSensorEkf will override this method to use unlinear estimation.
 	*/
-	virtual void update_x(cv::Mat *x_pred, cv::Mat *x);
+	virtual void update_x(const cv::Mat &x_pred, cv::Mat &x);
 };
 
 /** \brief Core implementation for Kalman */
-class ALVAR_EXPORT KalmanCore {
+class ALVAR_EXPORT KalmanCore
+{
 	friend class KalmanVisualize;
+
 protected:
-	int n; 
-	//cv::Mat *x_pred;
-	cv::Mat *F_trans;
+	int n;
+	//cv::Mat x_pred;
+	cv::Mat      F_trans;
 	virtual void predict_x(unsigned long tick);
+
 public:
 	/** \brief The Kalman state vector (n*1) */
-	cv::Mat *x;
+	cv::Mat x;
 	/** \brief The matrix (n*n) containing the transition model for the internal state.  */
-	cv::Mat *F;
+	cv::Mat F;
 	/** \brief Copy constructor */
 	KalmanCore(const KalmanCore &s);
 	/** 
@@ -99,29 +114,34 @@ public:
 	/** \brief Destructor */
 	~KalmanCore();
 	/** \brief Accessor for n */
-	int get_n() { return n; }
+	int
+	get_n()
+	{
+		return n;
+	}
 	/** \brief Predict the Kalman state vector for the given time step .
 	* 	x_pred = F * x
 	*/
-	virtual cv::Mat *predict();
+	virtual cv::Mat &predict();
 	/** \brief Predict the Kalman state vector and update the state using the constant Kalman gain. 
 	* 	x = x_pred + K* ( z - H*x_pred)
 	*/
-	cv::Mat *predict_update(KalmanSensorCore *sensor);
+	cv::Mat &predict_update(KalmanSensorCore *sensor);
 
 	/** \brief Predicted state, TODO: should be protected?! */
-	cv::Mat *x_pred;
-
+	cv::Mat x_pred;
 };
 
 /** \brief Kalman sensor implementation */
-class ALVAR_EXPORT KalmanSensor : public KalmanSensorCore {
+class ALVAR_EXPORT KalmanSensor : public KalmanSensorCore
+{
 protected:
-	cv::Mat *R_tmp;
-	cv::Mat *P_tmp;
+	cv::Mat R_tmp;
+	cv::Mat P_tmp;
+
 public:
 	/** \brief The covariance matrix for the observation noise */
-	cv::Mat *R;
+	cv::Mat R;
 	/** \brief Copy constructor */
 	KalmanSensor(const KalmanSensor &k);
 	/** 
@@ -136,15 +156,18 @@ public:
 	* This is called from \e predict_update() of \e Kalman.
 	* Please override this method if you want this mapping to change on the run (e.g. based on time?).
 	*/
-	virtual void update_H(cv::Mat *x_pred) {}
+	virtual void
+	update_H(const cv::Mat &x_pred)
+	{
+	}
 	/** \brief Method for updating the  Kalman gain.
 	* This is called from \e predict_update() of \e Kalman.
 	*/
-	virtual void update_K(cv::Mat *P_pred);
+	virtual void update_K(const cv::Mat &P_pred);
 	/** \brief Method for updating the  error covariance matrix describing the accuracy of the state estimate.
 	* This is called from \e predict_update() of \e Kalman.
 	*/
-	virtual void update_P(cv::Mat *P_pred, cv::Mat *P);
+	virtual void update_P(const cv::Mat &P_pred, cv::Mat &P);
 };
 
 /** \brief Kalman implementation
@@ -175,17 +198,19 @@ public:
 * Note, that now the \e KalmanControl is left out from this implementation. But it could be added 
 * using similar conventions as the \e KalmanSensor.
 */
-class ALVAR_EXPORT Kalman : public KalmanCore {
+class ALVAR_EXPORT Kalman : public KalmanCore
+{
 protected:
-	int prev_tick; 
+	int  prev_tick;
 	void predict_P();
+
 public:
 	/** \brief The error covariance matrix describing the accuracy of the state estimate */
-	cv::Mat *P;
+	cv::Mat P;
 	/** \brief The covariance matrix for the process noise */
-	cv::Mat *Q;
+	cv::Mat Q;
 	/** \brief The predicted error covariance matrix */
-	cv::Mat *P_pred;
+	cv::Mat P_pred;
 	/** 
 	* \brief 		Constructor
 	* \param n 		The number of items in the Kalman  state vector
@@ -204,14 +229,14 @@ public:
 	*  x_pred = F*x
 	*  P_pred = F*P*trans(F) + Q
 	*/
-	cv::Mat *predict(unsigned long tick);
+	cv::Mat &predict(unsigned long tick);
 	/** \brief Predict the Kalman state vector for the given time step and update the state using the Kalman gain. 
 	* - Calls first the predict to ensure that the prediction is based on same timestep as the update
 	* - K = P_pred * trans(H) * inv(H*P_pred*trans(H) + R)
 	* - x = x_pred + K* ( z - H*x_pred)
 	* - P = (I - K*H) * P_pred
 	*/
-	cv::Mat *predict_update(KalmanSensor *sensor, unsigned long tick);
+	cv::Mat &predict_update(KalmanSensor *sensor, unsigned long tick);
 	/** \brief Helper method.  */
 	double seconds_since_update(unsigned long tick);
 };
@@ -222,16 +247,18 @@ public:
 * By default the \e upate_H calculates the Jacobian numerically, if you want other approach override
 * also the \e update_H()
 */
-class ALVAR_EXPORT KalmanSensorEkf : public KalmanSensor {
+class ALVAR_EXPORT KalmanSensorEkf : public KalmanSensor
+{
 protected:
-	cv::Mat *delta;
-	cv::Mat *x_plus;
-	cv::Mat *x_minus;
-	cv::Mat *z_tmp1;
-	cv::Mat *z_tmp2;
-	virtual void h(cv::Mat *x_pred, cv::Mat *_z_pred) = 0;
-	virtual void update_H(cv::Mat *x_pred);
-	virtual void update_x(cv::Mat *x_pred, cv::Mat *x);
+	cv::Mat      delta;
+	cv::Mat      x_plus;
+	cv::Mat      x_minus;
+	cv::Mat      z_tmp1;
+	cv::Mat      z_tmp2;
+	virtual void h(const cv::Mat &x_pred, cv::Mat &_z_pred) = 0;
+	virtual void update_H(const cv::Mat &x_pred);
+	virtual void update_x(const cv::Mat &x_pred, cv::Mat &x);
+
 public:
 	KalmanSensorEkf(const KalmanSensorEkf &k);
 	KalmanSensorEkf(int _n, int _m);
@@ -244,16 +271,18 @@ public:
 * By default the \e upate_F calculates the Jacobian numerically, if you want other approach override
 * also the \e update_F()
 */
-class ALVAR_EXPORT KalmanEkf : public Kalman {
+class ALVAR_EXPORT KalmanEkf : public Kalman
+{
 protected:
-	cv::Mat *delta;
-	cv::Mat *x_plus;
-	cv::Mat *x_minus;
-	cv::Mat *x_tmp1;
-	cv::Mat *x_tmp2;
-	virtual void f(cv::Mat *_x, cv::Mat *_x_pred, double dt) = 0;
+	cv::Mat      delta;
+	cv::Mat      x_plus;
+	cv::Mat      x_minus;
+	cv::Mat      x_tmp1;
+	cv::Mat      x_tmp2;
+	virtual void f(const cv::Mat &_x, const cv::Mat &_x_pred, double dt) = 0;
 	virtual void update_F(unsigned long tick);
 	virtual void predict_x(unsigned long tick);
+
 public:
 	KalmanEkf(int _n);
 	~KalmanEkf();
@@ -271,28 +300,30 @@ Usage:
 	kvis.show();
 \endcode
 */
-class ALVAR_EXPORT KalmanVisualize {
-	int n;
-	int m;
-	KalmanCore *kalman;
+class ALVAR_EXPORT KalmanVisualize
+{
+	int               n;
+	int               m;
+	KalmanCore *      kalman;
 	KalmanSensorCore *sensor;
-	Kalman *kalman_ext;
-	KalmanSensor *sensor_ext;
+	Kalman *          kalman_ext;
+	KalmanSensor *    sensor_ext;
 	/** \brief Image collecting visualization of the Kalman filter */
-	IplImage *img;
+	cv::Mat img;
 	/** \brief Image to show */
-	IplImage *img_legend;
+	cv::Mat img_legend;
 	/** \brief Image to show */
-	IplImage *img_show;
+	cv::Mat img_show;
 	/** \brief visualization scale before show */
 	int img_scale;
 	/** \brief Add matrix to the image */
-	void img_matrix(cv::Mat *mat, int top, int left);
+	void img_matrix(const cv::Mat &mat, int top, int left);
 	/** \brief Init everything. Called from constructors. */
 	void Init();
+
 public:
 	/** \brief Helper method for outputting matrices (for debug purposes) */
-	static void out_matrix(cv::Mat *m, char *name);
+	static void out_matrix(const cv::Mat &m, char *name);
 	/** \brief Constructor for full Kalman implementation */
 	KalmanVisualize(Kalman *_kalman, KalmanSensor *_sensor);
 	/** \brief Constructor for core Kalman implementation (not all visualizations possible) */
@@ -307,6 +338,6 @@ public:
 	void show();
 };
 
-} // namespace alvar 
+} // namespace alvar
 
 #endif

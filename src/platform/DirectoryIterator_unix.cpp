@@ -30,83 +30,80 @@ namespace alvar {
 class DirectoryIteratorPrivateData
 {
 public:
-    DirectoryIteratorPrivateData()
-        : mHandle(NULL)
-        , mData(NULL)
-    {
-    }
-    
-    DIR *mHandle;
-    dirent *mData;
+	DirectoryIteratorPrivateData() : mHandle(NULL), mData(NULL)
+	{
+	}
+
+	DIR *   mHandle;
+	dirent *mData;
 };
 
 DirectoryIteratorPrivate::DirectoryIteratorPrivate(const std::string &path)
-    : d(new DirectoryIteratorPrivateData())
-    , mDirectory(path)
-    , mEntry()
-    , mValid(false)
+: d(new DirectoryIteratorPrivateData()), mDirectory(path), mEntry(), mValid(false)
 {
-    if (mDirectory.at(mDirectory.length() - 1) != '/') {
-        mDirectory.append("/");
-    }
+	if (mDirectory.at(mDirectory.length() - 1) != '/') {
+		mDirectory.append("/");
+	}
 }
 
 DirectoryIteratorPrivate::~DirectoryIteratorPrivate()
 {
-    closedir(d->mHandle);
-    delete d;
+	closedir(d->mHandle);
+	delete d;
 }
 
-bool DirectoryIteratorPrivate::hasNext()
+bool
+DirectoryIteratorPrivate::hasNext()
 {
-    if (d->mHandle == NULL) {
-        d->mHandle = opendir(mDirectory.data());
+	if (d->mHandle == NULL) {
+		d->mHandle = opendir(mDirectory.data());
 
-        if (d->mHandle != NULL) {
-            d->mData = readdir(d->mHandle);
-            
-            if (d->mData != NULL) {
-                mValid = true;
-                skip();
-            }
-        }
-    }
+		if (d->mHandle != NULL) {
+			d->mData = readdir(d->mHandle);
 
-    return mValid;
+			if (d->mData != NULL) {
+				mValid = true;
+				skip();
+			}
+		}
+	}
+
+	return mValid;
 }
 
-std::string DirectoryIteratorPrivate::next()
+std::string
+DirectoryIteratorPrivate::next()
 {
-    if (!hasNext()) {
-        return "";
-    }
+	if (!hasNext()) {
+		return "";
+	}
 
-    mEntry = std::string(d->mData->d_name);
+	mEntry = std::string(d->mData->d_name);
 
-    d->mData = readdir(d->mHandle);
-    if (d->mData == NULL) {
-        mValid = false;
-    }
-    else {
-        skip();
-    }
+	d->mData = readdir(d->mHandle);
+	if (d->mData == NULL) {
+		mValid = false;
+	} else {
+		skip();
+	}
 
-    return mEntry;
+	return mEntry;
 }
 
-void DirectoryIteratorPrivate::skip()
+void
+DirectoryIteratorPrivate::skip()
 {
-    while (true) {
-        if (std::string(d->mData->d_name) != "." && std::string(d->mData->d_name) != "..") {
-            return;
-        }
+	while (true) {
+		if (std::string(d->mData->d_name) != "." && std::string(d->mData->d_name) != "..") {
+			return;
+		}
 
-        d->mData = readdir(d->mHandle);
-        if (d->mData == NULL) {
-            mValid = false;
-            return;
-        }
-    }
+		d->mData = readdir(d->mHandle);
+		if (d->mData == NULL) {
+			mValid = false;
+			return;
+		}
+	}
 }
 
 } // namespace alvar

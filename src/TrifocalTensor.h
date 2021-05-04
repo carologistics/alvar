@@ -25,8 +25,9 @@
 #define __TRIFOCAL_TENSOR__
 
 #include "Alvar.h"
-#include <cxcore.h>
 #include "Pose.h"
+
+#include <cxcore.h>
 
 /**
  * \file TrifocalTensor.h
@@ -36,7 +37,7 @@
 
 namespace alvar {
 
-  /**
+/**
    * \brief Trifocal tensor works for three images like a fundamental matrix
    * works for two images.
    * 
@@ -67,34 +68,35 @@ namespace alvar {
    *   assert(proj2.z == test2.z);
    * \endcode
    */
-  class ALVAR_EXPORT TrifocalTensor {
-  private:
-    double T[3][3][3];
-    double projectAxis(const cv::Point2d &p0, const cv::Point2d &p1, int l);
+class ALVAR_EXPORT TrifocalTensor
+{
+private:
+	double T[3][3][3];
+	double projectAxis(const cv::Point2d &p0, const cv::Point2d &p1, int l);
 
-  public:
-    TrifocalTensor();
+public:
+	TrifocalTensor();
 
-    /** \brief Constructs a tensor from identity pose and two other known poses.
+	/** \brief Constructs a tensor from identity pose and two other known poses.
      * See \e computeTensor.
      *
      * \param P1 The second pose relative to the first pose.
      * \param P2 The third pose relative to the first pose.
      */
-    TrifocalTensor(const Pose &P1, const Pose &P2);
+	TrifocalTensor(const Pose &P1, const Pose &P2);
 
-    /** \brief Constructs a tensor from three known poses.
+	/** \brief Constructs a tensor from three known poses.
      * See \e computeTensor.
      *
      * \param P0 The first camera pose.
      * \param P1 The second pose relative to the first pose.
      * \param P2 The third pose relative to the first pose.
      */
-    TrifocalTensor(const Pose &P0, const Pose &P1, const Pose &P2);
+	TrifocalTensor(const Pose &P0, const Pose &P1, const Pose &P2);
 
-    ~TrifocalTensor();
-  
-    /** \brief Initializes the tensor from identity pose and two other known 
+	~TrifocalTensor();
+
+	/** \brief Initializes the tensor from identity pose and two other known 
      * poses.
      *
      * The first pose is identity and the two other poses are relative 
@@ -104,17 +106,17 @@ namespace alvar {
      * \param P1 The second pose relative to the first pose.
      * \param P2 The third pose relative to the first pose.
      */
-    void computeTensor(const Pose &P1, const Pose &P2);
-  
-    /** \brief Initializes the tensor from three known poses.
+	void computeTensor(const Pose &P1, const Pose &P2);
+
+	/** \brief Initializes the tensor from three known poses.
      *
      * \param P0 The first camera pose.
      * \param P1 The second pose relative to the first pose.
      * \param P2 The third pose relative to the first pose.
      */
-    void computeTensor(const Pose &P0, const Pose &P1, const Pose &P2);
-  
-    /** \brief Computes the projection of a point in the third pose.
+	void computeTensor(const Pose &P0, const Pose &P1, const Pose &P2);
+
+	/** \brief Computes the projection of a point in the third pose.
      *
      * When we have three images, each a projection of a scene from the three
      * different camera poses (identity and the two poses that were used to
@@ -125,9 +127,9 @@ namespace alvar {
      * \param p1 2D position in a image projected from the second pose.
      * \param p2 Computed 2D position in a image projected form the third pose.
      */
-    void project(const cv::Point2d &p0, const cv::Point2d &p1, cv::Point2d &p2);
-  
-    /** \brief Computes how much three points differ from the tensor.
+	void project(const cv::Point2d &p0, const cv::Point2d &p1, cv::Point2d &p2);
+
+	/** \brief Computes how much three points differ from the tensor.
      *
      * When we have three images, each a projection of a scene from the three
      * different camera poses (identity and the two poses that were used to
@@ -143,8 +145,8 @@ namespace alvar {
      * \param p2 2D position in a image projected form the third pose.
      * \return Squared projection error.
      */
-    double projectError(const cv::Point2d &p0, const cv::Point2d &p1, const cv::Point2d &p2);
-  };
+	double projectError(const cv::Point2d &p0, const cv::Point2d &p1, const cv::Point2d &p2);
+};
 
 } // namespace alvar
 

@@ -27,6 +27,8 @@
 #include "Alvar.h"
 #include "Rotation.h"
 
+#include <opencv2/opencv.hpp>
+
 /**
  * \file Pose.h
  *
@@ -47,12 +49,13 @@ namespace alvar {
  * to support coordinates commonly used in OpenGL:
  * 'x' is right, 'y' is up, and 'z' is backward.
  */
-class ALVAR_EXPORT Pose : public Rotation {
+class ALVAR_EXPORT Pose : public Rotation
+{
 protected:
 	// Note, although we are using homogeneous coordinates x, y, z, w --  w is now mostly ignored
 public:
-	double translation[4];
-	cv::Mat  translation_mat;
+	double  translation[4];
+	cv::Mat translation_mat;
 
 	/** \e Output for debugging purposes */
 	void Output() const;
@@ -63,33 +66,33 @@ public:
 	 *  \param rot Handled using the \e Rotation class
 	 *  \param t   Handled using the \e Rotation class
 	 */
-	Pose(cv::Mat *tra, cv::Mat *rot, RotationType t);
+	Pose(const cv::Mat &tra, const cv::Mat &rot, RotationType t);
 	/** \e Constructor with 3x3, 3x4 or 4x4 matrix representation 
 	 *  \param mat A 3x3 rotation matrix or 3x4 / 4x4 transformation matrix
 	 */
-	Pose(cv::Mat *mat);
+	Pose(const cv::Mat &mat);
 	/** \e Copy constructor */
-	Pose(const Pose& p);
+	Pose(const Pose &p);
 	/** \e Reset the pose */
 	void Reset();
 	/** Set the transformation from the given matrix \e mat 
 	 *  \param mat A 3x3 rotation matrix or 3x4 / 4x4 transformation matrix
 	 */
-	void SetMatrix(const cv::Mat *mat);
+	void SetMatrix(const cv::Mat &mat);
 	/** \brief Set the \e Pose using OpenGL's transposed format. 
 	 *  Note, that by default this also mirrors both the y- and z-axis (see \e Camera and \e Pose for more information)
 	 *  \param gl OpenGL 4x4 transformation matrix elements in column-order
 	 */
-	void SetMatrixGL(double gl[16], bool mirror=true);
+	void SetMatrixGL(double gl[16], bool mirror = true);
 	/** Get the transformation into the given matrix \e mat 
 	 *  \param mat A 3x3 rotation matrix or 3x4 / 4x4 transformation matrix
 	 */
-	void GetMatrix(cv::Mat *mat) const;
+	void GetMatrix(cv::Mat &mat) const;
 	/** \brief Get the transformation matrix representation of the \e Pose using OpenGL's transposed format. 
 	 *  Note, that by default this also mirrors both the y- and z-axis (see \e Camera and \e Pose for more information)
 	 *  \param gl OpenGL 4x4 transformation matrix elements in column-order
 	 */
-	void GetMatrixGL(double gl[16], bool mirror=true);
+	void GetMatrixGL(double gl[16], bool mirror = true);
 	/** \e Transpose the transformation */
 	void Transpose();
 	/** Invert the pose */
@@ -103,7 +106,7 @@ public:
 	/** Set the translation part for the \e Pose 
 	 *  \param tra Column vector containing three translation elements
 	 */
-	void SetTranslation(const cv::Mat *tra);
+	void SetTranslation(const cv::Mat &tra);
 	/** Set the translation part for the \e Pose 
 	 *  \param tra Array containing three translation elements
 	 */
@@ -113,9 +116,9 @@ public:
 	/** Get the translation part from the \e Pose 
 	 *  \param tra Column vector where the three translation elements are filled in
 	 */
-	void GetTranslation(cv::Mat *tra) const;
+	void GetTranslation(cv::Mat &tra) const;
 	/** Assignment operator for copying \e Pose class */
-	Pose& operator  = (const Pose& p);
+	Pose &operator=(const Pose &p);
 };
 
 } // namespace alvar

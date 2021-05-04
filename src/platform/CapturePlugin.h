@@ -44,43 +44,42 @@ namespace alvar {
 class ALVAR_EXPORT CapturePlugin
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param captureType A unique identifier for the capture plugin.
      */
-    CapturePlugin(const std::string &captureType)
-        : mCaptureType(captureType)
-    {
-    }
+	CapturePlugin(const std::string &captureType) : mCaptureType(captureType)
+	{
+	}
 
-    /**
+	/**
      * \brief Destructor.
      */
-    virtual ~CapturePlugin() {};
+	virtual ~CapturePlugin(){};
 
-    /**
+	/**
      * \brief Vector of CaptureDevices.
      */
-    typedef std::vector<CaptureDevice> CaptureDeviceVector;
+	typedef std::vector<CaptureDevice> CaptureDeviceVector;
 
-    /**
+	/**
      * \brief Enumerate capture devices currently available.
      *
      * \return A vector of CaptureDevice objects that are currently available.
      */
-    virtual CaptureDeviceVector enumerateDevices() = 0;
+	virtual CaptureDeviceVector enumerateDevices() = 0;
 
-    /**
+	/**
      * \brief Create Capture class. Transfers onwership to the caller.
      *
      * \param captureDevice Information of which camera to create.
      * \return A new Capture class for which the caller takes ownership.
      */
-    virtual Capture *createCapture(const CaptureDevice captureDevice) = 0;
+	virtual Capture *createCapture(const CaptureDevice captureDevice) = 0;
 
 protected:
-    std::string mCaptureType;
+	std::string mCaptureType;
 };
 
 } // namespace alvar

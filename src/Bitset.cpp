@@ -28,51 +28,81 @@ using namespace std;
 namespace alvar {
 using namespace std;
 
-int Bitset::Length() {
+int
+Bitset::Length()
+{
 	return bits.size();
 }
-ostream &Bitset::Output(ostream &os) const {
-	deque<bool>::const_iterator iter=bits.begin();
+ostream &
+Bitset::Output(ostream &os) const
+{
+	deque<bool>::const_iterator iter = bits.begin();
 	while (iter != bits.end()) {
-		if (*iter) os<<"1";
-		else os<<"0";
+		if (*iter)
+			os << "1";
+		else
+			os << "0";
 		iter++;
 	}
 	return os;
 }
-void Bitset::clear() { bits.clear(); }
-void Bitset::push_back(const bool bit) { bits.push_back(bit); }
-void Bitset::push_back(const unsigned char b, int bit_count /*=8*/) {
+void
+Bitset::clear()
+{
+	bits.clear();
+}
+void
+Bitset::push_back(const bool bit)
+{
+	bits.push_back(bit);
+}
+void
+Bitset::push_back(const unsigned char b, int bit_count /*=8*/)
+{
 	push_back((const unsigned long)b, bit_count);
 }
-void Bitset::push_back(const unsigned short s, int bit_count /*=16*/) {
+void
+Bitset::push_back(const unsigned short s, int bit_count /*=16*/)
+{
 	push_back((const unsigned long)s, bit_count);
 }
-void Bitset::push_back(const unsigned long l, int bit_count /*=32*/) {
+void
+Bitset::push_back(const unsigned long l, int bit_count /*=32*/)
+{
 	unsigned long mask;
-	if ((bit_count > 32) || (bit_count == 0)) bit_count=32;
-	mask = 0x01<<(bit_count-1);
-	for (int i=0; i<bit_count; i++) {
-		if (l & mask) push_back(true);
-		else push_back(false);
-		mask>>=1;
+	if ((bit_count > 32) || (bit_count == 0))
+		bit_count = 32;
+	mask = 0x01 << (bit_count - 1);
+	for (int i = 0; i < bit_count; i++) {
+		if (l & mask)
+			push_back(true);
+		else
+			push_back(false);
+		mask >>= 1;
 	}
 }
-void Bitset::push_back_meaningful(const unsigned long l) {
+void
+Bitset::push_back_meaningful(const unsigned long l)
+{
 	int bit_count = 1;
-	for (int i=0; i<32; i++) {
-		unsigned long mask = 0x01<<i;
-		if (l & mask) bit_count = i+1;
+	for (int i = 0; i < 32; i++) {
+		unsigned long mask = 0x01 << i;
+		if (l & mask)
+			bit_count = i + 1;
 	}
 	push_back(l, bit_count);
 }
-void Bitset::fill_zeros_left(size_t bit_count) {
+void
+Bitset::fill_zeros_left(size_t bit_count)
+{
 	while (bits.size() < bit_count) {
 		bits.push_front(false);
 	}
 }
 
-void Bitset::push_back(string s) {
+void
+Bitset::push_back(string s)
+{
 	string::const_iterator iter = s.begin();
 	while (iter != s.end()) {
 		unsigned char c = *iter;
@@ -80,34 +110,42 @@ void Bitset::push_back(string s) {
 		iter++;
 	}
 }
-bool Bitset::pop_front()
+bool
+Bitset::pop_front()
 {
 	bool ret = bits.front();
-	bits.pop_front();	
+	bits.pop_front();
 	return ret;
 }
-bool Bitset::pop_back()
+bool
+Bitset::pop_back()
 {
 	bool ret = bits.back();
-	bits.pop_back();	
+	bits.pop_back();
 	return ret;
 }
 
-void Bitset::flip(size_t pos) {
+void
+Bitset::flip(size_t pos)
+{
 	bits[pos] = !bits[pos];
 }
 
-string Bitset::hex() 
+string
+Bitset::hex()
 {
 	stringstream ss;
 	ss.unsetf(std::ios_base::dec);
 	ss.setf(std::ios_base::hex);
-	unsigned long b=0;
-	int bitpos = (0x08 << (bits.size() % 4));
-	if (bitpos > 0x08) bitpos >>= 4;
-	for (size_t i=0; i < bits.size(); i++) {
-		if (bits[i]) b = b | bitpos;
-		else b = b & (0x0f ^ bitpos);
+	unsigned long b      = 0;
+	int           bitpos = (0x08 << (bits.size() % 4));
+	if (bitpos > 0x08)
+		bitpos >>= 4;
+	for (size_t i = 0; i < bits.size(); i++) {
+		if (bits[i])
+			b = b | bitpos;
+		else
+			b = b & (0x0f ^ bitpos);
 		bitpos >>= 1;
 		if (bitpos == 0x00) {
 			bitpos = 0x08;
@@ -117,7 +155,8 @@ string Bitset::hex()
 	return ss.str();
 }
 
-unsigned long Bitset::ulong()
+unsigned long
+Bitset::ulong()
 {
 	//if(bits.size() > (sizeof(unsigned long)*8))
 	//	throw "code too big for unsigned long\n";
@@ -128,7 +167,8 @@ unsigned long Bitset::ulong()
 	return v;
 }
 
-unsigned char Bitset::uchar()
+unsigned char
+Bitset::uchar()
 {
 	//if(bits.size() > (sizeof(unsigned char)*8))
 	//	throw "code too big for unsigned char\n";
@@ -139,29 +179,34 @@ unsigned char Bitset::uchar()
 	return (unsigned char)v;
 }
 
-void BitsetExt::hamming_enc_block(unsigned long block_len, deque<bool>::iterator &iter) {
-	if (verbose) cout<<"hamming_enc_block: ";
-	unsigned long next_parity=1;
-	for (unsigned long i=1; i<=block_len; i++) {
+void
+BitsetExt::hamming_enc_block(unsigned long block_len, deque<bool>::iterator &iter)
+{
+	if (verbose)
+		cout << "hamming_enc_block: ";
+	unsigned long next_parity = 1;
+	for (unsigned long i = 1; i <= block_len; i++) {
 		// Add a parity bit if this a place for such
 		if (i == next_parity) {
-			if (verbose) cout<<"p";
+			if (verbose)
+				cout << "p";
 			next_parity <<= 1;
 			iter = bits.insert(iter, false);
-		} 
+		}
 		// Otherwise if this bit is 1 change all related parity bits
 		else {
 			if (iter == bits.end()) {
-				block_len = i-1;
+				block_len = i - 1;
 				break;
 			}
-			if (verbose) cout<<(*iter?1:0);
+			if (verbose)
+				cout << (*iter ? 1 : 0);
 			if (*iter) {
-				unsigned long parity = next_parity>>1;
+				unsigned long parity = next_parity >> 1;
 				while (parity) {
 					if (i & parity) {
-						deque<bool>::iterator parity_iter=(iter - (i - parity));
-						*parity_iter = !*parity_iter;
+						deque<bool>::iterator parity_iter = (iter - (i - parity));
+						*parity_iter                      = !*parity_iter;
 					}
 					parity >>= 1;
 				}
@@ -173,27 +218,31 @@ void BitsetExt::hamming_enc_block(unsigned long block_len, deque<bool>::iterator
 	// Note, that the last parity bit can safely be removed from the code if it is not desired...
 	if (block_len == (next_parity >> 1)) {
 		// If the last bit is parity bit - make parity over the previous data
-		for (unsigned long ii=1; ii<block_len; ii++) {
-			if (*(iter-ii-1)) *(iter-1) = !*(iter-1);
+		for (unsigned long ii = 1; ii < block_len; ii++) {
+			if (*(iter - ii - 1))
+				*(iter - 1) = !*(iter - 1);
 		}
 	}
 	if (verbose) {
-		cout<<" -> ";
-		for (unsigned long ii=block_len; ii>=1; ii--) {
-			cout<<(*(iter-ii)?1:0);
+		cout << " -> ";
+		for (unsigned long ii = block_len; ii >= 1; ii--) {
+			cout << (*(iter - ii) ? 1 : 0);
 		}
-		cout<<" block_len: "<<block_len<<endl;
+		cout << " block_len: " << block_len << endl;
 	}
 }
-int BitsetExt::hamming_dec_block(unsigned long block_len, deque<bool>::iterator &iter) {
-	if (verbose) cout<<"hamming_dec_block: ";
-	bool potentially_double_error = false;
-	unsigned long total_parity=0;
-	unsigned long parity=0;
-	unsigned long next_parity=1;
-	for (unsigned long i=1; i<=block_len; i++) {
+int
+BitsetExt::hamming_dec_block(unsigned long block_len, deque<bool>::iterator &iter)
+{
+	if (verbose)
+		cout << "hamming_dec_block: ";
+	bool          potentially_double_error = false;
+	unsigned long total_parity             = 0;
+	unsigned long parity                   = 0;
+	unsigned long next_parity              = 1;
+	for (unsigned long i = 1; i <= block_len; i++) {
 		if (iter == bits.end()) {
-			// ttehop: 
+			// ttehop:
 			// At 3.12.2009 I changed the following line because
 			// it crashed with 7x7 markers. However, I didn't fully
 			// understand the reason why it should be so. Lets
@@ -203,41 +252,51 @@ int BitsetExt::hamming_dec_block(unsigned long block_len, deque<bool>::iterator 
 			break;
 		}
 		if (*iter) {
-			parity = parity ^ i;
+			parity       = parity ^ i;
 			total_parity = total_parity ^ 1;
 		}
 		if (i == next_parity) {
-			if (verbose) cout<<"("<<*iter<<")";
+			if (verbose)
+				cout << "(" << *iter << ")";
 			next_parity <<= 1;
 			iter = bits.erase(iter);
 		} else {
-			if (verbose) cout<<*iter;
+			if (verbose)
+				cout << *iter;
 			iter++;
 		}
 	}
-	if (block_len < 3)  {
-		if (verbose) cout<<" too short"<<endl;
+	if (block_len < 3) {
+		if (verbose)
+			cout << " too short" << endl;
 		return 0;
 	}
 	if (block_len == (next_parity >> 1)) {
-		parity = parity & ~(next_parity >> 1); // The last parity bit shouldn't be included in the other parity tests (TODO: Better solution)
+		parity =
+		  parity
+		  & ~(
+		    next_parity
+		    >> 1); // The last parity bit shouldn't be included in the other parity tests (TODO: Better solution)
 		if (total_parity == 0) {
 			potentially_double_error = true;
 		}
 	}
-	int steps=0;
-	if (verbose) cout<<" parity: "<<parity;
+	int steps = 0;
+	if (verbose)
+		cout << " parity: " << parity;
 	if (parity) {
 		if (potentially_double_error) {
-			if (verbose) cout<<" double error"<<endl;
+			if (verbose)
+				cout << " double error" << endl;
 			return -1;
 		}
 		next_parity = 1;
-		for (unsigned long i=1; i<=block_len; i++) {
+		for (unsigned long i = 1; i <= block_len; i++) {
 			if (i == next_parity) {
 				next_parity <<= 1;
 				if (i == parity) {
-					if (verbose) cout<<" parity bit error"<<endl;
+					if (verbose)
+						cout << " parity bit error" << endl;
 					return 1; // Only parity bit was erroneous
 				}
 			} else if (i >= parity) {
@@ -245,16 +304,20 @@ int BitsetExt::hamming_dec_block(unsigned long block_len, deque<bool>::iterator 
 			}
 		}
 		iter[-steps] = !iter[-steps];
-		if (verbose) cout<<" corrected"<<endl;
+		if (verbose)
+			cout << " corrected" << endl;
 		return 1;
 	}
-	if (verbose) cout<<" ok"<<endl;
+	if (verbose)
+		cout << " ok" << endl;
 	return 0;
 }
-BitsetExt::BitsetExt() {
+BitsetExt::BitsetExt()
+{
 	SetVerbose(false);
 }
-BitsetExt::BitsetExt(bool _verbose) {
+BitsetExt::BitsetExt(bool _verbose)
+{
 	SetVerbose(_verbose);
 }
 /*
@@ -272,57 +335,71 @@ bool BitsetExt::crc_dec(int crc_len) {
 	return false;
 }
 */
-void BitsetExt::SetVerbose(bool _verbose) {
+void
+BitsetExt::SetVerbose(bool _verbose)
+{
 	verbose = _verbose;
 }
-int BitsetExt::count_hamming_enc_len(int block_len, int dec_len) {
-	int parity_len=0;
+int
+BitsetExt::count_hamming_enc_len(int block_len, int dec_len)
+{
+	int parity_len    = 0;
 	int dec_len_count = dec_len;
 	while (dec_len_count > 0) {
 		unsigned long next_parity = 1;
-		for (unsigned long i=1; i<=(unsigned long)block_len; i++) {
+		for (unsigned long i = 1; i <= (unsigned long)block_len; i++) {
 			if (i == next_parity) {
 				parity_len++;
 				next_parity <<= 1;
 			} else {
 				dec_len_count--;
 			}
-			if (dec_len_count == 0) break;
+			if (dec_len_count == 0)
+				break;
 		}
 	}
 	return dec_len + parity_len;
 }
-int BitsetExt::count_hamming_dec_len(int block_len, int enc_len) {
-	int parity_len=0;
+int
+BitsetExt::count_hamming_dec_len(int block_len, int enc_len)
+{
+	int parity_len    = 0;
 	int enc_len_count = enc_len;
 	while (enc_len_count > 0) {
 		unsigned long next_parity = 1;
 		unsigned long i;
-		for (i=1; i<=(unsigned long)block_len; i++) {
+		for (i = 1; i <= (unsigned long)block_len; i++) {
 			if (i == next_parity) {
 				parity_len++;
 				next_parity <<= 1;
 			}
 			enc_len_count--;
-			if (enc_len_count == 0) break;
+			if (enc_len_count == 0)
+				break;
 		}
 	}
 	return enc_len - parity_len;
 }
-void BitsetExt::hamming_enc(int block_len) {
-	deque<bool>::iterator iter=bits.begin();
+void
+BitsetExt::hamming_enc(int block_len)
+{
+	deque<bool>::iterator iter = bits.begin();
 	while (iter != bits.end()) {
 		hamming_enc_block(block_len, iter);
 	}
 }
 // Returns number of corrected errors (or -1 if there were unrecoverable error)
-int BitsetExt::hamming_dec(int block_len) {
-	int error_count=0;
-	deque<bool>::iterator iter=bits.begin();
+int
+BitsetExt::hamming_dec(int block_len)
+{
+	int                   error_count = 0;
+	deque<bool>::iterator iter        = bits.begin();
 	while (iter != bits.end()) {
-		int error=hamming_dec_block(block_len, iter);
-		if ((error == -1) || (error_count == -1)) error_count=-1;
-		else error_count += error;
+		int error = hamming_dec_block(block_len, iter);
+		if ((error == -1) || (error_count == -1))
+			error_count = -1;
+		else
+			error_count += error;
 	}
 	return error_count;
 }

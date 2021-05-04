@@ -21,62 +21,61 @@
  * <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>.
  */
 
+#include "AlvarException.h"
 #include "Plugin_private.h"
 
-#include "AlvarException.h"
-
 #include <dlfcn.h>
-#include <sstream>
 #include <errno.h>
+#include <sstream>
 
 namespace alvar {
 
 class PluginPrivateData
 {
 public:
-    PluginPrivateData()
-        : mHandle(NULL)
-    {
-    }
-    
-    void *mHandle;
+	PluginPrivateData() : mHandle(NULL)
+	{
+	}
+
+	void *mHandle;
 };
 
-PluginPrivate::PluginPrivate()
-    : d(new PluginPrivateData())
+PluginPrivate::PluginPrivate() : d(new PluginPrivateData())
 {
 }
 
 PluginPrivate::~PluginPrivate()
 {
-    delete d;
+	delete d;
 }
 
-void PluginPrivate::load(const std::string filename)
+void
+PluginPrivate::load(const std::string filename)
 {
-    d->mHandle = dlopen(filename.data(), RTLD_LAZY);
-    if (!d->mHandle) {
-        std::stringstream message;
-        message << "could not load " << filename
-                << ", error code " << errno;
-        throw AlvarException(message.str().data());
-    }
+	d->mHandle = dlopen(filename.data(), RTLD_LAZY);
+	if (!d->mHandle) {
+		std::stringstream message;
+		message << "could not load " << filename << ", error code " << errno;
+		throw AlvarException(message.str().data());
+	}
 }
 
-void PluginPrivate::unload()
+void
+PluginPrivate::unload()
 {
-    dlclose(d->mHandle);
+	dlclose(d->mHandle);
 }
 
-void *PluginPrivate::resolve(const char *symbol)
+void *
+PluginPrivate::resolve(const char *symbol)
 {
-    void *address = (void *)dlsym(d->mHandle, symbol);
-    if (!address) {
-        std::stringstream message;
-        message << "could not resolve " << symbol;
-        throw AlvarException(message.str().data());
-    }
-    return address;
+	void *address = (void *)dlsym(d->mHandle, symbol);
+	if (!address) {
+		std::stringstream message;
+		message << "could not resolve " << symbol;
+		throw AlvarException(message.str().data());
+	}
+	return address;
 }
 
 } // namespace alvar
