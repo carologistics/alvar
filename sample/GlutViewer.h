@@ -1,7 +1,7 @@
 #ifndef _GLUTVIEWER_H_
 #define _GLUTVIEWER_H_
 
-#include <cxcore.h>
+#include <opencv2/core.hpp>
 
 #ifdef WIN32
 #	include <GL/gl.h>

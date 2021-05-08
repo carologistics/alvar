@@ -46,7 +46,7 @@ protected:
 	double  min_distance;
 	int     min_features;
 	int     max_features;
-	char *  status;
+	cv::Mat status;
 	cv::Mat img_eig;
 	cv::Mat img_tmp;
 	cv::Mat gray;
@@ -59,13 +59,15 @@ protected:
 	int     pyr_levels;
 
 	/** \brief Reset track features on specified mask area */
-	double TrackHid(cv::Mat &img, cv::Mat &mask = NULL, bool add_features = true);
+	double TrackHid(const cv::Mat &img, cv::Mat &mask, bool add_features = true);
 
 public:
 	/** \brief \e Track result: previous features */
-	cv::Point2f *prev_features;
-	/** \brief \e Track result: current features */
-	cv::Point2f *features;
+	std::vector<cv::Point2f>
+	  prev_features; // this used to be an array of points now, its an array of Matrices? -Sebastian
+	                 /** \brief \e Track result: current features */
+	std::vector<cv::Point2f>
+	  features; // this used to be an array of points now, its an array of Matrices? -Sebastian
 	/** \brief \e Track result: count of previous features */
 	int prev_feature_count;
 	/** \brief \e Track result: count of current features */
@@ -99,7 +101,7 @@ public:
 	/** \brief Reset */
 	void Reset();
 	/** \brief Reset track features on specified mask area */
-	double Reset(cv::Mat &img, cv::Mat &mask);
+	double Reset(const cv::Mat &img, cv::Mat &mask);
 	/** \brief Stop tracking the identified feature (with index for features array)*/
 	bool DelFeature(int index);
 	/** \brief Stop tracking the identified feature (with feature id) */
@@ -115,7 +117,7 @@ public:
 	/** \brief Track features */
 	double Track(cv::Mat &img, cv::Mat &mask);
 	/** \brief add features to the previously tracked frame if there are less than min_features */
-	int AddFeatures(cv::Mat &mask = NULL);
+	int AddFeatures(cv::Mat &mask);
 	/** \brief Create and get the pointer to new_features_mask */
 	cv::Mat NewFeatureMask();
 	/** \brief Purge features that are considerably closer than the defined min_distance. 

@@ -122,8 +122,8 @@ private:
 	cv::Mat kalmanGain;
 	cv::Mat kalmanTmp;
 
-	cv::Mat sigma_state;
-	cv::Mat sigma_predObs;
+	std::vector<cv::Mat> sigma_state;
+	std::vector<cv::Mat> sigma_predObs;
 
 	// possess state mean and co-variance (as a list of sigma points).
 	// generate sigma points from state mean vector and co-variance matrix.

@@ -45,8 +45,8 @@ CaptureFile::start()
 
 	mVideoCapture.open(captureDevice().id().c_str());
 	if (mVideoCapture.isOpened()) {
-		mXResolution = (int)mVideoCapture.get(CV_CAP_PROP_FRAME_WIDTH);
-		mYResolution = (int)mVideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT);
+		mXResolution = (int)mVideoCapture.get(cv::CAP_PROP_FRAME_WIDTH);
+		mYResolution = (int)mVideoCapture.get(cv::CAP_PROP_FRAME_HEIGHT);
 		mIsCapturing = true;
 	}
 
@@ -66,7 +66,7 @@ cv::Mat
 CaptureFile::captureImage()
 {
 	if (!isCapturing()) {
-		return NULL;
+		return cv::Mat();
 	}
 
 	if (!mVideoCapture.grab()) {
@@ -75,15 +75,15 @@ CaptureFile::captureImage()
 		mVideoCapture.open(captureDevice().id().c_str());
 		if (!mVideoCapture.isOpened()) {
 			mIsCapturing = false;
-			return NULL;
+			return cv::Mat();
 		}
 		if (!mVideoCapture.grab()) {
-			return NULL;
+			return cv::Mat();
 		}
 	}
 	mVideoCapture.retrieve(mMatrix);
-	mImage = cvIplImage(mMatrix);
-	return &mImage;
+	mImage = mMatrix;
+	return mImage;
 }
 
 bool

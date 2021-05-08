@@ -63,9 +63,9 @@ TrackerPsa::Track(cv::Mat &img)
 
 	//std::cout<<"Moi1"<<std::endl;
 	// Init
-	if ((x_res != img->width) || (y_res != img->height)) {
-		x_res = img->width;
-		y_res = img->height;
+	if ((x_res != img.cols) || (y_res != img.rows)) {
+		x_res = img.cols;
+		y_res = img.rows;
 		if (hor)
 			delete[] hor;
 		if (horprev)
@@ -87,7 +87,7 @@ TrackerPsa::Track(cv::Mat &img)
 	memset(ver, 0, sizeof(long) * y_res);
 	for (int y = 0; y < y_res; y++) {
 		for (int x = 0; x < x_res; x++) {
-			unsigned char c = (unsigned char)cvGet2D(img, y, x).val[0];
+			unsigned char c = (unsigned char)img.at<cv::Vec3b>(y, x)[0];
 			hor[x] += c;
 			ver[y] += c;
 		}
@@ -207,8 +207,8 @@ TrackerPsaRot::Track(cv::Mat &img)
 				int    theta = int(atan2((double)y2, (double)x2) * 180 / 3.14159265);
 				if (theta < 0)
 					theta += 360;
-				if ((y >= 0) && (y < img->height) && (x >= 0) && (x < img->width)) {
-					rot[theta] += (unsigned char)cvGet2D(img, y, x).val[0];
+				if ((y >= 0) && (y < img.rows) && (x >= 0) && (x < img.cols)) {
+					rot[theta] += (unsigned char)img.at<cv::Vec3b>(y, x)[0];
 					rot_count[theta]++;
 				}
 			}
@@ -243,8 +243,8 @@ TrackerPsaRot::Track(cv::Mat &img)
 			int    theta = int(atan2((double)y2, (double)x2) * 180 / 3.14159265);
 			if (theta < 0)
 				theta += 360;
-			if ((y >= 0) && (y < img->height) && (x >= 0) && (x < img->width)) {
-				rotprev[theta] += (unsigned char)cvGet2D(img, y, x).val[0];
+			if ((y >= 0) && (y < img.rows) && (x >= 0) && (x < img.cols)) {
+				rotprev[theta] += (unsigned char)img.at<cv::Vec3b>(y, x)[0];
 				rot_count[theta]++;
 			}
 		}

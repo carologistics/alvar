@@ -177,7 +177,7 @@ CvTestbed::CreateImageWithProto(const char *title,
 		depth = proto->depth;
 	if (channels == 0)
 		channels = proto->nChannels;
-	cv::Mat ipl = cvCreateImage(cv::Size(proto->width, proto->height), depth, channels);
+	cv::Mat ipl = cvCreateImage(cv::Size(proto.cols, proto->height), depth, channels);
 	if (!ipl)
 		return NULL;
 	ipl->origin = proto->origin;

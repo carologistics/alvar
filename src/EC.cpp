@@ -41,14 +41,14 @@ ProjectRot(cv::Mat &state, cv::Mat &projection, void *x)
 	ProjectParams *foo          = (ProjectParams *)x;
 	Camera *       camera       = foo->camera;
 	const cv::Mat  object_model = foo->object_model;
-	int            count        = projection->rows;
-	cv::Mat        rot_mat      = cv::Mat(3, 1, CV_64F, &(state->data.db[0 + 0]));
+	int            count        = projection.rows;
+	cv::Mat        rot_mat      = cv::Mat(3, 1, CV_64F, &(state.at<double>(0 + 0)));
 	double         zeros[3]     = {0};
 	cv::Mat        zero_tra     = cv::Mat(3, 1, CV_64F, zeros);
-	cvReshape(projection, projection, 2, 1);
-	cvProjectPoints2(
-	  object_model, &rot_mat, &zero_tra, &(camera->calib_K), &(camera->calib_D), projection);
-	cvReshape(projection, projection, 1, count);
+	projection.reshape(2, 1);
+	cv::projectPoints(
+	  object_model, rot_mat, zero_tra, (camera->calib_K), (camera->calib_D), projection);
+	projection.reshape(1, count);
 }
 
 // TODO: How this differs from the Camera::ProjectPoints ???
@@ -58,13 +58,14 @@ Project(cv::Mat &state, cv::Mat &projection, void *x)
 	ProjectParams *foo          = (ProjectParams *)x;
 	Camera *       camera       = foo->camera;
 	const cv::Mat  object_model = foo->object_model;
-	int            count        = projection->rows;
-	cv::Mat        rot_mat      = cv::Mat(3, 1, CV_64F, &(state->data.db[0 + 0]));
-	cv::Mat        tra_mat      = cv::Mat(3, 1, CV_64F, &(state->data.db[0 + 3]));
-	cvReshape(projection, projection, 2, 1);
-	cvProjectPoints2(
-	  object_model, &rot_mat, &tra_mat, &(camera->calib_K), &(camera->calib_D), projection);
-	cvReshape(projection, projection, 1, count);
+	int            count        = projection.rows;
+	cv::Mat        rot_mat      = cv::Mat(3, 1, CV_64F, &(state.at<double>(0 + 0)));
+	cv::Mat        tra_mat      = cv::Mat(3, 1, CV_64F, &(state.at<double>(0 + 3)));
+	projection.reshape(2, 1);
+
+	cv::projectPoints(
+	  object_model, rot_mat, tra_mat, (camera->calib_K), (camera->calib_D), projection);
+	projection.reshape(2, 1);
 }
 
 bool
@@ -77,11 +78,11 @@ CameraEC::UpdatePose(const cv::Mat &object_points,
 	cv::Mat rotm = cv::Mat(3, 1, CV_64F, rot);
 	double  tra[3];
 	cv::Mat tram = cv::Mat(3, 1, CV_64F, tra);
-	pose->GetRodriques(&rotm);
-	pose->GetTranslation(&tram);
-	bool ret = UpdatePose(object_points, image_points, &rotm, &tram, weights);
-	pose->SetRodriques(&rotm);
-	pose->SetTranslation(&tram);
+	pose->GetRodriques(rotm);
+	pose->GetTranslation(tram);
+	bool ret = UpdatePose(object_points, image_points, rotm, tram, weights);
+	pose->SetRodriques(rotm);
+	pose->SetTranslation(tram);
 	return ret;
 }
 
@@ -92,31 +93,39 @@ CameraEC::UpdatePose(const cv::Mat &object_points,
                      cv::Mat &      tra,
                      cv::Mat &      weights)
 {
-	if (object_points->height < 4)
+	if (object_points.rows < 4)
 		return false;
-	/*	if (object_points->height < 6) {
+	/*	if (object_points.rows < 6) {
 		return false;
 		// TODO: We need to change image_points into CV_32FC2
 		return Camera::CalcExteriorOrientation(object_points, image_points, rot, tra);
 	}*/
-	cv::Mat par = cvCreateMat(6, 1, CV_64F);
-	memcpy(&(par->data.db[0 + 0]), rot->data.db, 3 * sizeof(double));
-	memcpy(&(par->data.db[0 + 3]), tra->data.db, 3 * sizeof(double));
+	cv::Mat par = cv::Mat(6, 1, CV_64F);
+	memcpy(&(par.at<double>(0 + 0)), rot.data, 3 * sizeof(double));
+	memcpy(&(par.at<double>(0 + 3)), tra.data, 3 * sizeof(double));
 
 	ProjectParams pparams;
-	pparams.camera       = this;
-	pparams.object_model = object_points;
+	pparams.camera = this;
+	pparams.object_model(object_points);
 
-	alvar::Optimization *opt = new alvar::Optimization(6, image_points->height);
-	double               tmp = opt->Optimize(
-    par, image_points, 0.0005, 2, Project, &pparams, alvar::Optimization::TUKEY_LM, 0, 0, weights);
+	alvar::Optimization *opt = new alvar::Optimization(6, image_points.rows);
+	double               tmp = opt->Optimize(par,
+                             image_points,
+                             0.0005,
+                             2,
+                             Project,
+                             &pparams,
+                             alvar::Optimization::TUKEY_LM,
+                             cv::Mat(),
+                             cv::Mat(),
+                             weights);
 
-	memcpy(rot->data.db, &(par->data.db[0 + 0]), 3 * sizeof(double));
-	memcpy(tra->data.db, &(par->data.db[0 + 3]), 3 * sizeof(double));
+	memcpy(rot.data, &(par.at<double>(0 + 0)), 3 * sizeof(double));
+	memcpy(tra.data, &(par.at<double>(0 + 3)), 3 * sizeof(double));
 
 	delete opt;
 
-	cvReleaseMat(&par);
+	par.release();
 	return true;
 }
 
@@ -127,11 +136,11 @@ CameraEC::UpdateRotation(const cv::Mat &object_points, cv::Mat &image_points, Po
 	cv::Mat rotm = cv::Mat(3, 1, CV_64F, rot);
 	double  tra[3];
 	cv::Mat tram = cv::Mat(3, 1, CV_64F, tra);
-	pose->GetRodriques(&rotm);
-	pose->GetTranslation(&tram);
-	bool ret = UpdateRotation(object_points, image_points, &rotm, &tram);
-	pose->SetRodriques(&rotm);
-	pose->SetTranslation(&tram);
+	pose->GetRodriques(rotm);
+	pose->GetTranslation(tram);
+	bool ret = UpdateRotation(object_points, image_points, rotm, tram);
+	pose->SetRodriques(rotm);
+	pose->SetTranslation(tram);
 	return ret;
 }
 
@@ -141,17 +150,17 @@ CameraEC::UpdateRotation(const cv::Mat &object_points,
                          cv::Mat &      rot,
                          cv::Mat &      tra)
 {
-	cv::Mat par = cvCreateMat(3, 1, CV_64F);
-	memcpy(&(par->data.db[0 + 0]), rot->data.db, 3 * sizeof(double));
+	cv::Mat par = cv::Mat(3, 1, CV_64F);
+	memcpy(&(par.at<double>(0 + 0)), rot.data, 3 * sizeof(double));
 	ProjectParams pparams;
-	pparams.camera           = this;
-	pparams.object_model     = object_points;
-	alvar::Optimization *opt = new alvar::Optimization(3, image_points->height);
+	pparams.camera = this;
+	pparams.object_model(object_points);
+	alvar::Optimization *opt = new alvar::Optimization(3, image_points.rows);
 	double               tmp = opt->Optimize(
     par, image_points, 0.0005, 2, ProjectRot, &pparams, alvar::Optimization::TUKEY_LM);
-	memcpy(rot->data.db, &(par->data.db[0 + 0]), 3 * sizeof(double));
+	memcpy(rot.data, &(par.at<double>(0 + 0)), 3 * sizeof(double));
 	delete opt;
-	cvReleaseMat(&par);
+	par.release();
 	return true;
 }
 
@@ -170,11 +179,11 @@ GetPointOnLine(const Pose *pose, Camera *camera, const cv::Point2f *u, cv::Mat &
 	cv::Mat R  = cv::Mat(3, 3, CV_64F, rotd);
 	cv::Mat T  = cv::Mat(3, 1, CV_64F, trad);
 	cv::Mat U  = cv::Mat(3, 1, CV_64F, ud);
-	pose->GetMatrix(&R);
-	pose->GetTranslation(&T);
-	cvInv(&(camera->calib_K), &Ki);
-	cv::MatMul(&R, &Ki, &Ki);
-	cvGEMM(&Ki, &U, 1, &T, 1, P, 0);
+	pose->GetMatrix(R);
+	pose->GetTranslation(T);
+	cv::invert(camera->calib_K, Ki);
+	Ki = R * Ki;
+	cv::gemm(Ki, U, 1, T, 1, P, 0);
 }
 
 bool
@@ -185,15 +194,15 @@ MidPointAlgorithm(cv::Mat &o1, cv::Mat &o2, cv::Mat &p1, cv::Mat &p2, cv::Point3
 	cv::Mat v = cv::Mat(3, 1, CV_64F, vd);
 	cv::Mat w = cv::Mat(3, 1, CV_64F, wd);
 
-	cvSub(p1, o1, &u);
-	cvSub(p2, o2, &v);
-	cvSub(o1, o2, &w);
+	u = p1 - o1;
+	v = p2 - o2;
+	w = o1 - o2;
 
-	double a = cvDotProduct(&u, &u);
-	double b = cvDotProduct(&u, &v);
-	double c = cvDotProduct(&v, &v);
-	double d = cvDotProduct(&u, &w);
-	double e = cvDotProduct(&v, &w);
+	double a = u.dot(u);
+	double b = u.dot(v);
+	double c = v.dot(v);
+	double d = u.dot(w);
+	double e = v.dot(w);
 	double D = a * c - b * b;
 	double sc, tc;
 
@@ -211,9 +220,9 @@ MidPointAlgorithm(cv::Mat &o1, cv::Mat &o2, cv::Mat &p1, cv::Mat &p2, cv::Point3
 	double  m1d[3], m2d[3];
 	cv::Mat m1 = cv::Mat(3, 1, CV_64F, m1d);
 	cv::Mat m2 = cv::Mat(3, 1, CV_64F, m2d);
-	cvAddWeighted(&u, sc, o1, 1.0, 0.0, &m1);
-	cvAddWeighted(&v, tc, o2, 1.0, 0.0, &m2);
-	cvAddWeighted(&m1, 0.5, &m2, 0.5, 0.0, &m1);
+	cv::addWeighted(u, sc, o1, 1.0, 0.0, m1);
+	cv::addWeighted(v, tc, o2, 1.0, 0.0, m2);
+	cv::addWeighted(m1, 0.5, m2, 0.5, 0.0, m1);
 
 	X.x = (float)m1d[0];
 	X.y = (float)m1d[1];
@@ -241,12 +250,12 @@ CameraEC::ReconstructFeature(const Pose *       pose1,
 	Pose po2 = *pose2;
 	po1.Invert();
 	po2.Invert();
-	GetOrigo(&po1, &o1);
-	GetOrigo(&po2, &o2);
-	GetPointOnLine(&po1, this, u1, &p1);
-	GetPointOnLine(&po2, this, u2, &p2);
+	GetOrigo(&po1, o1);
+	GetOrigo(&po2, o2);
+	GetPointOnLine(&po1, this, u1, p1);
+	GetPointOnLine(&po2, this, u2, p2);
 
-	return MidPointAlgorithm(&o1, &o2, &p1, &p2, *p3d, limit);
+	return MidPointAlgorithm(o1, o2, p1, p2, *p3d, limit);
 }
 
 void
@@ -257,22 +266,20 @@ CameraEC::Get3dOnPlane(const Pose *pose, cv::Point2f p2d, cv::Point3f &p3d)
 	cv::Mat H  = cv::Mat(3, 3, CV_64F, md);
 	cv::Mat Ki = cv::Mat(3, 3, CV_64F, kd);
 
-	pose->GetMatrix(&P);
-	cvInv(&(calib_K), &Ki);
+	pose->GetMatrix(P);
+	cv::invert((calib_K), Ki);
 
 	// Construct homography from pose
 	int ind_s = 0, ind_c = 0;
 	for (int i = 0; i < 3; ++i) {
-		CvRect r;
+		cv::Rect r;
 		r.x         = ind_s;
 		r.y         = 0;
 		r.height    = 3;
 		r.width     = 1;
-		cv::Mat sub = cv::Mat(3, 1, CV_64F);
-		cvGetSubRect(&P, &sub, r);
-		cv::Mat col = cv::Mat(3, 1, CV_64F);
-		cvGetCol(&H, &col, ind_c);
-		cvCopy(&sub, &col);
+		cv::Mat sub = P(r);
+		cv::Mat col = H.col(ind_c);
+		sub.copyTo(col);
 		ind_c++;
 		ind_s++;
 		if (i == 1)
@@ -283,9 +290,9 @@ CameraEC::Get3dOnPlane(const Pose *pose, cv::Point2f p2d, cv::Point3f &p3d)
 	Camera::Undistort(p2d);
 	double  xd[3] = {p2d.x, p2d.y, 1};
 	cv::Mat X     = cv::Mat(3, 1, CV_64F, xd);
-	cv::MatMul(&Ki, &X, &X);
-	cvInv(&H, &H);
-	cv::MatMul(&H, &X, &X);
+	X             = Ki * X;
+	cv::invert(H, H);
+	X = H * X;
 
 	p3d.x = (float)(xd[0] / xd[2]);
 	p3d.y = (float)(xd[1] / xd[2]);
@@ -314,8 +321,8 @@ CameraEC::Get3dOnDepth(const Pose *pose, cv::Point2f p2d, float depth, cv::Point
 	cv::Mat Xdm   = cv::Mat(4, 1, CV_64F, Xd);
 	double  Pd[16];
 	cv::Mat Pdm = cv::Mat(4, 4, CV_64F, Pd);
-	p.GetMatrix(&Pdm);
-	cv::MatMul(&Pdm, &Xdm, &Xdm);
+	p.GetMatrix(Pdm);
+	Xdm   = Pdm * Xdm;
 	p3d.x = float(Xd[0] / Xd[3]);
 	p3d.y = float(Xd[1] / Xd[3]);
 	p3d.z = float(Xd[2] / Xd[3]);

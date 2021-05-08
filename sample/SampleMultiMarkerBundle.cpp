@@ -121,10 +121,10 @@ videocallback(cv::Mat &image)
 		// Initialize camera
 		cout << "Loading calibration: " << calibrationFilename.str();
 
-		if (cam.SetCalib(calibrationFilename.str().c_str(), image->width, image->height)) {
+		if (cam.SetCalib(calibrationFilename.str().c_str(), image.cols, image.rows)) {
 			cout << " [Ok]" << endl;
 		} else {
-			cam.SetRes(image->width, image->height);
+			cam.SetRes(image.cols, image.rows);
 			cout << " [Fail]" << endl;
 		}
 

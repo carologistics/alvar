@@ -43,7 +43,7 @@ TrackerStat::Reset()
 double
 TrackerStat::Track(cv::Mat &img)
 {
-	if (img == NULL)
+	if (img.empty())
 		return -1;
 	f.Track(img);
 	hist.Clear();
@@ -76,7 +76,7 @@ TrackerStatRot::TrackerStatRot(int binsize /*=8*/, int binsize_rot /*=3*/) : Tra
 double
 TrackerStatRot::Track(cv::Mat &img)
 {
-	if (img == NULL)
+	if (img.empty())
 		return -1;
 	f.Track(img);
 	// Translation
@@ -94,8 +94,8 @@ TrackerStatRot::Track(cv::Mat &img)
 	yd         = 0;
 	double ret = hist.GetMax(&xd, &yd);
 	// Rotation
-	x_res = img->width;
-	y_res = img->height;
+	x_res = img.cols;
+	y_res = img.rows;
 	hist_rot.Clear();
 	for (int p = 0; p < f.prev_feature_count; p++) {
 		for (int c = 0; c < f.feature_count; c++) {

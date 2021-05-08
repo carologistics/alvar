@@ -275,8 +275,8 @@ public:
 		if (!_image)
 			return;
 		if (_image->nChannels == 3)
-			bgImage->setImage(_image->width,
-			                  _image->height,
+			bgImage->setImage(_image.cols,
+			                  _image.rows,
 			                  1,
 			                  4,
 			                  GL_BGR,
@@ -284,8 +284,8 @@ public:
 			                  (unsigned char *)_image->imageData,
 			                  osg::Image::NO_DELETE);
 		else if (_image->nChannels == 1)
-			bgImage->setImage(_image->width,
-			                  _image->height,
+			bgImage->setImage(_image.cols,
+			                  _image.rows,
 			                  1,
 			                  4,
 			                  GL_LUMINANCE,

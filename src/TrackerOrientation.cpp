@@ -36,18 +36,18 @@ void
 TrackerOrientation::Project(cv::Mat &state, cv::Mat &projection, void *param)
 {
 	TrackerOrientation *tracker  = (TrackerOrientation *)param;
-	int                 count    = projection->rows;
-	cv::Mat             rot_mat  = cv::Mat(3, 1, CV_64F, &(state->data.db[0 + 0]));
+	int                 count    = projection.rows;
+	cv::Mat             rot_mat  = cv::Mat(3, 1, CV_64F, &(state.at<double>(0 + 0)));
 	double              zeros[3] = {0};
 	cv::Mat             zero_tra = cv::Mat(3, 1, CV_64F, zeros);
-	cvReshape(projection, projection, 2, 1);
-	cvProjectPoints2(tracker->_object_model,
-	                 &rot_mat,
-	                 &zero_tra,
-	                 &(tracker->_camera->calib_K),
-	                 &(tracker->_camera->calib_D),
-	                 projection);
-	cvReshape(projection, projection, 1, count);
+	projection.reshape(2, 1);
+	cv::projectPoints(tracker->_object_model,
+	                  rot_mat,
+	                  zero_tra,
+	                  (tracker->_camera->calib_K),
+	                  (tracker->_camera->calib_D),
+	                  projection);
+	projection.reshape(1, count);
 }
 
 void
@@ -61,7 +61,7 @@ TrackerOrientation::Reset()
 double
 TrackerOrientation::Track(cv::Mat &image)
 {
-	UpdateRotationOnly(image, 0);
+	UpdateRotationOnly(image, image = cv::Mat());
 	return 0;
 }
 
@@ -72,63 +72,61 @@ TrackerOrientation::UpdatePose(cv::Mat &image)
 	if (count_points < 6)
 		return false;
 
-	cv::Mat _M                 = cvCreateMat(count_points, 1, CV_64FC3);
-	cv::Mat image_observations = cvCreateMat(count_points * 2, 1, CV_64F); // [u v u v u v ...]'
+	cv::Mat _M                 = cv::Mat(count_points, 1, CV_64FC3);
+	cv::Mat image_observations = cv::Mat(count_points * 2, 1, CV_64F); // [u v u v u v ...]'
 
 	//map<int,Feature>::iterator it;
 	int ind = 0;
 	for (map<int, Feature>::iterator it = _F_v.begin(); it != _F_v.end(); it++) {
 		if ((it->second.status3D == Feature::USE_FOR_POSE || it->second.status3D == Feature::IS_INITIAL)
 		    && it->second.status2D == Feature::IS_TRACKED) {
-			_M->data.db[ind * 3 + 0] = it->second.point3d.x;
-			_M->data.db[ind * 3 + 1] = it->second.point3d.y;
-			_M->data.db[ind * 3 + 2] = it->second.point3d.z;
+			_M.at<double>(ind * 3 + 0) = it->second.point3d.x;
+			_M.at<double>(ind * 3 + 1) = it->second.point3d.y;
+			_M.at<double>(ind * 3 + 2) = it->second.point3d.z;
 
-			image_observations->data.db[ind * 2 + 0] = it->second.point.x;
-			image_observations->data.db[ind * 2 + 1] = it->second.point.y;
+			image_observations.at<double>(ind * 2 + 0) = it->second.point.x;
+			image_observations.at<double>(ind * 2 + 1) = it->second.point.y;
 			ind++;
 		}
 	}
 
 	if (ind < 6) {
-		cvReleaseMat(&image_observations);
-		cvReleaseMat(&_M);
+		image_observations.release();
+		_M.release();
 		return false;
 	}
 
 	double  rot[3];
 	cv::Mat rotm = cv::Mat(3, 1, CV_64F, rot);
-	_pose.GetRodriques(&rotm);
+	_pose.GetRodriques(rotm);
 
-	cv::Mat par = cvCreateMat(3, 1, CV_64F);
-	memcpy(&(par->data.db[0 + 0]), rot, 3 * sizeof(double));
+	cv::Mat par = cv::Mat(3, 1, CV_64F);
+	memcpy(&(par.at<double>(0 + 0)), rot, 3 * sizeof(double));
 	//par->data.db[3] = 0;
 
-	CvRect r;
-	r.x      = 0;
-	r.y      = 0;
-	r.height = ind;
-	r.width  = 1;
-	cv::Mat Msub;
-	cvGetSubRect(_M, &Msub, r);
-	_object_model = &Msub;
+	cv::Rect r;
+	r.x           = 0;
+	r.y           = 0;
+	r.height      = ind;
+	r.width       = 1;
+	cv::Mat Msub  = _M(r);
+	_object_model = Msub;
 
-	r.height = 2 * ind;
-	cv::Mat image_observations_sub;
-	cvGetSubRect(image_observations, &image_observations_sub, r);
+	r.height                       = 2 * ind;
+	cv::Mat image_observations_sub = image_observations(r);
 
 	alvar::Optimization *opt = new alvar::Optimization(3, 2 * ind);
 
 	double foo = opt->Optimize(
-	  par, &image_observations_sub, 0.0005, 5, Project, this, alvar::Optimization::TUKEY_LM);
-	memcpy(rot, &(par->data.db[0 + 0]), 3 * sizeof(double));
-	_pose.SetRodriques(&rotm);
+	  par, image_observations_sub, 0.0005, 5, Project, this, alvar::Optimization::TUKEY_LM);
+	memcpy(rot, &(par.at<double>(0 + 0)), 3 * sizeof(double));
+	_pose.SetRodriques(rotm);
 
 	delete opt;
 
-	cvReleaseMat(&par);
-	cvReleaseMat(&image_observations);
-	cvReleaseMat(&_M);
+	par.release();
+	image_observations.release();
+	_M.release();
 
 	return true;
 }
@@ -136,14 +134,14 @@ TrackerOrientation::UpdatePose(cv::Mat &image)
 bool
 TrackerOrientation::UpdateRotationOnly(cv::Mat &gray, cv::Mat &image)
 {
-	if (gray->nChannels != 1)
+	if (gray.channels() != 1)
 		return false;
-	if (!_grsc)
-		_grsc = cvCreateImage(cv::Size(_xres, _yres), 8, 1);
-	if ((_xres != _grsc->width) || (_yres != _grsc->height))
-		cvResize(gray, _grsc);
+	if (_grsc.empty())
+		_grsc = cv::Mat(cv::Size(_xres, _yres), 8, 1);
+	if ((_xres != _grsc.cols) || (_yres != _grsc.rows))
+		cv::resize(gray, _grsc, _grsc.size());
 	else
-		_grsc->imageData = gray->imageData;
+		_grsc.data = gray.data;
 
 	map<int, Feature>::iterator it;
 	for (it = _F_v.begin(); it != _F_v.end(); it++)
@@ -177,7 +175,7 @@ TrackerOrientation::UpdateRotationOnly(cv::Mat &gray, cv::Mat &image)
 	}
 
 	// Update pose based on current information
-	UpdatePose();
+	UpdatePose(image = cv::Mat());
 
 	it = _F_v.begin();
 	while (it != _F_v.end()) {
@@ -206,8 +204,8 @@ TrackerOrientation::UpdateRotationOnly(cv::Mat &gray, cv::Mat &image)
 			cv::Mat Xdm   = cv::Mat(4, 1, CV_64F, Xd);
 			double  Pd[16];
 			cv::Mat Pdm = cv::Mat(4, 4, CV_64F, Pd);
-			p.GetMatrix(&Pdm);
-			cv::MatMul(&Pdm, &Xdm, &Xdm);
+			p.GetMatrix(Pdm);
+			Xdm          = Pdm * Xdm;
 			f->point3d.x = Xd[0] / Xd[3];
 			f->point3d.y = Xd[1] / Xd[3];
 			f->point3d.z = Xd[2] / Xd[3];
@@ -216,19 +214,15 @@ TrackerOrientation::UpdateRotationOnly(cv::Mat &gray, cv::Mat &image)
 			f->status3D = Feature::USE_FOR_POSE;
 		}
 
-		if (image) {
+		if (!image.empty()) {
 			if (f->status3D == Feature::NONE)
-				cv::circle(
-				  image, cv::Point(int(f->point.x), int(f->point.y)), 3, cvScalar(CV_RGB(255, 0, 0)), 1);
+				cv::circle(image, cv::Point(int(f->point.x), int(f->point.y)), 3, CV_RGB(255, 0, 0), 1);
 			else if (f->status3D == Feature::USE_FOR_POSE)
-				cv::circle(
-				  image, cv::Point(int(f->point.x), int(f->point.y)), 3, cvScalar(CV_RGB(0, 255, 0)), 1);
+				cv::circle(image, cv::Point(int(f->point.x), int(f->point.y)), 3, CV_RGB(0, 255, 0), 1);
 			else if (f->status3D == Feature::IS_INITIAL)
-				cv::circle(
-				  image, cv::Point(int(f->point.x), int(f->point.y)), 3, cvScalar(CV_RGB(0, 0, 255)), 1);
+				cv::circle(image, cv::Point(int(f->point.x), int(f->point.y)), 3, CV_RGB(0, 0, 255), 1);
 			else if (f->status3D == Feature::IS_OUTLIER)
-				cv::circle(
-				  image, cv::Point(int(f->point.x), int(f->point.y)), 2, cvScalar(CV_RGB(255, 0, 255)), 1);
+				cv::circle(image, cv::Point(int(f->point.x), int(f->point.y)), 2, CV_RGB(255, 0, 255), 1);
 		}
 
 		// Delete points that bk error is too big
@@ -239,17 +233,17 @@ TrackerOrientation::UpdateRotationOnly(cv::Mat &gray, cv::Mat &image)
 			cv::Mat p3dm   = cv::Mat(1, 1, CV_64FC3, p3d);
 			double  p2d[2];
 			cv::Mat p2dm = cv::Mat(2, 1, CV_64F, p2d);
-			cvReshape(&p2dm, &p2dm, 2, 1);
+			p2dm.reshape(2, 1);
 
 			double gl_mat[16];
 			_pose.GetMatrixGL(gl_mat);
-			_camera->ProjectPoints(&p3dm, gl_mat, &p2dm);
+			_camera->ProjectPoints(p3dm, gl_mat, p2dm);
 
-			if (image)
+			if (!image.empty())
 				cv::line(image,
 				         cv::Point(int(p2d[0]), int(p2d[1])),
 				         cv::Point(int(f->point.x), int(f->point.y)),
-				         cvScalar(CV_RGB(255, 0, 255)));
+				         CV_RGB(255, 0, 255));
 
 			double dist = (p2d[0] - f->point.x) * (p2d[0] - f->point.x)
 			              + (p2d[1] - f->point.y) * (p2d[1] - f->point.y);

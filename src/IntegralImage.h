@@ -33,8 +33,8 @@
 
 #include "Alvar.h"
 
-#include <cv.h>
-#include <cxcore.h>
+#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 
 namespace alvar {
 
@@ -114,9 +114,9 @@ public:
 	 *  \param rect The rectancle
 	 *  \param count If this parameter is not 0 it is filled with number of pixels in the rectangle.
 	 */
-	double GetSum(CvRect &rect, int *count = 0);
+	double GetSum(cv::Rect &rect, int *count = 0);
 	/** \brief Calculate the average for the given rectangular area in the image. */
-	double GetAve(CvRect &rect);
+	double GetAve(cv::Rect &rect);
 	/** \brief Get a sub-image using integral image representation.
 	 *  \param rect The rectangle we want to get the sub-image from
 	 *  \param sub  The image where the sub-image is generated. Note, the desired resolution is defined by \e sub.
@@ -125,7 +125,7 @@ public:
 	 *  rectangular area \e rect . In practice the \e sub is filled by
 	 *  getting the average with \e GetAve() for every pixel area.
 	 */
-	void GetSubimage(const CvRect &rect, cv::Mat &sub);
+	void GetSubimage(const cv::Rect &rect, cv::Mat &sub);
 };
 
 /** \brief \e IntegralGradient is used for calculating rectangular image gradients rapidly
@@ -160,12 +160,12 @@ public:
 	 *  \param diry Method fills in the y-component of the gradient here
 	 *  \param count If this parameter is not 0 it is filled with number of pixels in the rectangle.
 	 */
-	void GetGradient(CvRect &rect, double *dirx, double *diry, int *count = 0);
+	void GetGradient(cv::Rect &rect, double *dirx, double *diry, int *count = 0);
 	/** \brief Calculate the average gradient for the given rectangular area in the image.
 	 *  \param dirx Method fills in the x-component of the gradient here
 	 *  \param diry Method fills in the y-component of the gradient here
 	 */
-	void GetAveGradient(CvRect &rect, double *dirx, double *diry);
+	void GetAveGradient(cv::Rect &rect, double *dirx, double *diry);
 };
 
 } // namespace alvar

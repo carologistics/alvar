@@ -214,7 +214,7 @@ MultiMarkerBundle::Optimize(Camera *                     _cam,
 		cv::Mat err = optimization.GetErr();
 		int max_k=-1;
 		double max=0;
-		for (int k=0; k<err->height; k++) {
+		for (int k=0; k<err.rows; k++) {
 			if (cvmGet(err, k, 0) > max) {
 				max = cvmGet(err, k, 0);
 				max_k = k;

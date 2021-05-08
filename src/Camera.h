@@ -249,6 +249,12 @@ public:
 	                             const std::vector<PointDouble> &pi,
 	                             Pose *                          pose) const;
 
+	bool CalcExteriorOrientation(const cv::Mat &object_points, cv::Mat &image_points, Pose *pose);
+
+	bool CalcExteriorOrientation(const cv::Mat &object_points,
+	                             cv::Mat &      image_points,
+	                             cv::Mat &      rodriques,
+	                             cv::Mat &      tra);
 	/** \brief Project one point */
 	void ProjectPoint(const cv::Point3d &pw, const Pose *pose, cv::Point2d &pi) const;
 

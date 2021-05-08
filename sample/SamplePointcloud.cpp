@@ -52,16 +52,14 @@ videocallback(cv::Mat &image)
 		init = false;
 		sfm->Clear();
 		cout << "Loading calibration: " << calibrationFilename.str();
-		if (sfm->GetCamera()->SetCalib(calibrationFilename.str().c_str(),
-		                               image->width,
-		                               image->height)) {
+		if (sfm->GetCamera()->SetCalib(calibrationFilename.str().c_str(), image.cols, image.rows)) {
 			cout << " [Ok]" << endl;
 		} else {
-			sfm->GetCamera()->SetRes(image->width, image->height);
+			sfm->GetCamera()->SetRes(image.cols, image.rows);
 			cout << " [Fail]" << endl;
 		}
 		double p[16];
-		sfm->GetCamera()->GetOpenglProjectionMatrix(p, image->width, image->height);
+		sfm->GetCamera()->GetOpenglProjectionMatrix(p, image.cols, image.rows);
 		GlutViewer::SetGlProjectionMatrix(p);
 		d_marker.SetScale(marker_size * 2);
 		rgb = CvTestbed::Instance().CreateImageWithProto("RGB", image, 0, 3);

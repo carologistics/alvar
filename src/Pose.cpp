@@ -143,7 +143,7 @@ Pose::Transpose()
 	cv::Mat tmp_mat = cv::Mat(4, 4, CV_64F, tmp);
 	GetMatrix(tmp_mat);
 	tmp_mat = tmp_mat.t();
-	SetMatrix(tmp_mat)
+	SetMatrix(tmp_mat);
 }
 
 void

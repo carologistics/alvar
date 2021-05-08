@@ -23,7 +23,8 @@
 
 #include "TrackerFeatures.h"
 
-#include <cv.h>
+#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
 
 using namespace std;
 
@@ -43,19 +44,19 @@ TrackerFeatures::TrackerFeatures(int    _max_features,
   min_distance(0),
   min_features(0),
   max_features(0),
-  status(0),
-  img_eig(0),
-  img_tmp(0),
-  gray(0),
-  prev_gray(0),
-  pyramid(0),
-  prev_pyramid(0),
-  mask(0),
+  status(),
+  img_eig(),
+  img_tmp(),
+  gray(),
+  prev_gray(),
+  pyramid(),
+  prev_pyramid(),
+  mask(),
   next_id(0),
   win_size(0),
   pyr_levels(0),
-  prev_features(0),
-  features(0),
+  prev_features(),
+  features(),
   prev_feature_count(0),
   feature_count(0),
   prev_ids(0),
@@ -69,30 +70,20 @@ TrackerFeatures::TrackerFeatures(int    _max_features,
 
 TrackerFeatures::~TrackerFeatures()
 {
-	if (status)
-		delete[] status;
-	if (prev_features)
-		delete[] prev_features;
-	if (features)
-		delete[] features;
 	if (prev_ids)
 		delete[] prev_ids;
 	if (ids)
 		delete[] ids;
-	if (img_eig)
-		cvReleaseImage(&img_eig);
-	if (img_tmp)
-		cvReleaseImage(&img_tmp);
-	if (gray)
-		cvReleaseImage(&gray);
-	if (prev_gray)
-		cvReleaseImage(&prev_gray);
-	if (pyramid)
-		cvReleaseImage(&pyramid);
-	if (prev_pyramid)
-		cvReleaseImage(&prev_pyramid);
-	if (mask)
-		cvReleaseImage(&mask);
+	prev_features.clear();
+	features.clear();
+	img_eig.release();
+	img_tmp.release();
+	gray.release();
+	prev_gray.release();
+	pyramid.release();
+	prev_pyramid.release();
+	mask.release();
+	status.release();
 }
 
 void
@@ -110,15 +101,11 @@ TrackerFeatures::ChangeSettings(int    _max_features,
 	min_features        = _min_features;
 	quality_level       = _quality_level;
 	min_distance        = _min_distance;
-	if (status)
-		delete[] status;
-	status = NULL;
+	status.release();
 	if (prev_ids)
 		delete[] prev_ids;
 	prev_ids = NULL;
-	if (prev_features)
-		delete[] prev_features;
-	prev_features = NULL;
+	prev_features.clear();
 	if (ids) {
 		int *ids_new = new int[max_features];
 		assert(common_features < max_features);
@@ -128,25 +115,22 @@ TrackerFeatures::ChangeSettings(int    _max_features,
 	} else {
 		ids = new int[max_features];
 	}
-	if (features) {
-		cv::Point2f *features_new = new cv::Point2f[max_features];
-		memcpy(features_new, features, sizeof(cv::Point2f) * common_features);
-		delete[] features;
+	if (!features.empty()) {
+		std::vector<cv::Point2f> features_new = std::vector<cv::Point2f>(max_features);
+		memcpy(&features_new, &features, sizeof(std::vector<cv::Point2f>) * common_features);
+		features.clear();
 		features = features_new;
 	} else {
-		features = new cv::Point2f[max_features];
+		features = std::vector<cv::Point2f>(max_features);
 	}
-	status             = new char[max_features];
+	status             = cv::Mat();
 	prev_ids           = new int[max_features];
-	prev_features      = new cv::Point2f[max_features];
+	prev_features      = std::vector<cv::Point2f>(max_features);
 	prev_feature_count = 0;
 	feature_count      = common_features;
 
 	assert(ids);
-	assert(features);
-	assert(status);
 	assert(prev_ids);
-	assert(prev_features);
 }
 
 void
@@ -204,75 +188,65 @@ TrackerFeatures::Purge()
 }
 
 double
-TrackerFeatures::TrackHid(cv::Mat &img, cv::Mat &new_features_mask, bool add_features)
+TrackerFeatures::TrackHid(const cv::Mat &img, cv::Mat &new_features_mask, bool add_features)
 {
-	if ((x_res != img->width) || (y_res != img->height)) {
-		if (img_eig)
-			cvReleaseImage(&img_eig);
-		if (img_tmp)
-			cvReleaseImage(&img_tmp);
-		if (gray)
-			cvReleaseImage(&gray);
-		if (prev_gray)
-			cvReleaseImage(&prev_gray);
-		if (pyramid)
-			cvReleaseImage(&pyramid);
-		if (prev_pyramid)
-			cvReleaseImage(&prev_pyramid);
-		if (mask)
-			cvReleaseImage(&mask);
-		x_res        = img->width;
-		y_res        = img->height;
-		img_eig      = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1);
-		img_tmp      = cvCreateImage(cvGetSize(img), IPL_DEPTH_32F, 1);
-		gray         = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
-		prev_gray    = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
-		pyramid      = cvCreateImage(cv::Size(img->width + 8, img->height / 3), IPL_DEPTH_8U, 1);
-		prev_pyramid = cvCreateImage(cv::Size(img->width + 8, img->height / 3), IPL_DEPTH_8U, 1);
-		mask         = cvCreateImage(cvGetSize(img), IPL_DEPTH_8U, 1);
+	if ((x_res != img.cols) || (y_res != img.rows)) {
+		img_eig.release();
+		img_tmp.release();
+		gray.release();
+		prev_gray.release();
+		pyramid.release();
+		prev_pyramid.release();
+		mask.release();
+		x_res        = img.cols;
+		y_res        = img.rows;
+		img_eig      = cv::Mat(cv::Size(img.cols, img.rows), CV_MAKETYPE(CV_32F, 1));
+		img_tmp      = cv::Mat(cv::Size(img.cols, img.rows), CV_MAKETYPE(CV_32F, 1));
+		gray         = cv::Mat(cv::Size(img.cols, img.rows), CV_MAKETYPE(CV_8U, 1));
+		prev_gray    = cv::Mat(cv::Size(img.cols, img.rows), CV_MAKETYPE(CV_8U, 1));
+		pyramid      = cv::Mat(cv::Size(img.cols + 8, img.rows / 3), CV_MAKETYPE(CV_8U, 1));
+		prev_pyramid = cv::Mat(cv::Size(img.cols + 8, img.rows / 3), CV_MAKETYPE(CV_8U, 1));
+		mask         = cv::Mat(cv::Size(img.cols, img.rows), CV_MAKETYPE(CV_8U, 1));
 		frame_count  = 0;
 		if (min_distance == 0) {
-			min_distance = std::sqrt(double(img->width * img->height / max_features));
+			min_distance = std::sqrt(double(img.cols * img.rows / max_features));
 			min_distance *= 0.8; //(double(min_features)/max_features);
 		}
 	}
 	// Swap
-	cv::Mat      tmp;
-	cv::Point2f *tmp2;
-	CV_SWAP(prev_gray, gray, tmp);
-	CV_SWAP(prev_features, features, tmp2);
+	cv::swap(prev_gray, gray);
+	cv::swap(prev_features, features);
 	prev_feature_count = feature_count;
 	memcpy(prev_ids, ids, sizeof(int) * max_features);
-	if (img->nChannels == 1) {
-		cvCopy(img, gray);
+	if (img.channels() == 1) {
+		img.copyTo(gray);
 	} else {
-		cvCvtColor(img, gray, CV_RGB2GRAY);
+		cv::cvtColor(img, gray, cv::COLOR_RGB2GRAY);
 	}
 	// TODO: We used to add features here
 	//if (prev_feature_count < 1) return -1;
 	frame_count++;
 	if (frame_count <= 1) {
-		memcpy(features, prev_features, sizeof(cv::Point2f) * prev_feature_count);
+		memcpy(&features, &prev_features, sizeof(cv::Mat) * prev_feature_count);
 		memcpy(ids, prev_ids, sizeof(int) * prev_feature_count);
 		feature_count = prev_feature_count;
 	} else if (prev_feature_count > 0) {
-		// Track
-		cvCalcOpticalFlowPyrLK(prev_gray,
-		                       gray,
-		                       prev_pyramid,
-		                       pyramid,
-		                       prev_features,
-		                       features,
-		                       prev_feature_count,
-		                       cv::Size(win_size, win_size),
-		                       pyr_levels,
-		                       status,
-		                       0,
-		                       cvTermCriteria(CV_TERMCRIT_ITER | CV_TERMCRIT_EPS, 20, 0.03),
-		                       0);
+		// Track, no clue whether this is ported correctly -Sebastian
+		cv::calcOpticalFlowPyrLK(prev_gray,
+		                         gray,
+		                         prev_pyramid,
+		                         pyramid,
+		                         status,
+		                         cv::Mat(),
+		                         cv::Size(win_size, win_size),
+		                         pyr_levels,
+		                         cv::TermCriteria(cv::TermCriteria::MAX_ITER | cv::TermCriteria::EPS,
+		                                          20,
+		                                          0.03),
+		                         0);
 		feature_count = 0;
 		for (int i = 0; i < prev_feature_count; i++) {
-			if (!status[i])
+			if (!status.at<bool>(i, 0)) //this is questionable, no clue on indexing here - Sebastian
 				continue;
 			features[feature_count] = features[i];
 			ids[feature_count]      = prev_ids[i];
@@ -287,7 +261,7 @@ TrackerFeatures::TrackHid(cv::Mat &img, cv::Mat &new_features_mask, bool add_fea
 }
 
 double
-TrackerFeatures::Reset(cv::Mat &img, cv::Mat &new_features_mask)
+TrackerFeatures::Reset(const cv::Mat &img, cv::Mat &new_features_mask)
 {
 	feature_count = 0;
 	frame_count   = 0;
@@ -297,7 +271,7 @@ TrackerFeatures::Reset(cv::Mat &img, cv::Mat &new_features_mask)
 double
 TrackerFeatures::Track(cv::Mat &img, bool add_features)
 {
-	return TrackHid(img, NULL); //, add_features);
+	return TrackHid(img, mask = cv::Mat()); //, add_features);
 }
 
 double
@@ -309,13 +283,14 @@ TrackerFeatures::Track(cv::Mat &img, cv::Mat &mask)
 cv::Mat
 TrackerFeatures::NewFeatureMask()
 {
-	cvSet(mask, cvScalar(255));
+	cv::Mat mask = cv::Mat();
+	mask         = cv::Scalar(255);
 	for (int i = 0; i < feature_count; i++) {
-		cvRectangle(mask,
-		            cv::Point(int(features[i].x - min_distance), int(features[i].y - min_distance)),
-		            cv::Point(int(features[i].x + min_distance), int(features[i].y + min_distance)),
-		            cvScalar(0),
-		            CV_FILLED);
+		cv::rectangle(mask,
+		              cv::Point(int(features[i].x - min_distance), int(features[i].y - min_distance)),
+		              cv::Point(int(features[i].x + min_distance), int(features[i].y + min_distance)),
+		              cv::Scalar(0),
+		              cv::FILLED);
 	}
 	return mask;
 }
@@ -323,44 +298,36 @@ TrackerFeatures::NewFeatureMask()
 int
 TrackerFeatures::AddFeatures(cv::Mat &new_features_mask)
 {
-	if (gray == NULL)
+	if (gray.empty())
 		return 0;
 	if (feature_count < min_features) {
 		int new_feature_count = max_features - feature_count;
-		if (new_features_mask == NULL) {
-			cvSet(mask, cvScalar(255));
+		if (new_features_mask.empty()) {
+			cv::Mat mask = cv::Mat();
+			mask         = cv::Scalar(255);
 			for (int i = 0; i < feature_count; i++) {
-				cvRectangle(mask,
-				            cv::Point(int(features[i].x - min_distance), int(features[i].y - min_distance)),
-				            cv::Point(int(features[i].x + min_distance), int(features[i].y + min_distance)),
-				            cvScalar(0),
-				            CV_FILLED);
+				cv::rectangle(mask,
+				              cv::Point(int(features[i].x - min_distance),
+				                        int(features[i].y - min_distance)),
+				              cv::Point(int(features[i].x + min_distance),
+				                        int(features[i].y + min_distance)),
+				              cv::Scalar(0),
+				              cv::FILLED);
 			}
 			// Find new features
-			cvGoodFeaturesToTrack(gray,
-			                      img_eig,
-			                      img_tmp,
-			                      &(features[feature_count]),
-			                      &new_feature_count,
-			                      quality_level,
-			                      min_distance,
-			                      mask,
-			                      3,
-			                      1,
-			                      0.04);
+			cv::goodFeaturesToTrack(
+			  gray, features, new_feature_count, quality_level, min_distance, mask, 3, true, 0.04);
 
 		} else {
-			cvGoodFeaturesToTrack(gray,
-			                      img_eig,
-			                      img_tmp,
-			                      &(features[feature_count]),
-			                      &new_feature_count,
-			                      quality_level,
-			                      min_distance,
-			                      new_features_mask,
-			                      3,
-			                      1,
-			                      0.04);
+			cv::goodFeaturesToTrack(gray,
+			                        features,
+			                        new_feature_count,
+			                        quality_level,
+			                        min_distance,
+			                        new_features_mask,
+			                        3,
+			                        true,
+			                        0.04);
 		}
 		if (new_feature_count >= 1) {
 			for (int i = feature_count; i < feature_count + new_feature_count; i++) {

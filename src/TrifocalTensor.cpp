@@ -49,8 +49,8 @@ TrifocalTensor::computeTensor(const Pose &p0, const Pose &p1)
 	double  data_p12[4][4], data_p13[4][4];
 	cv::Mat p12 = cv::Mat(4, 4, CV_64F, data_p12);
 	cv::Mat p13 = cv::Mat(4, 4, CV_64F, data_p13);
-	p0.GetMatrix(&p12);
-	p1.GetMatrix(&p13);
+	p0.GetMatrix(p12);
+	p1.GetMatrix(p13);
 
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
@@ -74,7 +74,7 @@ det(double *r0, double *r1, double *r2, double *r3)
 	memcpy(&m[8], r2, 4 * sizeof(double));
 	memcpy(&m[12], r3, 4 * sizeof(double));
 	cv::Mat M = cv::Mat(4, 4, CV_64F, m);
-	return cvDet(&M);
+	return cv::determinant(M);
 }
 
 void
@@ -84,9 +84,9 @@ TrifocalTensor::computeTensor(const Pose &p0, const Pose &p1, const Pose &p2)
 	cv::Mat P0 = cv::Mat(4, 4, CV_64F, data_p0);
 	cv::Mat P1 = cv::Mat(4, 4, CV_64F, data_p1);
 	cv::Mat P2 = cv::Mat(4, 4, CV_64F, data_p2);
-	p0.GetMatrix(&P0);
-	p1.GetMatrix(&P1);
-	p2.GetMatrix(&P2);
+	p0.GetMatrix(P0);
+	p1.GetMatrix(P1);
+	p2.GetMatrix(P2);
 
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)

@@ -668,6 +668,37 @@ Camera::ProjectPoints(vector<cv::Point3d> &pw, Pose *pose, vector<cv::Point2d> &
 	image_points.release();
 }
 
+bool
+Camera::CalcExteriorOrientation(const cv::Mat &object_points,
+                                cv::Mat &      image_points,
+                                cv::Mat &      rodriques,
+                                cv::Mat &      tra)
+{
+	cv::calibrateCamera(object_points,
+	                    image_points,
+	                    image_points.size(),
+	                    calib_K,
+	                    cv::Mat(),
+	                    rodriques,
+	                    tra,
+	                    cv::CALIB_USE_EXTRINSIC_GUESS);
+	return true;
+}
+
+bool
+Camera::CalcExteriorOrientation(const cv::Mat &object_points, cv::Mat &image_points, Pose *pose)
+{
+	double  ext_rodriques[3];
+	double  ext_translate[3];
+	cv::Mat ext_rodriques_mat = cv::Mat(3, 1, CV_64F, ext_rodriques);
+	cv::Mat ext_translate_mat = cv::Mat(3, 1, CV_64F, ext_translate);
+	bool    ret =
+	  CalcExteriorOrientation(object_points, image_points, ext_rodriques_mat, ext_translate_mat);
+	pose->SetRodriques(ext_rodriques_mat);
+	pose->SetTranslation(ext_translate_mat);
+	return ret;
+}
+
 void
 Camera::ProjectPoints(const cv::Mat &object_points,
                       const cv::Mat &rotation_vector,

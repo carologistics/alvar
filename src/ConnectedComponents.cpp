@@ -171,8 +171,8 @@ LabelingCvSeq::LabelSquares(cv::Mat &image, bool visualize)
 			/*
             if (detect_pose_grayscale &&
                 (pt0->x > 3) && (pt0->y > 3) &&
-                (pt0->x < (gray->width-4)) &&
-                (pt0->y < (gray->height-4)))
+                (pt0->x < (gray.cols-4)) &&
+                (pt0->y < (gray.rows-4)))
             {
                 // ttehop: Grayscale experiment
                 FitLineGray(line_data, params, gray);
@@ -317,8 +317,8 @@ FitLineGray(cv::Mat &line_data, float params[4], cv::Mat &gray)
 	*/
 
 #ifdef SHOW_DEBUG
-	cv::Mat tmp  = cvCreateImage(cv::Size(gray->width, gray->height), IPL_DEPTH_8U, 3);
-	cv::Mat tmp2 = cvCreateImage(cv::Size(gray->width * 5, gray->height * 5), IPL_DEPTH_8U, 3);
+	cv::Mat tmp  = cvCreateImage(cv::Size(gray.cols, gray.rows), IPL_DEPTH_8U, 3);
+	cv::Mat tmp2 = cvCreateImage(cv::Size(gray.cols * 5, gray.rows * 5), IPL_DEPTH_8U, 3);
 	cvCvtColor(gray, tmp, CV_GRAY2RGB);
 	cvResize(tmp, tmp2, CV_INTER_NN);
 #endif

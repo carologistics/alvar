@@ -27,7 +27,7 @@
 #include "Alvar.h"
 #include "Pose.h"
 
-#include <cxcore.h>
+#include <opencv2/core.hpp>
 
 /**
  * \file TrifocalTensor.h

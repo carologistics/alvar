@@ -27,8 +27,8 @@ track_psa(cv::Mat &image, cv::Mat &img_gray)
 	static double     x, y;
 	if (reset) {
 		reset = false;
-		x     = img_gray->width / 2;
-		y     = img_gray->height / 2;
+		x     = img_gray.cols / 2;
+		y     = img_gray.rows / 2;
 		tracker_psa.Track(img_gray); // To reset tracker call it twice
 	}
 	tracker_psa.Track(img_gray);
@@ -43,8 +43,8 @@ track_psa_rot(cv::Mat &image, cv::Mat &img_gray)
 	static double        x, y, r;
 	if (reset) {
 		reset = false;
-		x     = img_gray->width / 2;
-		y     = img_gray->height / 2;
+		x     = img_gray.cols / 2;
+		y     = img_gray.rows / 2;
 		r     = 0;
 		tracker_psa_rot.Track(img_gray); // To reset tracker call it twice
 	}
@@ -66,8 +66,8 @@ track_stat(cv::Mat &image, cv::Mat &img_gray)
 	static double      x, y;
 	if (reset) {
 		reset = false;
-		x     = img_gray->width / 2;
-		y     = img_gray->height / 2;
+		x     = img_gray.cols / 2;
+		y     = img_gray.rows / 2;
 		tracker_stat.Track(img_gray); // To reset tracker call it twice
 	}
 	tracker_stat.Track(img_gray);
@@ -82,8 +82,8 @@ track_stat_rot(cv::Mat &image, cv::Mat &img_gray)
 	static double         x, y, r;
 	if (reset) {
 		reset = false;
-		x     = img_gray->width / 2;
-		y     = img_gray->height / 2;
+		x     = img_gray.cols / 2;
+		y     = img_gray.rows / 2;
 		r     = 0;
 		tracker_stat_rot.Track(img_gray); // To reset tracker call it twice
 	}
@@ -148,10 +148,10 @@ videocallback(cv::Mat &image)
 		init     = false;
 		img_gray = CvTestbed::Instance().CreateImageWithProto("img_gray", image, 0, 1);
 		cout << "Loading calibration: " << calibrationFilename.str();
-		if (cam.SetCalib(calibrationFilename.str().c_str(), image->width, image->height)) {
+		if (cam.SetCalib(calibrationFilename.str().c_str(), image.cols, image.rows)) {
 			cout << " [Ok]" << endl;
 		} else {
-			cam.SetRes(image->width, image->height);
+			cam.SetRes(image.cols, image.rows);
 			cout << " [Fail]" << endl;
 		}
 	}
@@ -163,7 +163,7 @@ videocallback(cv::Mat &image)
 	trackers[tracker](image, img_gray);
 	cvPutText(image,
 	          tracker_names[tracker],
-	          cv::Point(3, image->height - 20),
+	          cv::Point(3, image.rows - 20),
 	          &font,
 	          cvScalar(CV_RGB(255, 255, 255)));
 }

@@ -44,7 +44,7 @@
 
 #	include "Capture.h"
 #	include "CapturePlugin.h"
-
+#	include <opencv2/videoio.hpp>
 #	include <opencv2/highgui.hpp>
 
 namespace alvar {
@@ -81,7 +81,7 @@ public:
 private:
 	cv::VideoCapture mVideoCapture;
 	cv::Mat          mMatrix;
-	IplImage         mImage;
+	cv::Mat          mImage;
 };
 
 /**

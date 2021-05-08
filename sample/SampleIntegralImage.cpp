@@ -25,9 +25,9 @@ videocallback(cv::Mat &image)
 		CvTestbed::Instance().ToggleImageVisible(0);
 		img_gray = CvTestbed::Instance().CreateImageWithProto("Grayscale", image, 0, 1);
 		img_ver =
-		  CvTestbed::Instance().CreateImage("Vertical", cv::Size(1, image->height), IPL_DEPTH_8U, 1);
+		  CvTestbed::Instance().CreateImage("Vertical", cv::Size(1, image.rows), IPL_DEPTH_8U, 1);
 		img_hor =
-		  CvTestbed::Instance().CreateImage("Horizontal", cv::Size(image->width, 1), IPL_DEPTH_8U, 1);
+		  CvTestbed::Instance().CreateImage("Horizontal", cv::Size(image.cols, 1), IPL_DEPTH_8U, 1);
 		img_canny         = CvTestbed::Instance().CreateImageWithProto("Canny", image, 0, 1);
 		img_canny->origin = img_ver->origin = img_hor->origin = image->origin;
 	}
@@ -46,15 +46,15 @@ videocallback(cv::Mat &image)
 	grad.Update(img_gray);
 
 	// Whole image projections
-	integ.GetSubimage(cvRect(0, 0, image->width, image->height), img_ver);
-	integ.GetSubimage(cvRect(0, 0, image->width, image->height), img_hor);
-	for (int y = 1; y < image->height; y++) {
+	integ.GetSubimage(cv::Rect(0, 0, image.cols, image.rows), img_ver);
+	integ.GetSubimage(cv::Rect(0, 0, image.cols, image.rows), img_hor);
+	for (int y = 1; y < image.rows; y++) {
 		cv::line(image,
 		         cv::Point(int(cvGet2D(img_ver, y - 1, 0).val[0]), y - 1),
 		         cv::Point(int(cvGet2D(img_ver, y, 0).val[0]), y),
 		         cvScalar(CV_RGB(255, 0, 0)));
 	}
-	for (int x = 1; x < image->width; x++) {
+	for (int x = 1; x < image.cols; x++) {
 		cv::line(image,
 		         cv::Point(x - 1, int(cvGet2D(img_hor, 0, x - 1).val[0])),
 		         cv::Point(x, int(cvGet2D(img_hor, 0, x).val[0])),
@@ -65,10 +65,10 @@ videocallback(cv::Mat &image)
 	// Mark gradients for 4x4 sub-blocks
 	/*
     cvZero(img_grad);
-    CvRect r = {0,0,4,4};
-    for (int y=0; y<image->height/4; y++) {
+    cv::Rect r = {0,0,4,4};
+    for (int y=0; y<image.rows/4; y++) {
         r.y = y*4;
-        for (int x=0; x<image->width/4; x++) {
+        for (int x=0; x<image.cols/4; x++) {
             r.x = x*4;
             double dirx, diry;
             grad.GetAveGradient(r, &dirx, &diry);
@@ -83,10 +83,10 @@ videocallback(cv::Mat &image)
 	cvCreateTrackbar("t1", "Gradient", &t1, 255, NULL);
 	cvCreateTrackbar("t2", "Gradient", &t2, 255, NULL);
 	cvCanny(img_gray, img_canny, t1, t2);
-	CvRect r = {0, 0, 4, 4};
-	for (r.y = 0; r.y < img_canny->height - 4; r.y++) {
-		for (r.x = 0; r.x < img_canny->width - 4; r.x++) {
-			if (img_canny->imageData[r.y * img_canny->widthStep + r.x]) {
+	cv::Rect r = {0, 0, 4, 4};
+	for (r.y = 0; r.y < img_canny.rows - 4; r.y++) {
+		for (r.x = 0; r.x < img_canny.cols - 4; r.x++) {
+			if (img_canny->imageData[r.y * img_canny.colsStep + r.x]) {
 				double dirx, diry;
 				grad.GetAveGradient(r, &dirx, &diry);
 				cv::line(img_grad,

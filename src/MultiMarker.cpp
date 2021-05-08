@@ -407,15 +407,15 @@ MultiMarker::_SetTrackMarkers(MarkerDetectorImpl &marker_detector,
 				cv::line(image,
 				         cv::Point(int(p[1].x), int(p[1].y)),
 				         cv::Point(int(p[2].x), int(p[2].y)),
-                         (CV_RGB(255, 0, 0));
+				         CV_RGB(255, 0, 0));
 				cv::line(image,
 				         cv::Point(int(p[2].x), int(p[2].y)),
 				         cv::Point(int(p[3].x), int(p[3].y)),
-                         CV_RGB(255, 0, 0));
+				         CV_RGB(255, 0, 0));
 				cv::line(image,
 				         cv::Point(int(p[3].x), int(p[3].y)),
 				         cv::Point(int(p[0].x), int(p[0].y)),
-                         CV_RGB(255, 0, 0));
+				         CV_RGB(255, 0, 0));
 			}
 			marker_detector.TrackMarkerAdd(id, p);
 			count++;

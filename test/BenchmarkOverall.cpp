@@ -41,18 +41,18 @@ usage(const string &application)
 void
 detect(int id, const string &filename, int numberImages, bool tracking)
 {
-	cv::Mat image = cvLoadImage(filename.data());
-	cout << "benchmark: " << id << ", image size: " << image->width << "x" << image->height
+	cv::Mat image = cv::imread(filename.data());
+	cout << "benchmark: " << id << ", image size: " << image.cols << "x" << image.rows
 	     << ", number images: " << numberImages << ", tracking: " << tracking << endl;
 
-	vector<IplImage *> images;
+	vector<cv::Mat> images;
 	for (int i = 0; i < numberImages; ++i) {
-		images.push_back(cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 3));
-		cvCopy(image, images[i]);
+		images.push_back(cv::Mat(image.size(), CV_8UC1, 3));
+		image.copyTo(images[i]);
 	}
 
 	Camera camera;
-	camera.SetRes(image->width, image->height);
+	camera.SetRes(image.cols, image.rows);
 
 	MarkerDetector<MarkerData> markerDetector;
 	markerDetector.SetMarkerSize(15);
@@ -62,9 +62,9 @@ detect(int id, const string &filename, int numberImages, bool tracking)
 	}
 
 	for (int i = 0; i < numberImages; ++i) {
-		cvReleaseImage(&images[i]);
+		images[i].release();
 	}
-	cvReleaseImage(&image);
+	image.release();
 
 	cout << "number markers: " << markerDetector.markers->size() << endl;
 }

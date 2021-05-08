@@ -24,7 +24,7 @@ videocallback(cv::Mat &image)
 	static bool       initialized = false;
 
 	if (!initialized) {
-		cam.SetRes(image->width, image->height);
+		cam.SetRes(image.cols, image.rows);
 		prev_tick   = cvGetTickCount();
 		initialized = true;
 	}

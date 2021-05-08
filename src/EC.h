@@ -433,7 +433,7 @@ public:
 	bool
 	AddFeatures(std::map<int, T> &container, int type_id = 0, int first_id = 0, int last_id = 65535)
 	{
-		if (TrackerFeatures::AddFeatures() == 0)
+		if (TrackerFeatures::AddFeatures(mask = cv::Mat()) == 0)
 			return false;
 		// Update the container to have the updated features
 		for (int i = 0; i < feature_count; i++) {
@@ -553,41 +553,39 @@ public:
 		int count_points = container.size();
 		if (count_points < 4)
 			return false;
-		cv::Mat world_points                         = cvCreateMat(count_points, 1, CV_32FC3);
-		cv::Mat image_observations                   = cvCreateMat(count_points * 2, 1, CV_32FC2);
-		typename std::map<int, T>::iterator iter     = container.begin();
-		typename std::map<int, T>::iterator iter_end = container.end();
-		int                                 ind      = 0;
+		cv::Mat                             world_points       = cv::Mat(count_points, 1, CV_32FC3);
+		cv::Mat                             image_observations = cv::Mat(count_points * 2, 1, CV_32FC2);
+		typename std::map<int, T>::iterator iter               = container.begin();
+		typename std::map<int, T>::iterator iter_end           = container.end();
+		int                                 ind                = 0;
 		for (; iter != iter_end; iter++) {
 			T &f = iter->second;
 			if (!do_handle_test(f))
 				continue;
 			if (f.has_p2d && f.has_p3d) {
-				world_points->data.fl[ind * 3 + 0]       = (float)f.p3d.x;
-				world_points->data.fl[ind * 3 + 1]       = (float)f.p3d.y;
-				world_points->data.fl[ind * 3 + 2]       = (float)f.p3d.z;
-				image_observations->data.fl[ind * 2 + 0] = (float)f.p2d.x;
-				image_observations->data.fl[ind * 2 + 1] = (float)f.p2d.y;
+				world_points.at<float>(ind * 3 + 0)       = (float)f.p3d.x;
+				world_points.at<float>(ind * 3 + 1)       = (float)f.p3d.y;
+				world_points.at<float>(ind * 3 + 2)       = (float)f.p3d.z;
+				image_observations.at<float>(ind * 2 + 0) = (float)f.p2d.x;
+				image_observations.at<float>(ind * 2 + 1) = (float)f.p2d.y;
 				ind++;
 			}
 		}
 		if (ind < 4)
 			return false;
 
-		CvRect r;
-		r.x      = 0;
-		r.y      = 0;
-		r.height = ind;
-		r.width  = 1;
-		cv::Mat world_points_sub;
-		cvGetSubRect(world_points, &world_points_sub, r);
-		cv::Mat image_observations_sub;
-		cvGetSubRect(image_observations, &image_observations_sub, r);
+		cv::Rect r;
+		r.x                            = 0;
+		r.y                            = 0;
+		r.height                       = ind;
+		r.width                        = 1;
+		cv::Mat world_points_sub       = world_points(r);
+		cv::Mat image_observations_sub = image_observations(r);
 
-		bool ret = Camera::CalcExteriorOrientation(&world_points_sub, &image_observations_sub, pose);
+		bool ret = Camera::CalcExteriorOrientation(world_points_sub, image_observations_sub, pose);
 
-		cvReleaseMat(&image_observations);
-		cvReleaseMat(&world_points);
+		image_observations.release();
+		world_points.release();
 
 		return ret;
 	}
@@ -619,8 +617,8 @@ public:
 		if (count_points < 6)
 			return false;
 
-		cv::Mat world_points       = cvCreateMat(count_points, 1, CV_64FC3);
-		cv::Mat image_observations = cvCreateMat(count_points * 2, 1, CV_64F); // [u v u v u v ...]'
+		cv::Mat world_points       = cv::Mat(count_points, 1, CV_64FC3);
+		cv::Mat image_observations = cv::Mat(count_points * 2, 1, CV_64F); // [u v u v u v ...]'
 
 		int                                 ind      = 0;
 		typename std::map<int, T>::iterator iter     = container.begin();
@@ -630,33 +628,31 @@ public:
 			if (!do_handle_test(f))
 				continue;
 			if (f.has_p2d && f.has_p3d) {
-				world_points->data.db[ind * 3 + 0]       = f.p3d.x;
-				world_points->data.db[ind * 3 + 1]       = f.p3d.y;
-				world_points->data.db[ind * 3 + 2]       = f.p3d.z;
-				image_observations->data.db[ind * 2 + 0] = f.p2d.x;
-				image_observations->data.db[ind * 2 + 1] = f.p2d.y;
+				world_points.at<float>(ind * 3 + 0)       = (float)f.p3d.x;
+				world_points.at<float>(ind * 3 + 1)       = (float)f.p3d.y;
+				world_points.at<float>(ind * 3 + 2)       = (float)f.p3d.z;
+				image_observations.at<float>(ind * 2 + 0) = (float)f.p2d.x;
+				image_observations.at<float>(ind * 2 + 1) = (float)f.p2d.y;
 				ind++;
 			}
 		}
 		if (ind < 6)
 			return false;
 
-		CvRect r;
-		r.x      = 0;
-		r.y      = 0;
-		r.height = ind;
-		r.width  = 1;
-		cv::Mat world_points_sub;
-		cvGetSubRect(world_points, &world_points_sub, r);
+		cv::Rect r;
+		r.x                      = 0;
+		r.y                      = 0;
+		r.height                 = ind;
+		r.width                  = 1;
+		cv::Mat world_points_sub = world_points(r);
 
-		r.height = 2 * ind;
-		cv::Mat image_observations_sub;
-		cvGetSubRect(image_observations, &image_observations_sub, r);
+		r.height                       = 2 * ind;
+		cv::Mat image_observations_sub = image_observations(r);
 
-		bool ret = UpdateRotation(&world_points_sub, &image_observations_sub, pose);
+		bool ret = UpdateRotation(world_points_sub, image_observations_sub, pose);
 
-		cvReleaseMat(&image_observations);
-		cvReleaseMat(&world_points);
+		image_observations.release();
+		world_points.release();
 
 		return ret;
 	}
@@ -672,11 +668,11 @@ public:
 		if (count_points < 4)
 			return false; // Note, UpdatePose calls CalcExteriorOrientation if 4 or 5 points
 
-		cv::Mat world_points       = cvCreateMat(count_points, 1, CV_64FC3);
-		cv::Mat image_observations = cvCreateMat(count_points * 2, 1, CV_64F); // [u v u v u v ...]'
-		cv::Mat w                  = 0;
+		cv::Mat world_points       = cv::Mat(count_points, 1, CV_64FC3);
+		cv::Mat image_observations = cv::Mat(count_points * 2, 1, CV_64F); // [u v u v u v ...]'
+		cv::Mat w                  = cv::Mat();
 		if (weights)
-			w = cvCreateMat(count_points * 2, 1, CV_64F);
+			w = cv::Mat(count_points * 2, 1, CV_64F);
 
 		int                                 ind      = 0;
 		typename std::map<int, T>::iterator iter     = container.begin();
@@ -686,44 +682,44 @@ public:
 			if (!do_handle_test(f))
 				continue;
 			if (f.has_p2d && f.has_p3d) {
-				world_points->data.db[ind * 3 + 0]       = f.p3d.x;
-				world_points->data.db[ind * 3 + 1]       = f.p3d.y;
-				world_points->data.db[ind * 3 + 2]       = f.p3d.z;
-				image_observations->data.db[ind * 2 + 0] = f.p2d.x;
-				image_observations->data.db[ind * 2 + 1] = f.p2d.y;
-
+				world_points.at<float>(ind * 3 + 0)       = (float)f.p3d.x;
+				world_points.at<float>(ind * 3 + 1)       = (float)f.p3d.y;
+				world_points.at<float>(ind * 3 + 2)       = (float)f.p3d.z;
+				image_observations.at<float>(ind * 2 + 0) = (float)f.p2d.x;
+				image_observations.at<float>(ind * 2 + 1) = (float)f.p2d.y;
 				if (weights)
-					w->data.db[ind * 2 + 1] = w->data.db[ind * 2 + 0] = (*weights)[iter->first];
+					w.at<float>(ind * 2 + 1) = w.at<float>(ind * 2 + 0) = (*weights)[iter->first];
 				ind++;
 			}
 		}
 		if (ind < 4)
 			return false; // Note, UpdatePose calls CalcExteriorOrientation if 4 or 5 points
 
-		CvRect r;
-		r.x      = 0;
-		r.y      = 0;
-		r.height = ind;
-		r.width  = 1;
-		cv::Mat world_points_sub;
-		cvGetSubRect(world_points, &world_points_sub, r);
+		cv::Rect r;
+		r.x                      = 0;
+		r.y                      = 0;
+		r.height                 = ind;
+		r.width                  = 1;
+		cv::Mat world_points_sub = world_points(r);
 
-		r.height = 2 * ind;
-		cv::Mat image_observations_sub;
-		cvGetSubRect(image_observations, &image_observations_sub, r);
+		r.height                       = 2 * ind;
+		cv::Mat image_observations_sub = image_observations(r);
 
 		bool ret;
 		if (weights) {
-			cv::Mat w_sub;
-			cvGetSubRect(w, &w_sub, r);
-			ret = UpdatePose(&world_points_sub, &image_observations_sub, pose, &w_sub);
-		} else
-			ret = UpdatePose(&world_points_sub, &image_observations_sub, pose);
-
-		cvReleaseMat(&image_observations);
-		cvReleaseMat(&world_points);
-		if (w)
-			cvReleaseMat(&w);
+			cv::Mat w_sub = w(r);
+			ret           = UpdatePose(world_points_sub, image_observations_sub, pose, w_sub);
+		} else {
+			cv::Mat w_ones = cv::Mat::ones(w.size(), w.type());
+			ret            = UpdatePose(
+        world_points_sub,
+        image_observations_sub,
+        pose,
+        w_ones); //weights equal to one should not temper with things if no weights were given? -Sebastian
+		}
+		image_observations.release();
+		world_points.release();
+		w.release();
 
 		return ret;
 	}
@@ -800,14 +796,14 @@ public:
 
 	/** \brief Update existing pose based on new observations */
 	bool
-	UpdatePose(const cv::Mat &object_points, cv::Mat &image_points, Pose *pose, cv::Mat &weights = 0);
+	UpdatePose(const cv::Mat &object_points, cv::Mat &image_points, Pose *pose, cv::Mat &weights);
 
 	/** \brief Update existing pose (in rodriques&tra) based on new observations */
 	bool UpdatePose(const cv::Mat &object_points,
 	                cv::Mat &      image_points,
 	                cv::Mat &      rodriques,
 	                cv::Mat &      tra,
-	                cv::Mat &      weights = 0);
+	                cv::Mat &      weights);
 
 	/** \brief Reconstruct 3D point using two camera poses and corresponding undistorted image feature positions */
 	bool ReconstructFeature(const Pose *       pose1,
@@ -921,8 +917,8 @@ public:
 	           int               first_id = 0,
 	           int               last_id  = 65535)
 	{
-		cv::Mat m3 = cvCreateMat(4, 4, CV_64F);
-		cvSetIdentity(m3);
+		cv::Mat m3 = cv::Mat(4, 4, CV_64F);
+		cv::setIdentity(m3);
 		pose.GetMatrix(m3);
 
 		for (size_t corner = 0; corner < 4; ++corner) {
@@ -944,7 +940,7 @@ public:
 			}
 
 			cv::Mat X = cv::Mat(4, 1, CV_64F, X_data);
-			cv::MatMul(m3, &X, &X);
+			X         = m3 * X;
 
 			int id    = MarkerIdToContainerId(marker_id, corner, first_id, last_id);
 			T & f     = container[id];
@@ -954,7 +950,7 @@ public:
 			f.p3d.z   = float(X_data[2] / X_data[3]);
 			f.has_p3d = true;
 		}
-		cvReleaseMat(&m3);
+		m3.release();
 	}
 };
 

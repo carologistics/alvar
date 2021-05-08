@@ -44,7 +44,7 @@ public:
 		cv::Mat tra = cv::Mat(3, 1, CV_64F, trad);
 		Pose    p   = *pose;
 		p.Invert();
-		p.GetTranslation(&tra);
+		p.GetTranslation(tra);
 		if (is_initialized == false) {
 			memcpy(prev, trad, 3 * sizeof(double));
 			is_initialized = true;
@@ -126,9 +126,9 @@ PointVectorFromCamera(cv::Point3f p3d, cv::Point3f &p3d_vec, Pose *camera_pose)
 	cv::Mat V  = cv::Mat(4, 1, CV_64F, v);
 
 	// Camera location in marker coordinates
-	camera_pose->GetMatrix(&Pi);
-	cvInv(&Pi, &Pi);
-	cv::MatMul(&Pi, &V, &V);
+	camera_pose->GetMatrix(Pi);
+	cv::invert(Pi, Pi);
+	V = Pi * V;
 	v[0] /= v[3];
 	v[1] /= v[3];
 	v[2] /= v[3];
@@ -201,7 +201,8 @@ SimpleSfM::Update(cv::Mat &image,
 	// #1. Detect marker corners and track features
 	marker_detector.Detect(image, &cam, container, 0, 0, 1023, true, false);
 	tf.Purge();
-	tf.Track(image, 0, container, 1); // Track without adding features
+	cv::Mat empty_mat = cv::Mat();            // questionable -Sebastian
+	tf.Track(image, empty_mat, container, 1); // Track without adding features
 	//tf.Track(image, 0, container, 1, 1024, 65535); // Track with adding features
 	tf.EraseNonTracked(container, 1);
 
@@ -236,10 +237,10 @@ SimpleSfM::Update(cv::Mat &image,
 				Camera *c = &cam;
 				c->ProjectPoint(iter->second.p3d, &pose, iter->second.projected_p2d);
 				if ((iter->second.projected_p2d.x >= 0) && (iter->second.projected_p2d.y >= 0)
-				    && (iter->second.projected_p2d.x < image->width)
-				    && (iter->second.projected_p2d.y < image->height)) {
-					CvScalar s =
-					  cvGet2D(mask, int(iter->second.projected_p2d.y), int(iter->second.projected_p2d.x));
+				    && (iter->second.projected_p2d.x < image.cols)
+				    && (iter->second.projected_p2d.y < image.rows)) {
+					cv::Scalar s = mask.at<cv::Scalar>(int(iter->second.projected_p2d.y),
+					                                   int(iter->second.projected_p2d.x));
 					if (s.val[0] == 0) {
 						container[iter->first]                 = iter->second;
 						container[iter->first].estimation_type = 3;
@@ -391,7 +392,8 @@ SimpleSfM::UpdateTriangulateOnly(cv::Mat &image)
 {
 	marker_detector.Detect(image, &cam, container, 0, 0, 1023, true, false);
 	tf.Purge();
-	tf.Track(image, 0, container, 1, 1024, 65535);
+	cv::Mat empty_mat = cv::Mat();
+	tf.Track(image, empty_mat, container, 1, 1024, 65535);
 	tf.EraseNonTracked(container, 1);
 	if (!pose_ok)
 		pose_ok = cam.CalcExteriorOrientation(container, &pose);
@@ -445,7 +447,8 @@ SimpleSfM::UpdateRotationsOnly(cv::Mat &image)
 	int        n_markers = marker_detector.Detect(image, &cam, container, 0, 0, 1023, true, false);
 	static int n_markers_prev = 0;
 	tf.Purge();
-	tf.Track(image, 0, container, 1, 1024, 65535);
+	cv::Mat empty_mat = cv::Mat();
+	tf.Track(image, empty_mat, container, 1, 1024, 65535);
 	tf.EraseNonTracked(container, 1);
 	int type_id = -1;
 	if (n_markers >= 1)
@@ -484,7 +487,7 @@ SimpleSfM::UpdateRotationsOnly(cv::Mat &image)
 			pose_original.GetMatrixGL(gl_mat);
 			cv::Mat rot = cv::Mat(4, 4, CV_64F, rot_mat); // Rotation matrix (difference) from the tracker
 			cv::Mat mod = cv::Mat(4, 4, CV_64F, gl_mat);  // Original modelview matrix (camera location)
-			cv::MatMul(&mod, &rot, &rot);
+			rot         = mod * rot;
 			/*if(pose_ok)*/ pose.SetMatrixGL(rot_mat);
 		}
 		//pose_ok = true;
@@ -557,38 +560,35 @@ SimpleSfM::Draw(cv::Mat &rgba)
 			else
 				rad = f.tri_cntr + 1;
 
-			cv::circle(rgba, cvPointFrom32f(f.p2d), rad, cvScalar(CV_RGB(r, g, b)));
+			cv::circle(rgba, cv::Point(f.p2d), rad, CV_RGB(r, g, b));
 			if (pose_ok) {
 				// The shadow point line
 				if (f.type_id > 0 && f.estimation_type < 3 && f.p3d_sh.x != 0.f) {
 					cv::line(rgba,
-					         cvPointFrom32f(f.projected_p2d),
-					         cvPointFrom32f(f.projected_p2d_sh),
-					         cvScalar(CV_RGB(0, 255, 0)));
+					         cv::Point(f.projected_p2d),
+					         cv::Point(f.projected_p2d_sh),
+					         CV_RGB(0, 255, 0));
 				}
 				// Reprojection error
 				if (f.has_p3d) {
-					cv::line(rgba,
-					         cvPointFrom32f(f.p2d),
-					         cvPointFrom32f(f.projected_p2d),
-					         cvScalar(CV_RGB(255, 0, 255)));
+					cv::line(rgba, cv::Point(f.p2d), cv::Point(f.projected_p2d), CV_RGB(255, 0, 255));
 				}
 			}
 			//if (pose_ok && f.has_p3d) {
-			//	cv::line(rgba, cvPointFrom32f(f.p2d), cvPointFrom32f(f.projected_p2d), CV_RGB(255,0,255));
+			//	cv::line(rgba, cv::Point(f.p2d), cv::Point(f.projected_p2d), CV_RGB(255,0,255));
 			//}
 			//if (f.type_id == 0) {
 			//	int id = iter->first;
-			//	cv::circle(rgba, cvPointFrom32f(f.p2d), 7, CV_RGB(255,0,0));
+			//	cv::circle(rgba, cv::Point(f.p2d), 7, CV_RGB(255,0,0));
 			//} else {
 			//	int id = iter->first-1024+1;
 			//	if (f.has_p3d) {
-			//		cv::circle(rgba, cvPointFrom32f(f.p2d), 5, CV_RGB(0,255,0));
+			//		cv::circle(rgba, cv::Point(f.p2d), 5, CV_RGB(0,255,0));
 			//	}
 			//	else if (f.has_stored_pose)
-			//		cv::circle(rgba, cvPointFrom32f(f.p2d), f.tri_cntr+1, CV_RGB(255,0,255));
+			//		cv::circle(rgba, cv::Point(f.p2d), f.tri_cntr+1, CV_RGB(255,0,255));
 			//	else
-			//		cv::circle(rgba, cvPointFrom32f(f.p2d), 5, CV_RGB(0,255,255));
+			//		cv::circle(rgba, cv::Point(f.p2d), 5, CV_RGB(0,255,255));
 			//}
 		}
 	}

@@ -32,7 +32,7 @@
 
 #include "Alvar.h"
 
-#include <cxcore.h>
+#include <opencv2/core.hpp>
 
 namespace alvar {
 

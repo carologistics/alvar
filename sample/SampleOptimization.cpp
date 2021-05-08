@@ -56,13 +56,13 @@ void
 Estimate(cv::Mat &state, cv::Mat &projection, void *param)
 {
 	double *measx       = (double *)param;
-	int     data_degree = state->rows - 1;
+	int     data_degree = state.rows - 1;
 	double  a           = (data_degree >= 4 ? cvmGet(state, 4, 0) : 0);
 	double  b           = (data_degree >= 3 ? cvmGet(state, 3, 0) : 0);
 	double  c           = (data_degree >= 2 ? cvmGet(state, 2, 0) : 0);
 	double  d           = (data_degree >= 1 ? cvmGet(state, 1, 0) : 0);
 	double  e           = (data_degree >= 0 ? cvmGet(state, 0, 0) : 0);
-	for (int i = 0; i < projection->rows; i++) {
+	for (int i = 0; i < projection.rows; i++) {
 		cvmSet(projection, i, 0, get_y(measx[i], a, b, c, d, e));
 	}
 }
@@ -113,7 +113,7 @@ main(int argc, char *argv[])
 			cv::imshow("SampleOptimization", img);
 			cv::waitKey(10);
 			double  measx[1000];
-			cv::Mat meas = cvCreateMat(measvec.size(), 1, CV_64F);
+			cv::Mat meas = cv::Mat(measvec.size(), 1, CV_64F);
 			for (size_t i = 0; i < measvec.size(); i++) {
 				measx[i] = measvec[i].x;
 				cvmSet(meas, i, 0, measvec[i].y);
@@ -121,7 +121,7 @@ main(int argc, char *argv[])
 			for (int degree = 0; degree < 5; degree++) {
 				double       param_data[5] = {0};
 				cv::Mat      param         = cv::Mat(degree + 1, 1, CV_64F, param_data);
-				Optimization opt(param.rows, meas->rows);
+				Optimization opt(param.rows, meas.rows);
 				opt.Optimize(&param, meas, 0.1, 100, Estimate, measx);
 				double    a    = (degree >= 4 ? cvmGet(&param, 4, 0) : 0);
 				double    b    = (degree >= 3 ? cvmGet(&param, 3, 0) : 0);

@@ -135,7 +135,7 @@ BuildHideTexture(cv::Mat &   image,
 	objx = width / 2 * kx;
 	objy = height / 2 * ky;
 
-	//cout<<hide_texture->width<<","<<hide_texture->height<<endl;
+	//cout<<hide_texture.cols<<","<<hide_texture.rows<<endl;
 
 	double l2r = 2 * width * kx;
 	double l2s = 2 * height * ky;

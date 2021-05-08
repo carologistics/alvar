@@ -79,14 +79,14 @@ videocallback(cv::Mat &image)
 	if (init) {
 		init = false;
 		cout << "Loading calibration: " << calibrationFilename.str();
-		if (cam.SetCalib(calibrationFilename.str().c_str(), image->width, image->height)) {
+		if (cam.SetCalib(calibrationFilename.str().c_str(), image.cols, image.rows)) {
 			cout << " [Ok]" << endl;
 		} else {
-			cam.SetRes(image->width, image->height);
+			cam.SetRes(image.cols, image.rows);
 			cout << " [Fail]" << endl;
 		}
 		double p[16];
-		cam.GetOpenglProjectionMatrix(p, image->width, image->height);
+		cam.GetOpenglProjectionMatrix(p, image.cols, image.rows);
 		GlutViewer::SetGlProjectionMatrix(p);
 		hide_texture = CvTestbed::Instance().CreateImage("hide_texture", cv::Size(64, 64), 8, 4);
 	}

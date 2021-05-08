@@ -79,26 +79,24 @@ IntIndex::end() const
 
 IntegralImage::IntegralImage()
 {
-	sum = 0;
+	sum = cv::Mat();
 }
 IntegralImage::~IntegralImage()
 {
-	if (sum)
-		cvReleaseImage(&sum);
+	sum.release();
 }
 void
 IntegralImage::Update(cv::Mat &gray)
 {
-	if ((sum == 0) || (sum->height != gray->width + 1) || (sum->width != gray->height + 1)) {
-		if (sum)
-			cvReleaseImage(&sum);
+	if ((sum.empty()) || (sum.rows != gray.cols + 1) || (sum.cols != gray.rows + 1)) {
+		sum.release();
 		// TODO: Now we assume 'double' - is it ok?
-		sum = cvCreateImage(cv::Size(gray->width + 1, gray->height + 1), IPL_DEPTH_64F, 1);
+		sum = cv::Mat(cv::Size(gray.cols + 1, gray.rows + 1), CV_64F, 1);
 	}
-	cvIntegral(gray, sum);
+	cv::integral(gray, sum);
 }
 double
-IntegralImage::GetSum(CvRect &rect, int *count /*=0*/)
+IntegralImage::GetSum(cv::Rect &rect, int *count /*=0*/)
 {
 	int x1 = rect.x;
 	int x2 = rect.x + rect.width; // Note, not -1
@@ -111,51 +109,50 @@ IntegralImage::GetSum(CvRect &rect, int *count /*=0*/)
 			   -cvGet2D(sum, y1, x2).val[0]
 			   +cvGet2D(sum, y1, x1).val[0];
     */
-	double v = +((double *)sum->imageData)[y2 * sum->width + x2]
-	           - ((double *)sum->imageData)[y2 * sum->width + x1]
-	           - ((double *)sum->imageData)[y1 * sum->width + x2]
-	           + ((double *)sum->imageData)[y1 * sum->width + x1];
+	double v =
+	  +((double *)sum.data)[y2 * sum.cols
+	                        + x2] //this is a guess, data might be the closest to imageData -Sebastian
+	  - ((double *)sum.data)[y2 * sum.cols + x1] - ((double *)sum.data)[y1 * sum.cols + x2]
+	  + ((double *)sum.data)[y1 * sum.cols + x1];
 
 	if (count)
 		*count = rect.width * rect.height;
 	return v;
 }
 double
-IntegralImage::GetAve(CvRect &rect)
+IntegralImage::GetAve(cv::Rect &rect)
 {
 	int count = 1;
 	return GetSum(rect, &count) / count;
 }
 void
-IntegralImage::GetSubimage(const CvRect &rect, cv::Mat &sub)
+IntegralImage::GetSubimage(const cv::Rect &rect, cv::Mat &sub)
 {
 	int yi = 0;
-	for (IntIndex yy(rect.height, sub->height); yy.get() != yy.end(); yy.next(), yi++) {
+	for (IntIndex yy(rect.height, sub.rows); yy.get() != yy.end(); yy.next(), yi++) {
 		int xi = 0;
-		for (IntIndex xx(rect.width, sub->width); xx.get() != xx.end(); xx.next(), xi++) {
-			//cout<<"res: "<<sum->height<<","<<sum->width<<" - ";
+		for (IntIndex xx(rect.width, sub.cols); xx.get() != xx.end(); xx.next(), xi++) {
+			//cout<<"res: "<<sum.rows<<","<<sum.cols<<" - ";
 			//cout<<xi<<","<<yi<<": "<<rect.x<<","<<rect.y<<": "<<xx.get()<<","<<yy.get()<<endl;
-			CvRect r   = {rect.x + xx.get(), rect.y + yy.get(), xx.get_next_step(), yy.get_next_step()};
-			double ave = GetAve(r);
+			cv::Rect r   = {rect.x + xx.get(), rect.y + yy.get(), xx.get_next_step(), yy.get_next_step()};
+			double   ave = GetAve(r);
 
 			//cvSet2D(sub, yi, xi, cvScalar(ave));
 			// TODO: Now we assume 8-bit gray
-			sub->imageData[yi * sub->widthStep + xi] = (char)ave;
+			sub.data[yi * sub.step + xi] = (char)ave;
 		}
 	}
 }
 void
 IntegralGradient::CalculatePointNormals(cv::Mat &gray)
 {
-	int width  = gray->width - 1;
-	int height = gray->height - 1;
-	if ((normalx == 0) || (normalx->width != width) || (normalx->height != height)) {
-		if (normalx)
-			cvReleaseImage(&normalx);
-		if (normaly)
-			cvReleaseImage(&normaly);
-		normalx = cvCreateImage(cv::Size(width, height), IPL_DEPTH_64F, 1);
-		normaly = cvCreateImage(cv::Size(width, height), IPL_DEPTH_64F, 1);
+	int width  = gray.cols - 1;
+	int height = gray.rows - 1;
+	if ((normalx.empty()) || (normalx.cols != width) || (normalx.rows != height)) {
+		normalx.release();
+		normaly.release();
+		normalx = cv::Mat(cv::Size(width, height), CV_64F, 1);
+		normaly = cv::Mat(cv::Size(width, height), CV_64F, 1);
 	}
 	for (int j = 0; j < height; j++) {
 		for (int i = 0; i < width; i++) {
@@ -173,15 +170,15 @@ IntegralGradient::CalculatePointNormals(cv::Mat &gray)
 			*/
 			// As we assume top-left coordinates we have these reverse compared to Donahue1992
 			// TODO: Now we assume 8-bit gray
-			double a4 = (unsigned char)gray->imageData[(j)*gray->widthStep + (i + 1)];
-			double a3 = (unsigned char)gray->imageData[(j)*gray->widthStep + (i)];
-			double a2 = (unsigned char)gray->imageData[(j + 1) * gray->widthStep + (i)];
-			double a1 = (unsigned char)gray->imageData[(j + 1) * gray->widthStep + (i + 1)];
+			double a4 = (unsigned char)gray.data[(j)*gray.step + (i + 1)];
+			double a3 = (unsigned char)gray.data[(j)*gray.step + (i)];
+			double a2 = (unsigned char)gray.data[(j + 1) * gray.step + (i)];
+			double a1 = (unsigned char)gray.data[(j + 1) * gray.step + (i + 1)];
 			// Normal vectors;
-			double nx                                              = (-a1 + a2 + a3 - a4) / 4;
-			double ny                                              = (-a1 - a2 + a3 + a4) / 4;
-			((double *)normalx->imageData)[j * normalx->width + i] = nx;
-			((double *)normaly->imageData)[j * normaly->width + i] = ny;
+			double nx                                      = (-a1 + a2 + a3 - a4) / 4;
+			double ny                                      = (-a1 - a2 + a3 + a4) / 4;
+			((double *)normalx.data)[j * normalx.cols + i] = nx;
+			((double *)normaly.data)[j * normaly.cols + i] = ny;
 		}
 	}
 }
@@ -192,10 +189,8 @@ IntegralGradient::IntegralGradient()
 }
 IntegralGradient::~IntegralGradient()
 {
-	if (normalx)
-		cvReleaseImage(&normalx);
-	if (normaly)
-		cvReleaseImage(&normaly);
+	normalx.release();
+	normaly.release();
 }
 void
 IntegralGradient::Update(cv::Mat &gray)
@@ -205,9 +200,9 @@ IntegralGradient::Update(cv::Mat &gray)
 	integy.Update(normaly);
 }
 void
-IntegralGradient::GetGradient(CvRect &rect, double *dirx, double *diry, int *count /*=0*/)
+IntegralGradient::GetGradient(cv::Rect &rect, double *dirx, double *diry, int *count /*=0*/)
 {
-	CvRect r = {rect.x, rect.y, rect.width - 1, rect.height - 1};
+	cv::Rect r = {rect.x, rect.y, rect.width - 1, rect.height - 1};
 	if (count)
 		*dirx = integx.GetSum(r, count);
 	else
@@ -215,7 +210,7 @@ IntegralGradient::GetGradient(CvRect &rect, double *dirx, double *diry, int *cou
 	*diry = integy.GetSum(r);
 }
 void
-IntegralGradient::GetAveGradient(CvRect &rect, double *dirx, double *diry)
+IntegralGradient::GetAveGradient(cv::Rect &rect, double *dirx, double *diry)
 {
 	int count = 1;
 	GetGradient(rect, dirx, diry, &count);

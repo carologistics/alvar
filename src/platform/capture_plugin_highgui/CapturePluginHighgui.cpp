@@ -42,10 +42,10 @@ void
 CaptureHighgui::setResolution(const unsigned long xResolution, const unsigned long yResolution)
 {
 	if (mVideoCapture.isOpened()) {
-		mVideoCapture.set(CV_CAP_PROP_FRAME_WIDTH, xResolution);
-		mVideoCapture.set(CV_CAP_PROP_FRAME_HEIGHT, yResolution);
-		mXResolution = (int)mVideoCapture.get(CV_CAP_PROP_FRAME_WIDTH);
-		mYResolution = (int)mVideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT);
+		mVideoCapture.set(cv::CAP_PROP_FRAME_WIDTH, xResolution);
+		mVideoCapture.set(cv::CAP_PROP_FRAME_HEIGHT, yResolution);
+		mXResolution = (int)mVideoCapture.get(cv::CAP_PROP_FRAME_WIDTH);
+		mYResolution = (int)mVideoCapture.get(cv::CAP_PROP_FRAME_HEIGHT);
 	}
 }
 
@@ -81,14 +81,14 @@ cv::Mat
 CaptureHighgui::captureImage()
 {
 	if (!isCapturing()) {
-		return NULL;
+		return cv::Mat();
 	}
 	if (!mVideoCapture.grab()) {
-		return NULL;
+		return cv::Mat();
 	}
 	mVideoCapture.retrieve(mMatrix);
-	mImage = cvIplImage(mMatrix);
-	return &mImage;
+	mImage = mMatrix;
+	return mImage;
 }
 
 bool
@@ -135,8 +135,8 @@ CapturePluginHighgui::enumerateDevices()
 
 		videoCapture.open(id);
 		if (videoCapture.isOpened()) {
-			int width  = (int)videoCapture.get(CV_CAP_PROP_FRAME_WIDTH);
-			int height = (int)videoCapture.get(CV_CAP_PROP_FRAME_HEIGHT);
+			int width  = (int)videoCapture.get(cv::CAP_PROP_FRAME_WIDTH);
+			int height = (int)videoCapture.get(cv::CAP_PROP_FRAME_HEIGHT);
 			if (width > 0 && height > 0) {
 				devices.push_back(captureDevice);
 			} else {

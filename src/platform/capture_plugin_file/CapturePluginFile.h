@@ -80,7 +80,7 @@ public:
 private:
 	cv::VideoCapture mVideoCapture;
 	cv::Mat          mMatrix;
-	IplImage         mImage;
+	cv::Mat          mImage;
 };
 
 /**

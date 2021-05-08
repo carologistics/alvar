@@ -87,10 +87,10 @@ private:
 	int _image_scale;
 	int _outlier_limit;
 
-	Pose      _pose;
-	IplImage *_grsc;
-	Camera *  _camera;
-	cv::Mat * _object_model;
+	Pose    _pose;
+	cv::Mat _grsc;
+	Camera *_camera;
+	cv::Mat _object_model;
 
 public:
 	void
@@ -109,8 +109,8 @@ public:
 
 private:
 	static void Project(cv::Mat &state, cv::Mat &projection, void *param);
-	bool        UpdatePose(cv::Mat &image = 0);
-	bool        UpdateRotationOnly(cv::Mat &gray, cv::Mat &image = 0);
+	bool        UpdatePose(cv::Mat &image);
+	bool        UpdateRotationOnly(cv::Mat &gray, cv::Mat &image);
 };
 
 } // namespace alvar
