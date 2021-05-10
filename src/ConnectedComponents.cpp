@@ -317,8 +317,8 @@ FitLineGray(cv::Mat &line_data, float params[4], cv::Mat &gray)
 	*/
 
 #ifdef SHOW_DEBUG
-	cv::Mat tmp  = cvCreateImage(cv::Size(gray.cols, gray.rows), IPL_DEPTH_8U, 3);
-	cv::Mat tmp2 = cvCreateImage(cv::Size(gray.cols * 5, gray.rows * 5), IPL_DEPTH_8U, 3);
+	cv::Mat tmp  = cv::Mat(cv::Size(gray.cols, gray.rows), CV_8UC1, 3);
+	cv::Mat tmp2 = cv::Mat(cv::Size(gray.cols * 5, gray.rows * 5), CV_8UC1, 3);
 	cvCvtColor(gray, tmp, CV_GRAY2RGB);
 	cvResize(tmp, tmp2, CV_INTER_NN);
 #endif

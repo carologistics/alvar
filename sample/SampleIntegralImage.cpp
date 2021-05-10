@@ -10,31 +10,27 @@ using namespace std;
 void
 videocallback(cv::Mat &image)
 {
-	static cv::Mat          img_grad  = NULL;
-	static cv::Mat          img_gray  = NULL;
-	static cv::Mat          img_ver   = NULL;
-	static cv::Mat          img_hor   = NULL;
-	static cv::Mat          img_canny = NULL;
+	static cv::Mat          img_grad  = cv::Mat();
+	static cv::Mat          img_gray  = cv::Mat();
+	static cv::Mat          img_ver   = cv::Mat();
+	static cv::Mat          img_hor   = cv::Mat();
+	static cv::Mat          img_canny = cv::Mat();
 	static IntegralImage    integ;
 	static IntegralGradient grad;
 
-	assert(image);
-	if (img_gray == NULL) {
+	if (img_gray.empty()) {
 		// Following image is toggled visible using key '0'
 		img_grad = CvTestbed::Instance().CreateImageWithProto("Gradient", image);
 		CvTestbed::Instance().ToggleImageVisible(0);
 		img_gray = CvTestbed::Instance().CreateImageWithProto("Grayscale", image, 0, 1);
-		img_ver =
-		  CvTestbed::Instance().CreateImage("Vertical", cv::Size(1, image.rows), IPL_DEPTH_8U, 1);
-		img_hor =
-		  CvTestbed::Instance().CreateImage("Horizontal", cv::Size(image.cols, 1), IPL_DEPTH_8U, 1);
-		img_canny         = CvTestbed::Instance().CreateImageWithProto("Canny", image, 0, 1);
-		img_canny->origin = img_ver->origin = img_hor->origin = image->origin;
+		img_ver  = CvTestbed::Instance().CreateImage("Vertical", cv::Size(1, image.rows), CV_8UC1, 1);
+		img_hor  = CvTestbed::Instance().CreateImage("Horizontal", cv::Size(image.cols, 1), CV_8UC1, 1);
+		img_canny = CvTestbed::Instance().CreateImageWithProto("Canny", image, 0, 1);
 	}
-	if (image->nChannels > 1) {
-		cvCvtColor(image, img_gray, CV_RGB2GRAY);
+	if (image.channels() > 1) {
+		cv::cvtColor(image, img_gray, cv::COLOR_RGB2GRAY);
 	} else {
-		cvCopy(image, img_gray);
+		image.copyTo(img_gray);
 	}
 
 	// Show PerformanceTimer
@@ -49,16 +45,17 @@ videocallback(cv::Mat &image)
 	integ.GetSubimage(cv::Rect(0, 0, image.cols, image.rows), img_ver);
 	integ.GetSubimage(cv::Rect(0, 0, image.cols, image.rows), img_hor);
 	for (int y = 1; y < image.rows; y++) {
+		img_ver.at<int>(y - 1, 0);
 		cv::line(image,
-		         cv::Point(int(cvGet2D(img_ver, y - 1, 0).val[0]), y - 1),
-		         cv::Point(int(cvGet2D(img_ver, y, 0).val[0]), y),
-		         cvScalar(CV_RGB(255, 0, 0)));
+		         cv::Point(img_ver.at<int>(y - 1, 0), y - 1),
+		         cv::Point(img_ver.at<int>(y, 0), y),
+		         CV_RGB(255, 0, 0));
 	}
 	for (int x = 1; x < image.cols; x++) {
 		cv::line(image,
-		         cv::Point(x - 1, int(cvGet2D(img_hor, 0, x - 1).val[0])),
-		         cv::Point(x, int(cvGet2D(img_hor, 0, x).val[0])),
-		         cvScalar(CV_RGB(0, 255, 0)));
+		         cv::Point(x - 1, img_hor.at<int>(0, x - 1)),
+		         cv::Point(x, img_hor.at<int>(0, x)),
+		         CV_RGB(0, 255, 0));
 	}
 
 	// Gradients
@@ -78,29 +75,29 @@ videocallback(cv::Mat &image)
     */
 
 	// Gradients on canny
-	cvZero(img_grad);
+	img_grad      = cv::Mat::zeros(img_grad.size(), img_grad.type());
 	static int t1 = 64, t2 = 192;
-	cvCreateTrackbar("t1", "Gradient", &t1, 255, NULL);
-	cvCreateTrackbar("t2", "Gradient", &t2, 255, NULL);
-	cvCanny(img_gray, img_canny, t1, t2);
+	cv::createTrackbar("t1", "Gradient", &t1, 255, NULL);
+	cv::createTrackbar("t2", "Gradient", &t2, 255, NULL);
+	cv::Canny(img_gray, img_canny, t1, t2);
 	cv::Rect r = {0, 0, 4, 4};
 	for (r.y = 0; r.y < img_canny.rows - 4; r.y++) {
 		for (r.x = 0; r.x < img_canny.cols - 4; r.x++) {
-			if (img_canny->imageData[r.y * img_canny.colsStep + r.x]) {
+			if (img_canny.data[r.y * img_canny.step + r.x]) {
 				double dirx, diry;
 				grad.GetAveGradient(r, &dirx, &diry);
 				cv::line(img_grad,
 				         cv::Point(r.x + 2, r.y + 2),
 				         cv::Point(r.x + 2 + int(dirx), r.y + 2 + int(diry)),
-				         cvScalar(CV_RGB(0, 0, 255)));
+				         CV_RGB(0, 0, 255));
 				cv::line(img_grad,
 				         cv::Point(r.x + 2, r.y + 2),
 				         cv::Point(r.x + 2 + int(-diry), r.y + 2 + int(+dirx)),
-				         cvScalar(CV_RGB(255, 0, 0)));
+				         CV_RGB(255, 0, 0));
 				cv::line(img_grad,
 				         cv::Point(r.x + 2, r.y + 2),
 				         cv::Point(r.x + 2 + int(+diry), r.y + 2 + int(-dirx)),
-				         cvScalar(CV_RGB(255, 0, 0)));
+				         CV_RGB(255, 0, 0));
 			}
 		}
 	}

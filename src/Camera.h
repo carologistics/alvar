@@ -249,6 +249,9 @@ public:
 	                             const std::vector<PointDouble> &pi,
 	                             Pose *                          pose) const;
 
+	void
+	CalcExteriorOrientation(std::vector<cv::Point3d> &pw, std::vector<cv::Point2d> &pi, Pose *pose);
+
 	bool CalcExteriorOrientation(const cv::Mat &object_points, cv::Mat &image_points, Pose *pose);
 
 	bool CalcExteriorOrientation(const cv::Mat &object_points,

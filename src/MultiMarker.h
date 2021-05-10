@@ -124,7 +124,7 @@ public:
 
 	template <class M>
 	double
-	GetPose(const std::vector<M, Eigen::aligned_allocator<M>> *markers, Camera *cam, Pose &pose)
+	GetPose(const std::vector<M> *markers, Camera *cam, Pose &pose)
 	{
 		MarkerIteratorImpl<M> begin(markers->begin());
 		MarkerIteratorImpl<M> end(markers->end());
@@ -144,7 +144,7 @@ public:
 
 	template <class M>
 	double
-	Update(const std::vector<M, Eigen::aligned_allocator<M>> *markers, Camera *cam, Pose &pose)
+	Update(const std::vector<M> *markers, Camera *cam, Pose &pose)
 	{
 		if (markers->size() < 1)
 			return -1.0;

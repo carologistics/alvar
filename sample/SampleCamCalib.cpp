@@ -25,17 +25,10 @@ videocallback(cv::Mat &image)
 
 	if (!initialized) {
 		cam.SetRes(image.cols, image.rows);
-		prev_tick   = cvGetTickCount();
+		prev_tick   = cv::getTickCount();
 		initialized = true;
 	}
 
-	bool flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
-
-	assert(image);
 	if (!calibrated) {
 		// If we have already collected enough data to make the calibration
 		// - We are ready to end the capture loop
@@ -53,8 +46,8 @@ videocallback(cv::Mat &image)
 		// If we are still collecting calibration data
 		// - For every 1.5s add calibration data from detected 7*9 chessboard (and visualize it if true)
 		else {
-			int64 tick = cvGetTickCount();
-			if ((tick - prev_tick) > (cvGetTickFrequency() * 1000 * 1000 * 1.5)) {
+			int64 tick = cv::getTickCount();
+			if ((tick - prev_tick) > (cv::getTickFrequency() * 1000 * 1000 * 1.5)) {
 				if (pp.AddPointsUsingChessboard(image, 2.8, etalon_rows, etalon_columns, true)) {
 					prev_tick = tick;
 					calib_count++;
@@ -71,15 +64,10 @@ videocallback(cv::Mat &image)
 				cv::circle(image,
 				           cv::Point((int)pp.image_points[i].x, (int)pp.image_points[i].y),
 				           6,
-				           cvScalar(CV_RGB(0, 0, 255)));
+				           CV_RGB(0, 0, 255));
 			}
 			pp.Reset();
 		}
-	}
-
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
 	}
 }
 

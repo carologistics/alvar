@@ -602,6 +602,37 @@ Camera::Distort(cv::Point2f &point)
 }
 
 void
+Camera::CalcExteriorOrientation(vector<cv::Point3d> &pw, vector<cv::Point2d> &pi, Pose *pose)
+{
+	double  ext_rodriques[3];
+	double  ext_translate[3];
+	cv::Mat ext_rodriques_mat = cv::Mat(3, 1, CV_64F, ext_rodriques);
+	cv::Mat ext_translate_mat = cv::Mat(3, 1, CV_64F, ext_translate);
+	cv::Mat object_points     = cv::Mat((int)pw.size(), 1, CV_32FC3);
+	cv::Mat image_points      = cv::Mat((int)pi.size(), 1, CV_32FC2);
+	for (size_t i = 0; i < pw.size(); i++) {
+		object_points.at<float>(i * 3 + 0) = (float)pw[i].x;
+		object_points.at<float>(i * 3 + 1) = (float)pw[i].y;
+		object_points.at<float>(i * 3 + 2) = (float)pw[i].z;
+		image_points.at<float>(i * 2 + 0)  = (float)pi[i].x;
+		image_points.at<float>(i * 2 + 1)  = (float)pi[i].y;
+	}
+	cv::calibrateCamera(object_points,
+	                    image_points,
+	                    image_points.size(),
+	                    calib_K,
+	                    cv::Mat(),
+	                    ext_rodriques_mat,
+	                    ext_translate_mat,
+	                    cv::CALIB_USE_EXTRINSIC_GUESS);
+
+	pose->SetRodriques(ext_rodriques_mat);
+	pose->SetTranslation(ext_translate_mat);
+	object_points.release();
+	image_points.release();
+}
+
+void
 Camera::CalcExteriorOrientation(const vector<cv::Point3d> &pw,
                                 const vector<PointDouble> &pi,
                                 cv::Mat &                  rodriques,

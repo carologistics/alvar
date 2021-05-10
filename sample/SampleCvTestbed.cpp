@@ -1,22 +1,23 @@
 #include "CvTestbed.h"
 #include "Shared.h"
+
+#include <opencv2/opencv.hpp>
 using namespace alvar;
 using namespace std;
 
 void
 videocallback(cv::Mat &image)
 {
-	static cv::Mat img_gray = NULL;
+	static cv::Mat img_gray = cv::Mat();
 
-	assert(image);
-	if (img_gray == NULL) {
+	if (img_gray.empty()) {
 		// Following image is toggled visible using key '0'
 		img_gray = CvTestbed::Instance().CreateImageWithProto("Grayscale", image, 0, 1);
 	}
-	if (image->nChannels > 1) {
-		cvCvtColor(image, img_gray, CV_RGB2GRAY);
+	if (image.channels() > 1) {
+		cv::cvtColor(image, img_gray, cv::COLOR_BGR2GRAY);
 	} else {
-		cvCopy(image, img_gray);
+		image.copyTo(img_gray);
 	}
 	// TODO: Do your image operations
 }

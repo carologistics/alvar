@@ -39,14 +39,8 @@ bool reset = false;
 void
 videocallback(cv::Mat &image)
 {
-	static cv::Mat rgb      = 0;
-	static cv::Mat bg_image = 0;
-
-	bool flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
+	static cv::Mat rgb      = cv::Mat();
+	static cv::Mat bg_image = cv::Mat();
 
 	if (init) {
 		init = false;
@@ -64,8 +58,7 @@ videocallback(cv::Mat &image)
 		d_marker.SetScale(marker_size * 2);
 		rgb = CvTestbed::Instance().CreateImageWithProto("RGB", image, 0, 3);
 		CvTestbed::Instance().ToggleImageVisible(0, 0);
-		bg_image         = CvTestbed::Instance().CreateImage("BG texture", cv::Size(512, 512), 8, 3);
-		bg_image->origin = 0;
+		bg_image = CvTestbed::Instance().CreateImage("BG texture", cv::Size(512, 512), 8, 3);
 
 		sfm->SetScale(10);
 		if (sfm->AddMultiMarker("mmarker.xml", FILE_FORMAT_XML)) {
@@ -154,22 +147,17 @@ videocallback(cv::Mat &image)
 			}
 		}
 	}
-	if (image->nChannels == 1)
-		cvCvtColor(image, rgb, CV_GRAY2RGB);
-	else if (image->nChannels == 3)
-		cvCopy(image, rgb);
+	if (image.channels() == 1)
+		cv::cvtColor(image, rgb, cv::COLOR_GRAY2RGB);
+	else if (image.channels() == 3)
+		image.copyTo(rgb);
 
 	// Draw video on GlutViewer background
-	cvResize(rgb, bg_image);
+	rgb.resize(bg_image.rows);
 	GlutViewer::SetVideo(bg_image);
 
 	// Draw debug info to the rgb
 	sfm->Draw(rgb);
-
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 }
 
 int

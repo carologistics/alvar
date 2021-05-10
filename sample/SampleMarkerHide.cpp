@@ -61,18 +61,11 @@ videocallback(cv::Mat &image)
 	static OwnDrawable d[32];
 	static cv::Mat     hide_texture;
 
-	bool flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
-
-	static cv::Mat bg_image = 0;
-	if (!bg_image)
-		bg_image = cvCreateImage(cv::Size(512, 512), 8, 3);
-	if (image->nChannels == 3) {
-		bg_image->origin = 0;
-		cvResize(image, bg_image);
+	static cv::Mat bg_image = cv::Mat();
+	if (bg_image.empty())
+		bg_image = cv::Mat(cv::Size(512, 512), 8, 3);
+	if (image.channels() == 3) {
+		image.resize(bg_image.rows); // resizing only affects rows, hoping this is correct -Sebastian
 		GlutViewer::SetVideo(bg_image);
 	}
 
@@ -118,15 +111,11 @@ videocallback(cv::Mat &image)
 
 		p.GetMatrixGL(d[i].gl_mat);
 		for (int ii = 0; ii < 64 * 64; ii++) {
-			d[i].hidingtex[ii * 4 + 0] = hide_texture->imageData[ii * 4 + 2];
-			d[i].hidingtex[ii * 4 + 1] = hide_texture->imageData[ii * 4 + 1];
-			d[i].hidingtex[ii * 4 + 2] = hide_texture->imageData[ii * 4 + 0];
-			d[i].hidingtex[ii * 4 + 3] = hide_texture->imageData[ii * 4 + 3];
+			d[i].hidingtex[ii * 4 + 0] = hide_texture.data[ii * 4 + 2];
+			d[i].hidingtex[ii * 4 + 1] = hide_texture.data[ii * 4 + 1];
+			d[i].hidingtex[ii * 4 + 2] = hide_texture.data[ii * 4 + 0];
+			d[i].hidingtex[ii * 4 + 3] = hide_texture.data[ii * 4 + 3];
 		}
-	}
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
 	}
 }
 

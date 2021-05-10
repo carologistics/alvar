@@ -12,7 +12,6 @@ using namespace std;
 
 int               tracker = 0;
 bool              reset   = true;
-CvFont            font;
 std::stringstream calibrationFilename;
 
 void
@@ -33,7 +32,7 @@ track_psa(cv::Mat &image, cv::Mat &img_gray)
 	}
 	tracker_psa.Track(img_gray);
 	tracker_psa.Compensate(&x, &y);
-	cv::circle(image, cv::Point(int(x), int(y)), 10, cvScalar(CV_RGB(255, 0, 0)));
+	cv::circle(image, cv::Point(int(x), int(y)), 10, CV_RGB(255, 0, 0));
 }
 
 void
@@ -51,12 +50,12 @@ track_psa_rot(cv::Mat &image, cv::Mat &img_gray)
 	tracker_psa_rot.Track(img_gray);
 	tracker_psa_rot.Compensate(&x, &y);
 	r += tracker_psa_rot.rotd;
-	cv::circle(image, cv::Point(int(x), int(y)), 15, cvScalar(CV_RGB(255, 0, 0)));
+	cv::circle(image, cv::Point(int(x), int(y)), 15, CV_RGB(255, 0, 0));
 	double r_rad = r * 3.1415926535 / 180;
 	cv::line(image,
 	         cv::Point(int(x), int(y)),
 	         cv::Point(int(x - sin(r_rad) * 15), int(y + cos(r_rad) * 15)),
-	         cvScalar(CV_RGB(255, 0, 0)));
+	         CV_RGB(255, 0, 0));
 }
 
 void
@@ -72,7 +71,7 @@ track_stat(cv::Mat &image, cv::Mat &img_gray)
 	}
 	tracker_stat.Track(img_gray);
 	tracker_stat.Compensate(&x, &y);
-	cv::circle(image, cv::Point(int(x), int(y)), 10, cvScalar(CV_RGB(0, 255, 0)));
+	cv::circle(image, cv::Point(int(x), int(y)), 10, CV_RGB(0, 255, 0));
 }
 
 void
@@ -90,12 +89,12 @@ track_stat_rot(cv::Mat &image, cv::Mat &img_gray)
 	tracker_stat_rot.Track(img_gray);
 	tracker_stat_rot.Compensate(&x, &y);
 	r += tracker_stat_rot.rotd;
-	cv::circle(image, cv::Point(int(x), int(y)), 15, cvScalar(CV_RGB(0, 255, 0)));
+	cv::circle(image, cv::Point(int(x), int(y)), 15, CV_RGB(0, 255, 0));
 	double r_rad = r * 3.1415926535 / 180;
 	cv::line(image,
 	         cv::Point(int(x), int(y)),
 	         cv::Point(int(x - sin(r_rad) * 15), int(y + cos(r_rad) * 15)),
-	         cvScalar(CV_RGB(0, 255, 0)));
+	         CV_RGB(0, 255, 0));
 }
 
 void
@@ -112,9 +111,9 @@ track_features(cv::Mat &image, cv::Mat &img_gray)
 		cv::circle(image,
 		           cv::Point(int(tracker_features.features[i].x), int(tracker_features.features[i].y)),
 		           2,
-		           cvScalar(CV_RGB(tracker_features.ids[i] % 255,
-		                           (tracker_features.ids[i] * 7) % 255,
-		                           (tracker_features.ids[i] * 11) % 255)));
+		           CV_RGB(tracker_features.ids[i] % 255,
+		                  (tracker_features.ids[i] * 7) % 255,
+		                  (tracker_features.ids[i] * 11) % 255));
 	}
 }
 
@@ -139,9 +138,8 @@ char tracker_names[nof_trackers][64] = {
 void
 videocallback(cv::Mat &image)
 {
-	assert(image);
 	static Camera  cam;
-	static cv::Mat img_gray = NULL;
+	static cv::Mat img_gray = cv::Mat();
 	static bool    init     = true;
 
 	if (init) {
@@ -155,17 +153,14 @@ videocallback(cv::Mat &image)
 			cout << " [Fail]" << endl;
 		}
 	}
-	if (image->nChannels == 1)
-		cvCopy(image, img_gray);
+	if (image.channels() == 1)
+		image.copyTo(img_gray);
 	else
-		cvCvtColor(image, img_gray, CV_RGB2GRAY);
+		cv::cvtColor(image, img_gray, cv::COLOR_RGB2GRAY);
 
 	trackers[tracker](image, img_gray);
-	cvPutText(image,
-	          tracker_names[tracker],
-	          cv::Point(3, image.rows - 20),
-	          &font,
-	          cvScalar(CV_RGB(255, 255, 255)));
+	cv::putText(
+	  image, tracker_names[tracker], cv::Point(3, image.rows - 20), 0, 0.5, CV_RGB(255, 255, 255));
 }
 
 int
@@ -210,9 +205,6 @@ main(int argc, char *argv[])
 		std::cout << "  n,space: cycle through tracking algorithms" << std::endl;
 		std::cout << "  q: quit" << std::endl;
 		std::cout << std::endl;
-
-		// Initialize font
-		cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0);
 
 		// Initialise CvTestbed
 		CvTestbed::Instance().SetVideoCallback(videocallback);

@@ -31,7 +31,7 @@ namespace alvar {
 using namespace std;
 
 void
-DrawLine(cv::Mat &image, const Line line, const cv::Scalar color)
+DrawLine(cv::Mat &image, const Line line, const cv::Scalar &color)
 {
 	double    len = 100;
 	cv::Point p1, p2;
@@ -49,7 +49,7 @@ DrawLine(cv::Mat &image, const Line line, const cv::Scalar color)
 }
 
 void
-DrawPoints(cv::Mat &image, const std::vector<cv::Point> &contour, const cv::Scalar color)
+DrawPoints(cv::Mat &image, const std::vector<cv::Point> &contour, const cv::Scalar &color)
 {
 	for (const auto &pt : contour) {
 		cv::line(image, cv::Point(pt.x, pt.y), cv::Point(pt.x, pt.y), color);
@@ -57,7 +57,7 @@ DrawPoints(cv::Mat &image, const std::vector<cv::Point> &contour, const cv::Scal
 }
 
 void
-DrawCircles(cv::Mat &image, const std::vector<cv::Point> &contour, int radius, cv::Scalar color)
+DrawCircles(cv::Mat &image, const std::vector<cv::Point> &contour, int radius, cv::Scalar &color)
 {
 	for (const auto &pt : contour) {
 		cv::circle(image, cv::Point(pt.x, pt.y), radius, color);
@@ -65,7 +65,7 @@ DrawCircles(cv::Mat &image, const std::vector<cv::Point> &contour, int radius, c
 }
 
 void
-DrawLines(cv::Mat &image, const std::vector<cv::Point> &contour, cv::Scalar color)
+DrawLines(cv::Mat &image, const std::vector<cv::Point> &contour, cv::Scalar &color)
 {
 	if (contour.size() >= 2) {
 		for (int i = 0; i < contour.size(); ++i) {
@@ -79,7 +79,7 @@ DrawLines(cv::Mat &image, const std::vector<cv::Point> &contour, cv::Scalar colo
 void
 DrawCVEllipse(cv::Mat &              image,
               const cv::RotatedRect &ellipse,
-              cv::Scalar             color,
+              cv::Scalar &           color,
               bool                   fill /*=false*/,
               double                 par)
 {

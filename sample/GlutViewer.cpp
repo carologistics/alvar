@@ -89,9 +89,8 @@ Drawable::SetGLMatTraQuat(double *tra, double *quat, bool flip)
 {
 	Rotation r;
 	if (quat != 0) {
-		cv::Mat cv_mat;
-		cvInitMatHeader(&cv_mat, 4, 1, CV_64F, quat);
-		r.SetQuaternion(&cv_mat);
+		cv::Mat cv_mat = cv::Mat(4, 1, CV_64F, quat);
+		r.SetQuaternion(cv_mat);
 	}
 
 	int flp = 1;
@@ -100,54 +99,50 @@ Drawable::SetGLMatTraQuat(double *tra, double *quat, bool flip)
 		//flp=-1;
 	}
 
-	cv::Mat cv_gl_mat;
-	cvInitMatHeader(&cv_gl_mat, 4, 4, CV_64F, gl_mat);
-	cvZero(&cv_gl_mat);
-	r.GetMatrix(&cv_gl_mat);
-	cvSet2D(&cv_gl_mat, 0, 3, cvScalar(flp * tra[0]));
-	cvSet2D(&cv_gl_mat, 1, 3, cvScalar(flp * tra[1]));
-	cvSet2D(&cv_gl_mat, 2, 3, cvScalar(flp * tra[2]));
-	cvSet2D(&cv_gl_mat, 3, 3, cvScalar(1));
+	cv::Mat cv_gl_mat = cv::Mat(4, 4, CV_64F, gl_mat);
+	cv_gl_mat         = cv::Mat::zeros(cv_gl_mat.size(), cv_gl_mat.type());
+	r.GetMatrix(cv_gl_mat);
+	cv_gl_mat.at<cv::Vec3b>(0, 3) = flp * tra[0];
+	cv_gl_mat.at<cv::Vec3b>(1, 3) = flp * tra[1];
+	cv_gl_mat.at<cv::Vec3b>(2, 3) = flp * tra[2];
+	cv_gl_mat.at<cv::Vec3b>(3, 3) = 1;
 
-	cvTranspose(&cv_gl_mat, &cv_gl_mat);
+	cv::transpose(cv_gl_mat, cv_gl_mat);
 }
 
 void
 Drawable::SetGLMatTraRod(double *tra, double *rod)
 {
 	// This is the OpenGL augmentation matrix
-	cv::Mat cv_gl_mat;
-	cvInitMatHeader(&cv_gl_mat, 4, 4, CV_64F, gl_mat);
-	cvSetIdentity(&cv_gl_mat);
-
+	cv::Mat cv_gl_mat = cv::Mat(4, 4, CV_64F, gl_mat);
+	cv::setIdentity(cv_gl_mat);
 	// Figure out the rotation part
 	double  rot_mat_data[3][3];
 	cv::Mat rot_mat = cv::Mat(3, 3, CV_64F, rot_mat_data);
-	cvSetIdentity(&rot_mat);
+	cv::setIdentity(rot_mat);
 	if (rod != 0) {
-		cv::Mat rod_mat;
-		cvInitMatHeader(&rod_mat, 3, 1, CV_64F, rod);
-		cvRodrigues2(&rod_mat, &rot_mat, 0);
+		cv::Mat rod_mat = cv::Mat(3, 1, CV_64F, rod);
+		cv::Rodrigues(rod_mat, rot_mat);
 	}
 
 	// Fill in the rotation part
-	cvmSet(&cv_gl_mat, 0, 0, cvmGet(&rot_mat, 0, 0));
-	cvmSet(&cv_gl_mat, 0, 1, cvmGet(&rot_mat, 0, 1));
-	cvmSet(&cv_gl_mat, 0, 2, cvmGet(&rot_mat, 0, 2));
-	cvmSet(&cv_gl_mat, 1, 0, cvmGet(&rot_mat, 1, 0));
-	cvmSet(&cv_gl_mat, 1, 1, cvmGet(&rot_mat, 1, 1));
-	cvmSet(&cv_gl_mat, 1, 2, cvmGet(&rot_mat, 1, 2));
-	cvmSet(&cv_gl_mat, 2, 0, cvmGet(&rot_mat, 2, 0));
-	cvmSet(&cv_gl_mat, 2, 1, cvmGet(&rot_mat, 2, 1));
-	cvmSet(&cv_gl_mat, 2, 2, cvmGet(&rot_mat, 2, 2));
+	cv_gl_mat.at<double>(0, 0) = rot_mat.at<double>(0, 0);
+	cv_gl_mat.at<double>(0, 1) = rot_mat.at<double>(0, 1);
+	cv_gl_mat.at<double>(0, 2) = rot_mat.at<double>(0, 2);
+	cv_gl_mat.at<double>(1, 0) = rot_mat.at<double>(1, 0);
+	cv_gl_mat.at<double>(1, 1) = rot_mat.at<double>(1, 1);
+	cv_gl_mat.at<double>(1, 2) = rot_mat.at<double>(1, 2);
+	cv_gl_mat.at<double>(2, 0) = rot_mat.at<double>(2, 0);
+	cv_gl_mat.at<double>(2, 1) = rot_mat.at<double>(2, 1);
+	cv_gl_mat.at<double>(2, 2) = rot_mat.at<double>(2, 2);
 
 	// Fill in the translation part
-	cvSet2D(&cv_gl_mat, 0, 3, cvScalar(tra[0]));
-	cvSet2D(&cv_gl_mat, 1, 3, cvScalar(tra[1]));
-	cvSet2D(&cv_gl_mat, 2, 3, cvScalar(tra[2]));
+	cv_gl_mat.at<cv::Vec3b>(0, 3) = tra[0];
+	cv_gl_mat.at<cv::Vec3b>(1, 3) = tra[1];
+	cv_gl_mat.at<cv::Vec3b>(2, 3) = tra[2];
 
 	// Transpose into OpenGL presentation order
-	cvTranspose(&cv_gl_mat, &cv_gl_mat);
+	cv::transpose(cv_gl_mat, cv_gl_mat);
 }
 
 Mutex              mutex_items;
@@ -441,7 +436,7 @@ GlutViewer::DrawableAdd(Drawable *item)
 void
 GlutViewer::SetVideo(const cv::Mat &_image)
 {
-	image = (unsigned char *)_image->imageData;
+	image = (unsigned char *)_image.data;
 }
 
 void

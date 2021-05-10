@@ -13,7 +13,7 @@ CvTestbed::~CvTestbed()
 {
 	for (size_t i = 0; i < images.size(); i++) {
 		if (images[i].release_at_exit) {
-			cvReleaseImage(&(images[i].ipl));
+			images[i].ipl.release();
 		}
 	}
 	images.clear();
@@ -44,8 +44,8 @@ CvTestbed::WaitKeys()
 	static bool pause = false;
 	while (running) {
 		if (cap) {
-			cv::Mat &frame = cap->captureImage();
-			if (frame) {
+			cv::Mat frame = cap->captureImage();
+			if (!frame.empty()) {
 				default_videocallback(frame);
 				if (wintitle.size() > 0) {
 					cv::imshow(wintitle.c_str(), frame);
@@ -139,7 +139,7 @@ CvTestbed::StartVideo(Capture *_cap, const char *_wintitle)
 }
 
 size_t
-CvTestbed::SetImage(const char *title, IplImage *ipl, bool release_at_exit /* =false */)
+CvTestbed::SetImage(const char *title, cv::Mat &ipl, bool release_at_exit /* =false */)
 {
 	size_t index = GetImageIndex(title);
 	if (index == -1) {
@@ -150,7 +150,7 @@ CvTestbed::SetImage(const char *title, IplImage *ipl, bool release_at_exit /* =f
 	}
 	// If the title was found replace the image
 	if (images[index].release_at_exit) {
-		cvReleaseImage(&(images[index].ipl));
+		images[index].ipl.release();
 	}
 	images[index].ipl             = ipl;
 	images[index].release_at_exit = release_at_exit;
@@ -160,9 +160,9 @@ CvTestbed::SetImage(const char *title, IplImage *ipl, bool release_at_exit /* =f
 cv::Mat
 CvTestbed::CreateImage(const char *title, cv::Size size, int depth, int channels)
 {
-	cv::Mat ipl = cvCreateImage(size, depth, channels);
-	if (!ipl)
-		return NULL;
+	cv::Mat ipl = cv::Mat(size, depth, channels);
+	if (ipl.empty())
+		return cv::Mat();
 	SetImage(title, ipl, true);
 	return ipl;
 }
@@ -174,13 +174,12 @@ CvTestbed::CreateImageWithProto(const char *title,
                                 int         channels /* =0 */)
 {
 	if (depth == 0)
-		depth = proto->depth;
+		depth = proto.depth();
 	if (channels == 0)
-		channels = proto->nChannels;
-	cv::Mat ipl = cvCreateImage(cv::Size(proto.cols, proto->height), depth, channels);
-	if (!ipl)
-		return NULL;
-	ipl->origin = proto->origin;
+		channels = proto.channels();
+	cv::Mat ipl = cv::Mat(proto.size(), channels);
+	if (ipl.empty())
+		return cv::Mat();
 	SetImage(title, ipl, true);
 	return ipl;
 }
@@ -189,9 +188,9 @@ cv::Mat
 CvTestbed::GetImage(size_t index)
 {
 	if (index < 0)
-		return NULL;
+		return cv::Mat();
 	if (index >= images.size())
-		return NULL;
+		return cv::Mat();
 	return images[index].ipl;
 }
 
@@ -224,7 +223,7 @@ CvTestbed::ToggleImageVisible(size_t index, int flags)
 		return true;
 	} else {
 		images[index].visible = false;
-		cvDestroyWindow(images[index].title.c_str());
+		cv::destroyWindow(images[index].title.c_str());
 		return false;
 	}
 }

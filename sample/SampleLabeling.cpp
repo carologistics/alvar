@@ -12,12 +12,6 @@ int thresh_param1 = 31;
 void
 videocallback(cv::Mat &image)
 {
-	bool flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
-
 	static LabelingCvSeq *labeling = 0;
 	if (!labeling) {
 		labeling = new LabelingCvSeq();
@@ -25,26 +19,21 @@ videocallback(cv::Mat &image)
 
 	labeling->SetThreshParams(thresh_param1, 5);
 
-	const int min_edge_size = 10;
-	CvSeq *   edges         = labeling->LabelImage(image, min_edge_size);
+	const int                           min_edge_size = 10;
+	std::vector<std::vector<cv::Point>> edges         = labeling->LabelImage(image, min_edge_size);
 
-	int n_edges = edges->total;
+	int n_edges = edges.size();
 	for (int i = 0; i < n_edges; ++i) {
-		CvSeq *pixels   = (CvSeq *)cvGetSeqElem(edges, i);
-		int    n_pixels = pixels->total;
+		std::vector<cv::Point> pixels   = (std::vector<cv::Point>)edges[i];
+		int                    n_pixels = pixels.size();
 		for (int j = 0; j < n_pixels; ++j) {
-			cv::Point *pt = (cv::Point *)cvGetSeqElem(pixels, j);
-			cv::line(image, *pt, *pt, cvScalar(CV_RGB(255, 0, 0)));
+			cv::Point *pt = &pixels[j];
+			cv::line(image, *pt, *pt, CV_RGB(255, 0, 0));
 		}
 	}
 
 	// Visualize now also the square corners.
 	labeling->LabelSquares(image, true);
-
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 }
 
 int

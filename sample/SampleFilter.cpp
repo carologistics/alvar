@@ -67,29 +67,30 @@ filter_kalman(double x, double y, double *fx, double *fy)
 	if (init) {
 		init = false;
 		// H
-		cvZero(sensor.H);
-		cvmSet(sensor.H, 0, 0, 1);
-		cvmSet(sensor.H, 1, 1, 1);
+		sensor.H                  = cv::Mat::zeros(sensor.H.size(), sensor.H.type());
+		sensor.H.at<double>(0, 0) = 1;
+		sensor.H.at<double>(1, 1) = 1;
 		// R
-		cvSetIdentity(sensor.R, cvScalar(10));
+		cv::setIdentity(sensor.R, 10);
 		// F
-		cvSetIdentity(kalman.F);
-		cvmSet(kalman.F, 0, 2, 1);
-		cvmSet(kalman.F, 1, 3, 1);
+		cv::setIdentity(kalman.F);
+		kalman.F.at<double>(0, 2) = 1;
+		kalman.F.at<double>(1, 3) = 1;
 		// Q
-		cvmSet(kalman.Q, 0, 0, 0.0001);
-		cvmSet(kalman.Q, 1, 1, 0.0001);
-		cvmSet(kalman.Q, 2, 2, 0.000001);
-		cvmSet(kalman.Q, 3, 3, 0.000001);
+		kalman.Q.at<double>(0, 0) = 0.0001;
+		kalman.Q.at<double>(1, 1) = 0.0001;
+		kalman.Q.at<double>(2, 2) = 0.000001;
+		kalman.Q.at<double>(3, 3) = 0.000001;
 		// P
-		cvSetIdentity(kalman.P, cvScalar(100));
+		cv::setIdentity(kalman.P, 100);
 	}
-	cvmSet(sensor.z, 0, 0, x);
-	cvmSet(sensor.z, 1, 0, y);
+	sensor.z.at<double>(0, 0) = x;
+	sensor.z.at<double>(1, 0) = y;
 	kalman.predict_update(&sensor,
 	                      (unsigned long)(cv::getTickCount() / cv::getTickFrequency() * 1000));
-	*fx = cvmGet(kalman.x, 0, 0);
-	*fy = cvmGet(kalman.x, 1, 0);
+
+	*fx = kalman.x.at<double>(0, 0);
+	*fy = kalman.x.at<double>(1, 0);
 }
 
 void
@@ -110,14 +111,14 @@ filter_array_average(double x, double y, double *fx, double *fy)
 class KalmanSensorOwn : public KalmanSensorEkf
 {
 	virtual void
-	h(cv::Mat &x_pred, cv::Mat &_z_pred)
+	h(const cv::Mat &x_pred, cv::Mat &_z_pred)
 	{
-		double x  = cvmGet(x_pred, 0, 0);
-		double y  = cvmGet(x_pred, 1, 0);
-		double dx = cvmGet(x_pred, 2, 0);
-		double dy = cvmGet(x_pred, 3, 0);
-		cvmSet(_z_pred, 0, 0, x);
-		cvmSet(_z_pred, 1, 0, y);
+		double x                 = x_pred.at<double>(0, 0);
+		double y                 = x_pred.at<double>(1, 0);
+		double dx                = x_pred.at<double>(2, 0);
+		double dy                = x_pred.at<double>(3, 0);
+		_z_pred.at<double>(0, 0) = x;
+		_z_pred.at<double>(0, 0) = y;
 	}
 
 public:
@@ -129,16 +130,16 @@ public:
 class KalmanOwn : public KalmanEkf
 {
 	virtual void
-	f(cv::Mat &_x, cv::Mat &_x_pred, double dt)
+	f(const cv::Mat &_x, cv::Mat &_x_pred, double dt)
 	{
-		double x  = cvmGet(_x, 0, 0);
-		double y  = cvmGet(_x, 1, 0);
-		double dx = cvmGet(_x, 2, 0);
-		double dy = cvmGet(_x, 3, 0);
-		cvmSet(_x_pred, 0, 0, x + dt * dx);
-		cvmSet(_x_pred, 1, 0, y + dt * dy);
-		cvmSet(_x_pred, 2, 0, dx);
-		cvmSet(_x_pred, 3, 0, dy);
+		double x                 = _x.at<double>(0, 0);
+		double y                 = _x.at<double>(1, 0);
+		double dx                = _x.at<double>(2, 0);
+		double dy                = _x.at<double>(3, 0);
+		_x_pred.at<double>(0, 0) = x + dt * dx;
+		_x_pred.at<double>(1, 0) = y + dt * dy;
+		_x_pred.at<double>(2, 0) = dx;
+		_x_pred.at<double>(3, 0) = dy;
 	}
 
 public:
@@ -156,21 +157,21 @@ filter_ekf(double x, double y, double *fx, double *fy)
 	if (init) {
 		init = false;
 		// R
-		cvSetIdentity(sensor.R, cvScalar(100));
+		cv::setIdentity(sensor.R, 100);
 		// Q
-		cvmSet(kalman.Q, 0, 0, 0.001);
-		cvmSet(kalman.Q, 1, 1, 0.001);
-		cvmSet(kalman.Q, 2, 2, 0.01);
-		cvmSet(kalman.Q, 3, 3, 0.01);
+		kalman.Q.at<double>(0, 0) = 0.001;
+		kalman.Q.at<double>(1, 1) = 0.001;
+		kalman.Q.at<double>(2, 2) = 0.01;
+		kalman.Q.at<double>(3, 3) = 0.01;
 		// P
-		cvSetIdentity(kalman.P, cvScalar(100));
+		cv::setIdentity(kalman.P, 100);
 	}
-	cvmSet(sensor.z, 0, 0, x);
-	cvmSet(sensor.z, 1, 0, y);
+	sensor.z.at<double>(0, 0) = x;
+	sensor.z.at<double>(1, 0) = y;
 	kalman.predict_update(&sensor,
 	                      (unsigned long)(cv::getTickCount() / cv::getTickFrequency() * 1000));
-	*fx = cvmGet(kalman.x, 0, 0);
-	*fy = cvmGet(kalman.x, 1, 0);
+	*fx = kalman.x.at<double>(0, 0);
+	*fy = kalman.x.at<double>(1, 0);
 }
 
 //Make list of filters
@@ -252,10 +253,8 @@ main(int argc, char *argv[])
 		std::cout << std::endl;
 
 		// Processing loop
-		cv::Mat img = cvCreateImage(cv::Size(res, res), IPL_DEPTH_8U, 3);
+		cv::Mat img = cv::Mat(cv::Size(res, res), CV_8UC1, 3);
 		cv::namedWindow("SampleFilter");
-		CvFont font;
-		cvInitFont(&font, CV_FONT_HERSHEY_PLAIN, 1.0, 1.0);
 		for (int ii = 0; ii < nof_filters; ii++) {
 			int               key = 0;
 			double            x, y;
@@ -264,19 +263,18 @@ main(int argc, char *argv[])
 			while (1) {
 				get_measurement(&x, &y);
 				filters[ii](x, y, &fx, &fy);
-				cvZero(img);
-				cvPutText(
-				  img, filter_names[ii], cv::Point(3, res - 10), &font, cvScalar(CV_RGB(255, 255, 255)));
-				cv::circle(img, cv::Point(int(x), int(y)), 2, cvScalar(CV_RGB(0, 255, 255)));
-				cv::circle(img, cv::Point(int(x), int(y)), 3, cvScalar(CV_RGB(255, 255, 255)));
+				img = cv::Mat::zeros(img.size(), img.type());
+				cv::putText(img, filter_names[ii], cv::Point(3, res - 10), 0, 0.5, CV_RGB(255, 255, 255));
+				cv::circle(img, cv::Point(int(x), int(y)), 2, CV_RGB(0, 255, 255));
+				cv::circle(img, cv::Point(int(x), int(y)), 3, CV_RGB(255, 255, 255));
 				cv::Point fp;
 				fp.x = int(fx);
 				fp.y = int(fy);
 				tail.push_back(fp);
 				for (size_t iii = 0; iii < tail.size(); iii++) {
-					cv::circle(img, tail[iii], 0, cvScalar(CV_RGB(255, 255, 0)));
+					cv::circle(img, tail[iii], 0, CV_RGB(255, 255, 0));
 				}
-				cv::circle(img, fp, 2, cvScalar(CV_RGB(255, 0, 255)));
+				cv::circle(img, fp, 2, CV_RGB(255, 0, 255));
 				cv::imshow("SampleFilter", img);
 				key = cv::waitKey(10);
 				if (key != -1) {
@@ -287,7 +285,7 @@ main(int argc, char *argv[])
 				break;
 			}
 		}
-		cvReleaseImage(&img);
+		img.release();
 		return 0;
 	} catch (const std::exception &e) {
 		std::cout << "Exception: " << e.what() << endl;

@@ -20,11 +20,6 @@ videocallback(cv::Mat &image)
 {
 	static Camera cam;
 	Pose          pose;
-	bool          flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 
 	static bool init = true;
 	if (init) {
@@ -63,8 +58,9 @@ videocallback(cv::Mat &image)
 	double error = -1;
 	if (marker_detector.Detect(image, &cam, true, (visualize == 1), 0.0)) {
 		if (detect_additional) {
-			error = multi_marker->Update(marker_detector.markers, &cam, pose);
-			multi_marker->SetTrackMarkers(marker_detector, &cam, pose, visualize ? image : NULL);
+			error             = multi_marker->Update(marker_detector.markers, &cam, pose);
+			cv::Mat empty_mat = cv::Mat(); // trying to replace the NULL passing - Sebastian
+			multi_marker->SetTrackMarkers(marker_detector, &cam, pose, visualize ? image : empty_mat);
 			marker_detector.DetectAdditional(image, &cam, (visualize == 1));
 		}
 		if (visualize == 2)
@@ -79,11 +75,6 @@ videocallback(cv::Mat &image)
 		foo.pose = pose;
 	}
 	foo.Visualize(image, &cam);
-
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 }
 
 int

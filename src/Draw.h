@@ -161,7 +161,7 @@ void ALVAR_EXPORT DrawLines(cv::Mat &                     image,
 template <class PointType>
 void inline DrawPoints(cv::Mat &                     image,
                        const std::vector<PointType> &points,
-                       const cv::Scalar              color,
+                       const cv::Scalar &            color,
                        int                           radius = 1)
 {
 	for (unsigned i = 0; i < points.size(); ++i)

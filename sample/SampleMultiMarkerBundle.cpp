@@ -108,11 +108,6 @@ videocallback(cv::Mat &image)
 {
 	static Camera cam;
 	static Pose   pose;
-	bool          flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 
 	static bool init = true;
 	if (init) {
@@ -140,12 +135,7 @@ videocallback(cv::Mat &image)
 	if ((error >= 0) && (error < 5)) {
 		foo.pose = pose;
 	}
-	foo.Visualize(image, &cam, cvScalar(CV_RGB(0, 0, 255)));
-
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
+	foo.Visualize(image, &cam, CV_RGB(0, 0, 255));
 }
 
 int

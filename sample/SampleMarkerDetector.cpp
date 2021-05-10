@@ -15,11 +15,6 @@ void
 videocallback(cv::Mat &image)
 {
 	static cv::Mat rgba;
-	bool           flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 
 	if (init) {
 		init = false;
@@ -62,11 +57,6 @@ videocallback(cv::Mat &image)
 		d[i].SetColor(r, g, b);
 
 		GlutViewer::DrawableAdd(&(d[i]));
-	}
-
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
 	}
 }
 

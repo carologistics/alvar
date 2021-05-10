@@ -279,7 +279,7 @@ protected:
 	cv::Mat      x_minus;
 	cv::Mat      x_tmp1;
 	cv::Mat      x_tmp2;
-	virtual void f(const cv::Mat &_x, const cv::Mat &_x_pred, double dt) = 0;
+	virtual void f(const cv::Mat &_x, cv::Mat &_x_pred, double dt) = 0;
 	virtual void update_F(unsigned long tick);
 	virtual void predict_x(unsigned long tick);
 
