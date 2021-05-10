@@ -73,14 +73,9 @@ renderer()
 {
 	alvar::Pose pose;
 	// Capture the image
-	IplImage *image = capture->captureImage();
+	cv::Mat image = capture->captureImage();
 
 	// Check if we need to change image origin and is so, flip the image.
-	bool flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
 
 	// Detect all the markers from the frame
 	markerDetector.Detect(image, &camera, false, false);
@@ -115,21 +110,14 @@ renderer()
 
 		mtForMarkerField->setMatrix(m);
 	}
-
-	// In case we flipped the image, it's time to flip it back
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
-
 	// "copy" the raw image data from IplImage to the Osg::Image
-	videoImage->setImage(image->width,
-	                     image->height,
+	videoImage->setImage(image.cols,
+	                     image.rows,
 	                     1,
 	                     4,
 	                     GL_BGR,
 	                     GL_UNSIGNED_BYTE,
-	                     (unsigned char *)image->imageData,
+	                     (unsigned char *)image.data,
 	                     osg::Image::NO_DELETE);
 	if (videoImage.valid()) {
 		// Set the latest frame to the view as an background texture
@@ -158,9 +146,9 @@ main(int argc, char **argv)
 	// Capture is central feature, so if we fail, we get out of here.
 	if (capture && capture->start()) {
 		// Let's capture one frame to get video resolution
-		IplImage *tempImg = capture->captureImage();
-		videoXRes         = tempImg->width;
-		videoYRes         = tempImg->height;
+		cv::Mat tempImg = capture->captureImage();
+		videoXRes       = tempImg.cols;
+		videoYRes       = tempImg.rows;
 
 		// Calibration. See manual and ALVAR internal samples how to calibrate your camera
 		// Calibration will make the marker detecting and marker pose calculation more accurate.
@@ -196,7 +184,7 @@ main(int argc, char **argv)
 		arRoot->setName("ALVAR stuff (c) VTT");
 
 		// Init the video background class and add it to the graph
-		videoBG.Init(videoXRes, videoYRes, (tempImg->origin ? true : false));
+		videoBG.Init(videoXRes, videoYRes, false);
 		arRoot->addChild(videoBG.GetOSGGroup());
 
 		// Create model transformation for the markerfield and add it to the scene

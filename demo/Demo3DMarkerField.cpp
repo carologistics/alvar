@@ -58,9 +58,9 @@ alvar::MultiMarkerBundle *               multi_marker_bundle = NULL;
 alvar::Camera                            cam;
 
 alvar::Capture *capture = 0;
-IplImage *      frame   = 0;
-IplImage *      gray    = 0;
-IplImage *      rgb     = 0;
+cv::Mat         frame;
+cv::Mat         gray;
+cv::Mat         rgb;
 int             _width = 0, _height = 0;
 int             _origin = 0;
 
@@ -154,20 +154,19 @@ InitVideoCapture(size_t use_cap)
 		if (capture->loadSettings(filename.str()))
 			std::cout << "read: " << filename.str() << std::endl;
 
-		int       i;
-		IplImage *dummy;
+		int     i;
+		cv::Mat dummy;
 		for (i = 0; i < 10; i++) {
 			dummy = capture->captureImage();
-			if (dummy)
+			if (!dummy.empty())
 				break;
 			// todo: why is a sleep necessary?
 			alvar::sleep(100);
 		}
 		if (i == 10)
 			return false;
-		_width  = dummy->width;
-		_height = dummy->height;
-		_origin = dummy->origin;
+		_width  = dummy.cols;
+		_height = dummy.rows;
 		return true;
 	}
 	return false;
@@ -181,14 +180,12 @@ InitImages(int w, int h, int origin)
 {
 	if (w == 0 || h == 0)
 		return false;
-	CvSize size = cvSize(w, h);
-	if (!rgb) {
-		rgb         = cvCreateImage(size, 8, 3);
-		rgb->origin = origin;
+	cv::Size size = cv::Size(w, h);
+	if (rgb.empty()) {
+		rgb = cv::Mat(size, 8, 3);
 	}
-	if (!gray) {
-		gray         = cvCreateImage(size, 8, 1);
-		gray->origin = origin;
+	if (gray.empty()) {
+		gray = cv::Mat(size, 8, 1);
 	}
 	return true;
 }
@@ -270,10 +267,8 @@ InitOSG(int w, int h, bool flip_image, std::string model_file, std::string camer
 void
 CleanUp()
 {
-	if (gray)
-		cvReleaseImage(&gray);
-	if (rgb)
-		cvReleaseImage(&rgb);
+	gray.release();
+	rgb.release();
 	if (capture) {
 		//capture->saveSettings(filename.str());
 		capture->stop();
@@ -286,7 +281,7 @@ CleanUp()
 	Get pose from marker field.
 */
 double
-GetMultiMarkerPose(IplImage *image, alvar::Camera *cam, alvar::Pose &pose)
+GetMultiMarkerPose(cv::Mat &image, alvar::Camera *cam, alvar::Pose &pose)
 {
 	static bool init            = true;
 	bool        add_measurement = curr_meas < 20;
@@ -390,21 +385,15 @@ Process()
 	reset = true;
 	while (true) {
 		frame = capture->captureImage();
-		if (frame == 0)
+		if (frame.empty())
 			continue; // TODO: For some reason CvCam gives NULL sometimes?
-		if (frame->origin == 1) {
-			cvFlip(frame);
-			frame->origin = 0;
-		}
-		if (frame->nChannels == 1) {
-			gray->imageData = frame->imageData;
-			cvCvtColor(frame, rgb, CV_BayerGB2RGB); // TODO: Now this assumes Bayer
+		if (frame.channels() == 1) {
+			gray.data = frame.data;
+			cv::cvtColor(frame, rgb, cv::COLOR_BayerGB2RGB); // TODO: Now this assumes Bayer
 		} else {
-			rgb->imageData = frame->imageData;
-			cvCvtColor(frame, gray, CV_RGB2GRAY);
+			rgb.data = frame.data;
+			cv::cvtColor(frame, gray, cv::COLOR_RGB2GRAY);
 		}
-		gray->origin = frame->origin;
-
 		if (reset) {
 			reset = false;
 		}

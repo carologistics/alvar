@@ -59,7 +59,7 @@ alvar::MarkerDetector<alvar::MarkerData> markerDetector; // Marker detector
 #define MARKER_SIZE 5 //as in centimeters
 
 CVideoBG                 videoBG;
-IplImage *               markerHiderImage = NULL;
+cv::Mat                  markerHiderImage;
 osg::ref_ptr<osg::Image> texImage;
 
 class CTextureOnMarker
@@ -145,14 +145,7 @@ void
 renderer()
 {
 	// Capture the image
-	IplImage *image = capture->captureImage();
-
-	// Check if we need to change image origin and is so, flip the image.
-	bool flip_image = (image->origin ? true : false);
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
+	cv::Mat image = capture->captureImage();
 
 	// Detect all the markers from the frame
 	markerDetector.Detect(image, &camera, false, false);
@@ -184,13 +177,13 @@ renderer()
 			mtForMarkerFive->setMatrix(osg::Matrix(temp_mat));
 
 			//Set the marker texture to the osg::Image
-			texImage->setImage(markerHiderImage->width,
-			                   markerHiderImage->height,
+			texImage->setImage(markerHiderImage.cols,
+			                   markerHiderImage.rows,
 			                   1,
 			                   4,
 			                   GL_BGRA,
 			                   GL_UNSIGNED_BYTE,
-			                   (unsigned char *)markerHiderImage->imageData,
+			                   (unsigned char *)markerHiderImage.data,
 			                   osg::Image::NO_DELETE);
 			//..and update the texture system
 			texOnMarker.SetBGImage(texImage.get());
@@ -203,20 +196,14 @@ renderer()
 		}
 	}
 
-	// In case we flipped the image, it's time to flip it back
-	if (flip_image) {
-		cvFlip(image);
-		image->origin = !image->origin;
-	}
-
 	// "copy" the raw image data from IplImage to the Osg::Image
-	videoImage->setImage(image->width,
-	                     image->height,
+	videoImage->setImage(image.cols,
+	                     image.rows,
 	                     1,
 	                     4,
 	                     GL_BGR,
 	                     GL_UNSIGNED_BYTE,
-	                     (unsigned char *)image->imageData,
+	                     (unsigned char *)image.data,
 	                     osg::Image::NO_DELETE);
 	if (videoImage.valid()) {
 		// Set the latest frame to the view as an background texture
@@ -248,9 +235,9 @@ main(int argc, char **argv)
 	// Capture is central feature, so if we fail, we get out of here.
 	if (capture && capture->start()) {
 		// Let's capture one frame to get video resolution
-		IplImage *tempImg = capture->captureImage();
-		videoXRes         = tempImg->width;
-		videoYRes         = tempImg->height;
+		cv::Mat tempImg = capture->captureImage();
+		videoXRes       = tempImg.cols;
+		videoYRes       = tempImg.rows;
 
 		// Calibration. See manual and ALVAR internal samples how to calibrate your camera
 		// Calibration will make the marker detecting and marker pose calculation more accurate.
@@ -265,7 +252,7 @@ main(int argc, char **argv)
 		texImage = new osg::Image;
 
 		//IplImage for the texture generation.
-		markerHiderImage = cvCreateImage(cvSize(64, 64), 8, 4);
+		markerHiderImage = cv::Mat(cv::Size(64, 64), 8, 4);
 
 		// construct the viewer
 		viewer = new osgViewer::Viewer(arguments);
@@ -288,7 +275,7 @@ main(int argc, char **argv)
 		arRoot->setName("ALVAR stuff (c) VTT");
 
 		// Init the video background class and add it to the graph
-		videoBG.Init(videoXRes, videoYRes, (tempImg->origin ? true : false));
+		videoBG.Init(videoXRes, videoYRes, false);
 		arRoot->addChild(videoBG.GetOSGGroup());
 
 		// Create model switch and add it the to graph
@@ -337,8 +324,7 @@ main(int argc, char **argv)
 		delete capture;
 	}
 
-	if (markerHiderImage)
-		cvReleaseImage(&markerHiderImage);
+	markerHiderImage.release();
 
 	return 0; // bye bye. Happy coding!
 }

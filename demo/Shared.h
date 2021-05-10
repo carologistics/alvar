@@ -172,7 +172,7 @@ private:
 
 	osgViewer::View *view;
 	osg::Group *     root;
-	IplImage *       _image;
+	cv::Mat          _image;
 
 	int width;
 	int height;
@@ -180,8 +180,7 @@ private:
 public:
 	~ViewWithBackGroundImage()
 	{
-		if (_image)
-			cvReleaseImage(&_image);
+		_image.release();
 	}
 
 	ViewWithBackGroundImage(osgViewer::View *       v,
@@ -272,25 +271,25 @@ public:
 	void
 	DrawImage()
 	{
-		if (!_image)
+		if (_image.empty())
 			return;
-		if (_image->nChannels == 3)
+		if (_image.channels() == 3)
 			bgImage->setImage(_image.cols,
 			                  _image.rows,
 			                  1,
 			                  4,
 			                  GL_BGR,
 			                  GL_UNSIGNED_BYTE,
-			                  (unsigned char *)_image->imageData,
+			                  (unsigned char *)_image.data,
 			                  osg::Image::NO_DELETE);
-		else if (_image->nChannels == 1)
+		else if (_image.channels() == 1)
 			bgImage->setImage(_image.cols,
 			                  _image.rows,
 			                  1,
 			                  4,
 			                  GL_LUMINANCE,
 			                  GL_UNSIGNED_BYTE,
-			                  (unsigned char *)_image->imageData,
+			                  (unsigned char *)_image.data,
 			                  osg::Image::NO_DELETE);
 		bgTexture->setImage(bgImage.get());
 	}
