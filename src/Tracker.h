@@ -30,8 +30,9 @@
  * \brief This file implements a tracking interface.
  */
 
-#include <cxcore.h>
 #include "Alvar.h"
+
+#include <opencv2/core.hpp>
 
 namespace alvar {
 
@@ -40,13 +41,19 @@ namespace alvar {
  *
  * The idea is to make own versions of \e Track method which updates the class member variables accordingly
  */
-class ALVAR_EXPORT Tracker {
+class ALVAR_EXPORT Tracker
+{
 public:
-	Tracker() {}
+	Tracker()
+	{
+	}
 	/** \brief Pure virtual function for making the next track step. This analyses the image and  updates class member variables accordingly */
-	virtual double Track(IplImage *img) = 0;
+	virtual double Track(cv::Mat &img) = 0;
 
-	virtual void Compensate(double *x, double *y) {}
+	virtual void
+	Compensate(double *x, double *y)
+	{
+	}
 };
 
 } // namespace alvar

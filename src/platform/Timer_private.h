@@ -31,12 +31,12 @@ class TimerPrivateData;
 class TimerPrivate
 {
 public:
-    TimerPrivate();
-    ~TimerPrivate();
-    void start();
-    double stop();
+	TimerPrivate();
+	~TimerPrivate();
+	void   start();
+	double stop();
 
-    TimerPrivateData *d;
+	TimerPrivateData *d;
 };
 
 } // namespace alvar

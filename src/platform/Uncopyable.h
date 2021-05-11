@@ -43,30 +43,30 @@ namespace alvar {
 class ALVAR_EXPORT Uncopyable
 {
 protected:
-    /**
+	/**
      * \brief Constructor.
      */
-    Uncopyable()
+	Uncopyable()
 	{
 	}
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~Uncopyable()
+	~Uncopyable()
 	{
 	}
 
 private:
-    /**
+	/**
      * \brief Copy constructor.
      */
-    Uncopyable(const Uncopyable &uncopyable);
+	Uncopyable(const Uncopyable &uncopyable);
 
-    /**
+	/**
      * \brief Assignment operator.
      */
-    Uncopyable &operator=(const Uncopyable &uncopyable);
+	Uncopyable &operator=(const Uncopyable &uncopyable);
 };
 
 } // namespace alvar

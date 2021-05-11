@@ -40,9 +40,11 @@ namespace alvar {
 class AlvarException : public std::runtime_error
 {
 public:
-	AlvarException(const char *s) : std::runtime_error(s) { }
+	AlvarException(const char *s) : std::runtime_error(s)
+	{
+	}
 };
 
-}
+} // namespace alvar
 
 #endif

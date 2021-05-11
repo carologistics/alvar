@@ -33,14 +33,14 @@
 
 #include "Alvar.h"
 #include "AlvarException.h"
-#include <vector>
-#include <iostream>
-#include <iomanip>
-#include <sstream>
-#include <cxcore.h>
-#include <cv.h>
+
 #include <cmath> //for abs
+#include <iomanip>
+#include <iostream>
 #include <map>
+#include <opencv2/core.hpp>
+#include <sstream>
+#include <vector>
 
 namespace alvar {
 
@@ -49,34 +49,37 @@ const double PI = 3.14159265;
 /**
 * \brief Returns the sign of a number.
 */
-template<class C> inline
-int ALVAR_EXPORT Sign(const C& v)
+template <class C>
+inline int ALVAR_EXPORT
+Sign(const C &v)
 {
-	return (v<0?-1:1);
+	return (v < 0 ? -1 : 1);
 }
 
 /**
 * \brief Converts an angle from radians to degrees.
 */
-template<class C> inline
-double ALVAR_EXPORT Rad2Deg(const C& v)
+template <class C>
+inline double ALVAR_EXPORT
+Rad2Deg(const C &v)
 {
-	return v*(180/PI);
+	return v * (180 / PI);
 }
 
 /**
 * \brief Converts an angle from degrees to radians.
 */
-template<class C> inline
-double ALVAR_EXPORT Deg2Rad(const C& v)
+template <class C>
+inline double ALVAR_EXPORT
+Deg2Rad(const C &v)
 {
-	return v*(PI/180);
+	return v * (PI / 180);
 }
 
 /**
- * \brief Simple \e Point class meant to be inherited from OpenCV point-classes. For example: Point<CvPoint2D64f> p
+ * \brief Simple \e Point class meant to be inherited from OpenCV point-classes. For example: Point<cv::Point2d> p
  */
-template<class C, class D = int> 
+template <class C, class D = int>
 struct ALVAR_EXPORT Point : public C
 {
 	/**
@@ -84,7 +87,7 @@ struct ALVAR_EXPORT Point : public C
 	 */
 	D val;
 
-	Point(int vx=0, int vy=0)
+	Point(int vx = 0, int vy = 0)
 	{
 		C::x = vx;
 		C::y = vy;
@@ -99,47 +102,45 @@ struct ALVAR_EXPORT Point : public C
 /** 
   *  \brief The default integer point type.
 */
-typedef ALVAR_EXPORT Point<CvPoint> PointInt;
+typedef ALVAR_EXPORT Point<cv::Point> PointInt;
 
 /**
   *  \brief The default double point type.
 */
-typedef ALVAR_EXPORT Point<CvPoint2D64f> PointDouble;
+typedef ALVAR_EXPORT Point<cv::Point2d> PointDouble;
 
 /** \brief Returns the squared distance of two points. 
   * \param p1	First point.
   * \param p2	Second point.
   * \return Squared distance.
 */
-template<class PointType>
-double PointSquaredDistance(PointType p1, PointType p2) {
-	return ((p1.x-p2.x)*(p1.x-p2.x)) +
-		((p1.y-p2.y)*(p1.y-p2.y));
+template <class PointType>
+double
+PointSquaredDistance(PointType p1, PointType p2)
+{
+	return ((p1.x - p2.x) * (p1.x - p2.x)) + ((p1.y - p2.y) * (p1.y - p2.y));
 }
 
-
 //ttesis start
-
 
 /** 
   * \brief  Computes dot product AB.BC
   * \param  A,B and C	points defining lines (line segments) AB and BC
  */
-int ALVAR_EXPORT dot(CvPoint *A, CvPoint *B, CvPoint *C);
+int ALVAR_EXPORT dot(const cv::Point &A, const cv::Point &B, const cv::Point &C);
 
 /** 
   * \brief  Computes the cross product AB x AC
   * \param  A,B and C points defining lines (line segments) AB and AC
   * \param 
  */
-int ALVAR_EXPORT cross(CvPoint *A,CvPoint *B, CvPoint *C);
-
+int ALVAR_EXPORT cross(const cv::Point &A, const cv::Point &B, const cv::Point &C);
 
 /** 
   * \brief  Compute the distance from A to B
   * \param  A and B		points
  */
-double ALVAR_EXPORT distance(CvPoint *A,CvPoint *B);
+double ALVAR_EXPORT distance(const cv::Point &A, const cv::Point &B);
 
 /** 
   * \brief  Computes the distance from point C to line (segment) AB.
@@ -147,8 +148,10 @@ double ALVAR_EXPORT distance(CvPoint *A,CvPoint *B);
   * \param  C	point
   * \param  A abd B	 points defining line (segment) AB
  */
-double ALVAR_EXPORT linePointDist(CvPoint *A,CvPoint *B,CvPoint *C, bool isSegment);
-
+double ALVAR_EXPORT linePointDist(const cv::Point &A,
+                                  const cv::Point &B,
+                                  const cv::Point &C,
+                                  bool             isSegment);
 
 /** 
   * \brief  Computes the angle between lines AB and CD
@@ -158,8 +161,11 @@ double ALVAR_EXPORT linePointDist(CvPoint *A,CvPoint *B,CvPoint *C, bool isSegme
   * \param  C start point of second line
   * \param  D end point of second line
  */
-double ALVAR_EXPORT angle(CvPoint *A,CvPoint *B, CvPoint *C,CvPoint *D, int isDirectionDependent);
-
+double ALVAR_EXPORT angle(const cv::Point &A,
+                          const cv::Point &B,
+                          const cv::Point &C,
+                          const cv::Point &D,
+                          int              isDirectionDependent);
 
 /** 
   * \brief  Calculates minimum distance from Point C to Polygon whose points are in list PointList
@@ -167,19 +173,21 @@ double ALVAR_EXPORT angle(CvPoint *A,CvPoint *B, CvPoint *C,CvPoint *D, int isDi
   * \param  index	index of point A in pointlist, where A is the starting point of the closest polygon segment
   * \param  isClosedPolygon is true if polygon is closed (segment of the first and last point is also checked)
  */
-double ALVAR_EXPORT polyLinePointDist(CvPoint *PointList, int nPnts,CvPoint *C, int *index, int isClosedPolygon);
-
+double ALVAR_EXPORT polyLinePointDist(const std::vector<cv::Point> &points,
+                                      const cv::Point &             C,
+                                      int *                         index,
+                                      int                           isClosedPolygon);
 //ttesis end
-
 
 /** 
   * \brief Uses OpenCV routine to fit ellipse to a vector of points. 
   * \param points		Vector of points on the ellipse edge.
   * \param ellipse_box	OpenCV struct for the fitted ellipse.
  */
-void ALVAR_EXPORT FitCVEllipse(const std::vector<PointDouble> &points, CvBox2D& ellipse_box);
+void ALVAR_EXPORT FitCVEllipse(const std::vector<PointDouble> &points,
+                               cv::RotatedRect &               ellipse_box);
 
-int ALVAR_EXPORT exp_filt2(std::vector<double> &v,std:: vector<double> &ret, bool clamp);
+int ALVAR_EXPORT exp_filt2(std::vector<double> &v, std::vector<double> &ret, bool clamp);
 
 /** 
   * \brief Calculates the difference between the consecutive vector elements.
@@ -187,17 +195,17 @@ int ALVAR_EXPORT exp_filt2(std::vector<double> &v,std:: vector<double> &ret, boo
   * \param ret	The difference vector. This is cleared and then resized.
   * \return		The number of elements.
   */
-template<class C> inline
-int ALVAR_EXPORT diff(const std::vector<C> &v, std::vector<C> &ret)
-{	
+template <class C>
+inline int ALVAR_EXPORT
+diff(const std::vector<C> &v, std::vector<C> &ret)
+{
 	ret.clear();
 	if (v.size() == 1) {
 		ret.push_back(0);
 	} else if (v.size() > 1) {
-		ret.push_back(v.at(1)-v.at(0));
-		for(size_t i = 1; i < v.size(); ++i)
-		{
-			ret.push_back(v.at(i)-v.at(i-1));
+		ret.push_back(v.at(1) - v.at(0));
+		for (size_t i = 1; i < v.size(); ++i) {
+			ret.push_back(v.at(i) - v.at(i - 1));
 		}
 	}
 	return int(ret.size());
@@ -210,12 +218,14 @@ int ALVAR_EXPORT diff(const std::vector<C> &v, std::vector<C> &ret)
   * \param offs		
   * \return			Number of zero crossings found.
   */
-int ALVAR_EXPORT find_zero_crossings(const std::vector<double>& v, std::vector<int> &corners, int offs = 20);
+int ALVAR_EXPORT find_zero_crossings(const std::vector<double> &v,
+                                     std::vector<int> &         corners,
+                                     int                        offs = 20);
 
 /** 
   * \brief Output OpenCV matrix for debug purposes.
   */
-void ALVAR_EXPORT out_matrix(const CvMat *m, const char *name);
+void ALVAR_EXPORT out_matrix(const cv::Mat &m, const char *name);
 
 /** 
   * \brief Limits a number to between two values. 
@@ -233,7 +243,8 @@ double ALVAR_EXPORT Limit(double val, double min_val, double max_val);
  * when they are stored in STL maps) it is enough to have the 'operator<'
  * working, instead of needing to calculate something like i=z*x_res*y_res + y*x_res + x;
  */
-struct ALVAR_EXPORT Index {
+struct ALVAR_EXPORT Index
+{
 	/** \brief The indices for each dimension are stored in \e val (last being the most significant) */
 	std::vector<int> val;
 	/** \brief Constructor for 1D index */
@@ -249,12 +260,14 @@ struct ALVAR_EXPORT Index {
 /** 
  * \brief Class for N-dimensional Histograms
  */
-class ALVAR_EXPORT Histogram {
+class ALVAR_EXPORT Histogram
+{
 protected:
 	std::map<Index, int> bins;
-	std::vector<int> dim_binsize;
-	int DimIndex(int dim, double val);
-	double DimVal(int dim, int index);
+	std::vector<int>     dim_binsize;
+	int                  DimIndex(int dim, double val);
+	double               DimVal(int dim, int index);
+
 public:
 	/** \brief Add dimension with a binsize 
 	 */
@@ -262,49 +275,55 @@ public:
 	/** \brief Clear the histogram */
 	void Clear();
 	/** \brief Increase the histogram for given dimensions */
-	void Inc(double dim0, double dim1=0, double dim2=0);
+	void Inc(double dim0, double dim1 = 0, double dim2 = 0);
 	/** \brief Get the maximum from the histogram 
 	 *  This returns the value in the middle of the 'bin' instead of bin-number
 	 */
-	int GetMax(double *dim0, double *dim1=0, double *dim2=0);
+	int GetMax(double *dim0, double *dim1 = 0, double *dim2 = 0);
 };
 
 /** 
  * \brief N-dimensional Histograms calculating also the subpixel average for max bin
  */
-class ALVAR_EXPORT HistogramSubpixel : public Histogram {
+class ALVAR_EXPORT HistogramSubpixel : public Histogram
+{
 protected:
 	std::map<Index, double> acc_dim0;
 	std::map<Index, double> acc_dim1;
 	std::map<Index, double> acc_dim2;
+
 public:
 	/** \brief Clear the histogram */
 	void Clear();
 	/** \brief Increase the histogram for given dimensions */
-	void Inc(double dim0, double dim1=0, double dim2=0);
+	void Inc(double dim0, double dim1 = 0, double dim2 = 0);
 	/** \brief Get the maximum from the histogram 
 	 *  This finds the maximum bin(s) and averages the original
 	 *  values contained there to achieve subpixel accuracy.
 	 */
-	int GetMax(double *dim0, double *dim1=0, double *dim2=0);
+	int GetMax(double *dim0, double *dim1 = 0, double *dim2 = 0);
 };
 
 #if (_MSC_VER >= 1400)
-	inline void STRCPY(char *to, rsize_t size, const char *src) {
-		strcpy_s(to,size,src);
-	}
+inline void
+STRCPY(char *to, rsize_t size, const char *src)
+{
+	strcpy_s(to, size, src);
+}
 #else
-	inline void STRCPY(char *to, size_t size, const char *src) {
-		strncpy(to,src,size-1);
-	}
+inline void
+STRCPY(char *to, size_t size, const char *src)
+{
+	strncpy(to, src, size - 1);
+}
 #endif
 
 #ifdef min
-#undef min
+#	undef min
 #endif
 
 #ifdef max
-#undef max
+#	undef max
 #endif
 
 /** \brief Class for serializing class content to/from file or std::iostream
@@ -348,17 +367,19 @@ public:
  * See the constructor \e Serialization::Serialization documentation for 
  * further use examples.
  */
-class ALVAR_EXPORT Serialization {
+class ALVAR_EXPORT Serialization
+{
 protected:
-	bool input;
+	bool        input;
 	std::string filename;
 	//std::iostream *stream;
 	std::ios *stream;
-	void *formatter_handle;
-	bool Output();
-	bool Input();
-	bool Descend(const char *id);
-	bool Ascend();
+	void *    formatter_handle;
+	bool      Output();
+	bool      Input();
+	bool      Descend(const char *id);
+	bool      Ascend();
+
 public:
 	/** \brief Constructor for serializing to/from specified filename 
 	 *
@@ -402,8 +423,10 @@ public:
 	~Serialization();
 	/** \brief Operator for outputting a serializable class into the defined filename or std::iostream */
 	template <class C>
-	Serialization& operator<<(C &serializable) {
-		input=false;
+	Serialization &
+	operator<<(C &serializable)
+	{
+		input = false;
 		if (!SerializeClass(serializable) || !Output()) {
 			throw(AlvarException("Serialization failure"));
 		}
@@ -411,8 +434,10 @@ public:
 	}
 	/** \brief Operator for reading a serializable class from the defined filename or std::iostream */
 	template <class C>
-	Serialization& operator>>(C &serializable) {
-		input=true;
+	Serialization &
+	operator>>(C &serializable)
+	{
+		input = true;
 		if (!Input() || !SerializeClass(serializable)) {
 			throw(AlvarException("Serialization failure"));
 		}
@@ -424,7 +449,9 @@ public:
 	 * for adding nested serializable classes.
 	 */
 	template <class C>
-	bool SerializeClass(C &serializable) {
+	bool
+	SerializeClass(C &serializable)
+	{
 		std::string s = serializable.SerializeId();
 		if (!Descend(s.c_str()) || !serializable.Serialize(this) || !Ascend()) {
 			return false;
@@ -441,10 +468,14 @@ public:
 	bool Serialize(double &data, const std::string &name);
 	/** \brief Method for serializing 'std::string' data element. Used from your serializable class. */
 	bool Serialize(std::string &data, const std::string &name);
-	/** \brief Method for serializing 'CvMat' data element. Used from your serializable class. */
-	bool Serialize(CvMat &data, const std::string &name);
+	/** \brief Method for serializing 'cv::Mat' data element. Used from your serializable class. */
+	bool Serialize(cv::Mat &data, const std::string &name);
 	/** \brief Method for checking if we are inputting or outputting. Can be used from your serializable class. */
-	bool IsInput() { return input; }
+	bool
+	IsInput()
+	{
+		return input;
+	}
 };
 
 } // namespace alvar

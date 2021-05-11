@@ -715,7 +715,7 @@ EXCLUDE_PATTERNS       = *_private.h *_win.cpp *_unix.cpp
 # wildcard * is used, a substring. Examples: ANamespace, AClass,
 # AClass::ANamespace, ANamespace::*Test
 
-EXCLUDE_SYMBOLS        = CvPoint2D64f
+EXCLUDE_SYMBOLS        = cv::Point2d
 
 # The EXAMPLE_PATH tag can be used to specify one or more files or
 # directories that contain example code fragments that are included (see

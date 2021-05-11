@@ -46,43 +46,43 @@ class DirectoryIteratorPrivate;
 class ALVAR_EXPORT DirectoryIterator
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param path The path on the filesystem to iterate.
      */
-    DirectoryIterator(const std::string &path);
+	DirectoryIterator(const std::string &path);
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~DirectoryIterator();
+	~DirectoryIterator();
 
-    /**
+	/**
      * \brief Verifies if another entry exist in the directory.
      */
-    bool hasNext();
+	bool hasNext();
 
-    /**
+	/**
      * \brief Advances the iterator and returns the name of the next entry.
      */
-    std::string next();
+	std::string next();
 
-    /**
+	/**
      * \brief Returns the name of the current entry.
      */
-    std::string currentEntry();
+	std::string currentEntry();
 
-    /**
+	/**
      * \brief Returns the path of the current entry.
      *
      * This appends the name of the current entry to the path of the directory that
      * is being iterated.
      */
-    std::string currentPath();
+	std::string currentPath();
 
 private:
-    DirectoryIteratorPrivate *d;
+	DirectoryIteratorPrivate *d;
 };
 
 } // namespace alvar

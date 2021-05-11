@@ -32,40 +32,40 @@
 
 namespace alvar {
 
-	/**
+/**
 	 * File format enumeration used when reading / writing configuration
 	 * files.
 	 */
-	typedef enum {
-		/**
+typedef enum {
+	/**
 		 * \brief Default file format.
 		 *
 		 * Format is either OPENCV, TEXT or XML depending on load/store function used.
 		 */
-		FILE_FORMAT_DEFAULT,
+	FILE_FORMAT_DEFAULT,
 
-		/**
+	/**
 		 * \brief File format written with cvWrite.
 		 *
 		 * File contents depend on the specific load/store function used.
 		 */
-		FILE_FORMAT_OPENCV,
+	FILE_FORMAT_OPENCV,
 
-		/**
+	/**
 		 * \brief Plain ASCII text file format.
 		 *
 		 * File contents depend on the specific load/store function used.
 		 */
-		FILE_FORMAT_TEXT,
+	FILE_FORMAT_TEXT,
 
-		/**
+	/**
 		 * \brief XML file format.
 		 *
 		 * XML schema depends on the specific load/store function used.
 		 */
-		FILE_FORMAT_XML
+	FILE_FORMAT_XML
 
-	} FILE_FORMAT;
-}
+} FILE_FORMAT;
+} // namespace alvar
 
 #endif //FILEFORMAT_H

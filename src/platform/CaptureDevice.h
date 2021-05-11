@@ -44,44 +44,46 @@ namespace alvar {
 class ALVAR_EXPORT CaptureDevice
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param captureType The type of capture backend.
      * \param id The id of the camera.
      * \param description A human readable description of the camera.
      */
-    CaptureDevice(const std::string captureType, const std::string id, const std::string description = "");
+	CaptureDevice(const std::string captureType,
+	              const std::string id,
+	              const std::string description = "");
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~CaptureDevice();
+	~CaptureDevice();
 
-    /**
+	/**
      * \brief The type of capture backend.
      */
-    std::string captureType() const;
+	std::string captureType() const;
 
-    /**
+	/**
      * \brief The id of the camera.
      */
-    std::string id() const;
+	std::string id() const;
 
-    /**
+	/**
      * \brief The description of the camera.
      */
-    std::string description() const;
+	std::string description() const;
 
-    /**
+	/**
      * \brief A unique name consisting of the capture type and the id.
      */
-    std::string uniqueName() const;
+	std::string uniqueName() const;
 
 private:
-    std::string mCaptureType;
-    std::string mId;
-    std::string mDescription;
+	std::string mCaptureType;
+	std::string mId;
+	std::string mDescription;
 };
 
 } // namespace alvar

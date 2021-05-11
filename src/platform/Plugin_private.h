@@ -33,13 +33,13 @@ class PluginPrivateData;
 class PluginPrivate
 {
 public:
-    PluginPrivate();
-    ~PluginPrivate();
-    void load(const std::string filename);
-    void unload();
-    void *resolve(const char *symbol);
+	PluginPrivate();
+	~PluginPrivate();
+	void  load(const std::string filename);
+	void  unload();
+	void *resolve(const char *symbol);
 
-    PluginPrivateData *d;
+	PluginPrivateData *d;
 };
 
 } // namespace alvar

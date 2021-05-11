@@ -24,7 +24,7 @@
 #include <opencv2/videoio.hpp>
 
 #ifndef CAPTUREPLUGINHIGHGUI_H
-#define CAPTUREPLUGINHIGHGUI_H
+#	define CAPTUREPLUGINHIGHGUI_H
 
 /**
  * \file CapturePluginHighgui.h
@@ -32,23 +32,23 @@
  * \brief This file implements a capture plugin based on Highgui.
  */
 
-#ifdef WIN32
-    #ifdef ALVAR_Capture_Plugin_Highgui_BUILD
-        #define ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT __declspec(dllexport)
-    #else
-        #define ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT __declspec(dllimport)
-    #endif
-#else
-    #define ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT
-#endif
+#	ifdef WIN32
+#		ifdef ALVAR_Capture_Plugin_Highgui_BUILD
+#			define ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT __declspec(dllexport)
+#		else
+#			define ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT __declspec(dllimport)
+#		endif
+#	else
+#		define ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT
+#	endif
 
-#include "Capture.h"
-#include "CapturePlugin.h"
-
-#include "highgui.h"
+#	include "Capture.h"
+#	include "CapturePlugin.h"
+#	include <opencv2/videoio.hpp>
+#	include <opencv2/highgui.hpp>
 
 namespace alvar {
-  
+
 /**
  * \brief Dynamically loaded plugins namespace.
  */
@@ -57,55 +57,55 @@ namespace plugins {
 /**
  * \brief Implementation of Capture interface for Highgui plugin.
  */
-class ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT CaptureHighgui
-    : public alvar::Capture
+class ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT CaptureHighgui : public alvar::Capture
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param captureDevice Information of which camera to create.
      */
-    CaptureHighgui(const CaptureDevice captureDevice);
-    /**
+	CaptureHighgui(const CaptureDevice captureDevice);
+	/**
      * \brief Destructor.
      */
-    ~CaptureHighgui();
-    void setResolution(const unsigned long xResolution, const unsigned long yResolution);
-    bool start();
-    void stop();
-    IplImage *captureImage();
-    bool showSettingsDialog();
+	~CaptureHighgui();
+	void        setResolution(const unsigned long xResolution, const unsigned long yResolution);
+	bool        start();
+	void        stop();
+	cv::Mat     captureImage();
+	bool        showSettingsDialog();
 	std::string SerializeId();
-	bool Serialize(Serialization *serialization);
+	bool        Serialize(Serialization *serialization);
+
 private:
-    cv::VideoCapture mVideoCapture;
-    cv::Mat mMatrix;
-    IplImage mImage;
+	cv::VideoCapture mVideoCapture;
+	cv::Mat          mMatrix;
+	cv::Mat          mImage;
 };
 
 /**
  * \brief Implementation of CapturePlugin interface for Highgui plugin.
  */
-class ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT CapturePluginHighgui
-    : public alvar::CapturePlugin
+class ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT CapturePluginHighgui : public alvar::CapturePlugin
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * \param captureType A unique identifier for the capture plugin.
      */
-    CapturePluginHighgui(const std::string &captureType);
-    /**
+	CapturePluginHighgui(const std::string &captureType);
+	/**
      * \brief Destructor.
      */
-    ~CapturePluginHighgui();
-    CaptureDeviceVector enumerateDevices();
-    Capture *createCapture(const CaptureDevice captureDevice);
+	~CapturePluginHighgui();
+	CaptureDeviceVector enumerateDevices();
+	Capture *           createCapture(const CaptureDevice captureDevice);
 };
 
-extern "C" ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT void registerPlugin(const std::string &captureType, alvar::CapturePlugin *&capturePlugin);
+extern "C" ALVAR_CAPTURE_PLUGIN_HIGHGUI_EXPORT void
+registerPlugin(const std::string &captureType, alvar::CapturePlugin *&capturePlugin);
 
 } // namespace plugins
 } // namespace alvar

@@ -31,10 +31,11 @@
  */
 
 #include "Alvar.h"
+
 #include <algorithm>
+#include <cmath>
 #include <deque>
 #include <vector>
-#include <cmath>
 
 namespace alvar {
 
@@ -76,16 +77,25 @@ namespace alvar {
  *
  * \note   All inherited classes need to update \e value in \e next()
  */
-class ALVAR_EXPORT Filter {
+class ALVAR_EXPORT Filter
+{
 protected:
 	double value;
+
 public:
 	/** \brief Constructor */
 	Filter();
 	/** \brief Get the latest value */
-	double get() const { return value; }
+	double
+	get() const
+	{
+		return value;
+	}
 	/** \brief Get the latest value */
-	operator double () { return get(); }
+	operator double()
+	{
+		return get();
+	}
 	/** \brief Update the value. All inherited classes need to update \e value in \e next(). */
 	virtual double next(double y) = 0;
 	/** \brief Reset the filter state */
@@ -103,21 +113,43 @@ public:
  * Note, that when the window_size is <= 0 we calculate the
  * average over the whole sequence without using the buffer.
  */
-class ALVAR_EXPORT FilterAverage : public Filter {
+class ALVAR_EXPORT FilterAverage : public Filter
+{
 protected:
-	unsigned int count;
-	unsigned int window_size;
+	unsigned int       count;
+	unsigned int       window_size;
 	std::deque<double> buffer;
-	void push_to_buffer(double y);
+	void               push_to_buffer(double y);
+
 public:
-	FilterAverage(int size=3) { setWindowSize(size); }
-	void setWindowSize(int size) { window_size=size; count=0; }
-	int getWindowSize() { return window_size; }
-	int getCurrentSize() { return (int) buffer.size(); }
-	double operator= (double _value) { return next(_value); }
+	FilterAverage(int size = 3)
+	{
+		setWindowSize(size);
+	}
+	void
+	setWindowSize(int size)
+	{
+		window_size = size;
+		count       = 0;
+	}
+	int
+	getWindowSize()
+	{
+		return window_size;
+	}
+	int
+	getCurrentSize()
+	{
+		return (int)buffer.size();
+	}
+	double
+	operator=(double _value)
+	{
+		return next(_value);
+	}
 	virtual double next(double y);
-	virtual void reset();
-	double deviation() const;
+	virtual void   reset();
+	double         deviation() const;
 };
 
 /**
@@ -130,15 +162,26 @@ public:
  * \e setWindowSize() .
  *
  */
-class ALVAR_EXPORT FilterMedian : public FilterAverage {
+class ALVAR_EXPORT FilterMedian : public FilterAverage
+{
 	std::vector<double> sort_buffer;
+
 public:
-	FilterMedian(int size=3) { setWindowSize(size); }
-	void setWindowSize(int size) { 
+	FilterMedian(int size = 3)
+	{
+		setWindowSize(size);
+	}
+	void
+	setWindowSize(int size)
+	{
 		FilterAverage::setWindowSize(size);
 		sort_buffer.resize(size);
 	}
-	double operator= (double _value) { return next(_value); }
+	double
+	operator=(double _value)
+	{
+		return next(_value);
+	}
 	virtual double next(double y);
 };
 
@@ -156,17 +199,35 @@ public:
  * weight value \e alpha may be set in the constructor or 
  * with \e setAlpha() .
  */
-class ALVAR_EXPORT FilterRunningAverage : public Filter {
+class ALVAR_EXPORT FilterRunningAverage : public Filter
+{
 protected:
 	double alpha;
-	bool breset;
+	bool   breset;
+
 public:
-	FilterRunningAverage(double _alpha=0.5) { breset=true; setAlpha(_alpha); }
-	void setAlpha(double _alpha) { alpha=std::max(std::min(_alpha,1.0),0.0); }
-	double getAlpha() { return alpha; }
-	double operator= (double _value) { return next(_value); }
+	FilterRunningAverage(double _alpha = 0.5)
+	{
+		breset = true;
+		setAlpha(_alpha);
+	}
+	void
+	setAlpha(double _alpha)
+	{
+		alpha = std::max(std::min(_alpha, 1.0), 0.0);
+	}
+	double
+	getAlpha()
+	{
+		return alpha;
+	}
+	double
+	operator=(double _value)
+	{
+		return next(_value);
+	}
 	virtual double next(double y);
-	virtual void reset();
+	virtual void   reset();
 };
 
 /**
@@ -184,17 +245,33 @@ public:
  * then the reaction is slower. The weight values \e alpha and \e gamma
  * may be set in the constructor or with \e setAlpha() and \e setGamma() .
  */
-class ALVAR_EXPORT FilterDoubleExponentialSmoothing : public FilterRunningAverage {
+class ALVAR_EXPORT FilterDoubleExponentialSmoothing : public FilterRunningAverage
+{
 protected:
 	double gamma;
 	double slope;
+
 public:
-	FilterDoubleExponentialSmoothing(double _alpha=0.5, double _gamma=1.0) : FilterRunningAverage(_alpha) {
+	FilterDoubleExponentialSmoothing(double _alpha = 0.5, double _gamma = 1.0)
+	: FilterRunningAverage(_alpha)
+	{
 		setGamma(_gamma);
 	}
-	void setGamma(double _gamma) { gamma=std::max(std::min(_gamma,1.0),0.0); }
-	double getGamma() { return gamma; }
-	double operator= (double _value) { return next(_value); }
+	void
+	setGamma(double _gamma)
+	{
+		gamma = std::max(std::min(_gamma, 1.0), 0.0);
+	}
+	double
+	getGamma()
+	{
+		return gamma;
+	}
+	double
+	operator=(double _value)
+	{
+		return next(_value);
+	}
 	virtual double next(double y);
 };
 
@@ -203,31 +280,44 @@ public:
  *
  */
 template <class F>
-class ALVAR_EXPORT FilterArray {
+class ALVAR_EXPORT FilterArray
+{
 protected:
-	double *tmp;
+	double *       tmp;
 	std::vector<F> arr;
+
 public:
-	FilterArray(int size) {
+	FilterArray(int size)
+	{
 		tmp = NULL;
 		SetSize(size);
 	}
-	~FilterArray() {
-		delete [] tmp;
+	~FilterArray()
+	{
+		delete[] tmp;
 	}
-	size_t GetSize() {
+	size_t
+	GetSize()
+	{
 		return arr.size();
 	}
-	void SetSize(size_t size) {
-		if (tmp) delete [] tmp;
+	void
+	SetSize(size_t size)
+	{
+		if (tmp)
+			delete[] tmp;
 		tmp = new double[size];
 		arr.resize(size);
 	}
-	F &operator[](size_t i) {
+	F &
+	operator[](size_t i)
+	{
 		return arr[i];
 	}
-	const double *as_double_array(size_t start_i=0) {
-		for (size_t i=0; i<arr.size(); i++) {
+	const double *
+	as_double_array(size_t start_i = 0)
+	{
+		for (size_t i = 0; i < arr.size(); i++) {
 			tmp[i] = arr[i];
 		}
 		return &(tmp[start_i]);

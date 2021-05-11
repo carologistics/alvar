@@ -31,11 +31,11 @@ class ThreadsPrivateData;
 class ThreadsPrivate
 {
 public:
-    ThreadsPrivate();
-    ~ThreadsPrivate();
-    bool create(void *(*method)(void *), void *parameters);
+	ThreadsPrivate();
+	~ThreadsPrivate();
+	bool create(void *(*method)(void *), void *parameters);
 
-    ThreadsPrivateData *d;
+	ThreadsPrivateData *d;
 };
 
 } // namespace alvar

@@ -27,24 +27,25 @@
 
 namespace alvar {
 
-Mutex::Mutex()
-    : d(new MutexPrivate())
+Mutex::Mutex() : d(new MutexPrivate())
 {
 }
 
 Mutex::~Mutex()
 {
-    delete d;
+	delete d;
 }
 
-void Mutex::lock()
+void
+Mutex::lock()
 {
-    return d->lock();
+	return d->lock();
 }
 
-void Mutex::unlock()
+void
+Mutex::unlock()
 {
-    return d->unlock();
+	return d->unlock();
 }
 
 } // namespace alvar

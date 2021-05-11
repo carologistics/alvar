@@ -21,90 +21,111 @@
  * <http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html>.
  */
 
-#include <cxxtest/TestSuite.h>
-#include <iostream>
-#include <map>
 #include "EC.h"
 #include "highgui.h"
+
+#include <cxxtest/TestSuite.h>
+
+#include <iostream>
+#include <map>
 using namespace alvar;
 using namespace std;
 
-struct Feature {
-	int id;
-	int type_id;
-	bool has_p2d;
-	bool has_p3d;
+struct Feature
+{
+	int          id;
+	int          type_id;
+	bool         has_p2d;
+	bool         has_p3d;
 	CvPoint2D32f p2d;
 	CvPoint2D32f p3d;
 };
 
-class TestTrack : public CxxTest::TestSuite 
+class TestTrack : public CxxTest::TestSuite
 {
 protected:
-	const static int crop_x_res = 320;
-	const static int crop_y_res = 240;
-	int dx,dy;
+	const static int       crop_x_res = 320;
+	const static int       crop_y_res = 240;
+	int                    dx, dy;
 	std::map<int, Feature> container;
-	IplImage *img;
-	IplImage *crop;
-	std::string path;
-	TrackerFeaturesEC tf;
-	void NextCrop(bool init) {
-		static int x=0;
-		static int y=0;
+	IplImage *             img;
+	IplImage *             crop;
+	std::string            path;
+	TrackerFeaturesEC      tf;
+	void
+	NextCrop(bool init)
+	{
+		static int x = 0;
+		static int y = 0;
 		if (init) {
 			srand(0);
-			x = img->width/2 - crop_x_res/2;
-			y = img->height/2 - crop_y_res/2;
+			x = img->width / 2 - crop_x_res / 2;
+			y = img->height / 2 - crop_y_res / 2;
 		}
-		int delta=crop_x_res/8;
-		x += (rand()%delta)-(delta/2);
-		y += (rand()%delta)-(delta/2);
-		if (x < 0) x=0;
-		if (y < 0) y=0;
-		if (x >= img->width-crop_x_res) x = img->width-crop_x_res-1;
-		if (y >= img->height-crop_y_res) y = img->height-crop_y_res-1;
-		dx = x-(img->width/2 - crop_x_res/2);
-		dy = y-(img->height/2 - crop_y_res/2);
-		cvSetImageROI(img, cvRect(x,y,crop_x_res,crop_y_res));
+		int delta = crop_x_res / 8;
+		x += (rand() % delta) - (delta / 2);
+		y += (rand() % delta) - (delta / 2);
+		if (x < 0)
+			x = 0;
+		if (y < 0)
+			y = 0;
+		if (x >= img->width - crop_x_res)
+			x = img->width - crop_x_res - 1;
+		if (y >= img->height - crop_y_res)
+			y = img->height - crop_y_res - 1;
+		dx = x - (img->width / 2 - crop_x_res / 2);
+		dy = y - (img->height / 2 - crop_y_res / 2);
+		cvSetImageROI(img, cvRect(x, y, crop_x_res, crop_y_res));
 		cvCopy(img, crop);
 	}
-	void ShowCrop() {
+	void
+	ShowCrop()
+	{
 		cvNamedWindow("crop");
 		std::map<int, Feature>::iterator iter = container.begin();
-		while(iter != container.end()) {
+		while (iter != container.end()) {
 			int id = iter->first;
 			if (iter->second.has_p2d)
-				cvCircle(crop, cvPointFrom32f(iter->second.p2d), 3, CV_RGB((id*7%256),(id*65%256),(256-(id*13%256))));
-			//else 
+				cvCircle(crop,
+				         cvPointFrom32f(iter->second.p2d),
+				         3,
+				         CV_RGB((id * 7 % 256), (id * 65 % 256), (256 - (id * 13 % 256))));
+			//else
 			//	cvCircle(crop, cvPoint(iter->second.p2d.x, iter->second.p2d.y), 5, CV_RGB(0,0,0));
 			iter++;
 		}
 		cvShowImage("crop", crop);
 		cvWaitKey(100);
 	}
+
 public:
-	TestTrack() : tf(200,190,0.01,0,3) {
+	TestTrack() : tf(200, 190, 0.01, 0, 3)
+	{
 		path = std::string(ALVAR_TEST_DIR);
 		path = path + "/IMG_4617.jpg";
-		std::cout<<"Path: "<<path<<std::endl;
-		img = cvLoadImage(path.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
+		std::cout << "Path: " << path << std::endl;
+		img  = cvLoadImage(path.c_str(), CV_LOAD_IMAGE_GRAYSCALE);
 		crop = cvCreateImage(cvSize(crop_x_res, crop_y_res), 8, 1);
 	}
-	~TestTrack() {
-		if (img) cvReleaseImage(&img);
-		if (crop) cvReleaseImage(&crop);
+	~TestTrack()
+	{
+		if (img)
+			cvReleaseImage(&img);
+		if (crop)
+			cvReleaseImage(&crop);
 	}
-	void testEc() {
+	void
+	testEc()
+	{
 		// TODO: Make some real tests!
-		NextCrop(true); 
-		tf.Track(crop,0,container);
+		NextCrop(true);
+		tf.Track(crop, 0, container);
 		tf.AddFeatures(container);
-		for (int i=0; i<100; i++) {
-			NextCrop(false); 
-			tf.Track(crop,0,container);
+		for (int i = 0; i < 100; i++) {
+			NextCrop(false);
+			tf.Track(crop, 0, container);
 			tf.AddFeatures(container);
-		ShowCrop();
+			ShowCrop();
 		}
 		TS_ASSERT(0 == 0);
 	}

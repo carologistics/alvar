@@ -47,7 +47,7 @@ class PluginPrivate;
 class Plugin
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      *
      * Constructing a Plugin object will attempt to load the plugin dynamic library.
@@ -55,28 +55,28 @@ public:
      * \param filename The filename of the dynamic library to load.
      * \exception AlvarException An exeption is thrown if the library can't be loaded.
      */
-    Plugin(const std::string filename);
+	Plugin(const std::string filename);
 
-    /**
+	/**
      * \brief Copy constructor.
      *
      * \param plugin The Plugin to copy.
      */
-    Plugin(const Plugin &plugin);
+	Plugin(const Plugin &plugin);
 
-    /**
+	/**
      * \brief Assignment operator.
      *
      * \param plugin The Plugin to copy.
      */
-    Plugin &operator=(const Plugin &plugin);
+	Plugin &operator=(const Plugin &plugin);
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~Plugin();
+	~Plugin();
 
-    /**
+	/**
      * \brief Resolves the address of a symbol.
      *
      * The symbol must be exported from the library as a C function.
@@ -85,11 +85,11 @@ public:
      * \return The address of the symbol.
      * \exception AlvarException An exception is thrown if the symbol is not found.
      */
-    void *resolve(const char *symbol);
+	void *resolve(const char *symbol);
 
 private:
-    PluginPrivate *d;
-    int *mReferenceCount;
+	PluginPrivate *d;
+	int *          mReferenceCount;
 };
 
 } // namespace alvar

@@ -27,83 +27,85 @@ namespace alvar {
 namespace plugins {
 
 CaptureFile::CaptureFile(const CaptureDevice captureDevice)
-    : Capture(captureDevice)
-    , mVideoCapture()
-    , mMatrix()
-    , mImage()
+: Capture(captureDevice), mVideoCapture(), mMatrix(), mImage()
 {
 }
 
 CaptureFile::~CaptureFile()
 {
-    stop();
+	stop();
 }
 
-bool CaptureFile::start()
+bool
+CaptureFile::start()
 {
-    if (isCapturing()) {
-        return isCapturing();
-    }
+	if (isCapturing()) {
+		return isCapturing();
+	}
 
-    mVideoCapture.open(captureDevice().id().c_str());
-    if (mVideoCapture.isOpened()) {
-        mXResolution = (int)mVideoCapture.get(CV_CAP_PROP_FRAME_WIDTH);
-        mYResolution = (int)mVideoCapture.get(CV_CAP_PROP_FRAME_HEIGHT);
-        mIsCapturing = true;
-    }
+	mVideoCapture.open(captureDevice().id().c_str());
+	if (mVideoCapture.isOpened()) {
+		mXResolution = (int)mVideoCapture.get(cv::CAP_PROP_FRAME_WIDTH);
+		mYResolution = (int)mVideoCapture.get(cv::CAP_PROP_FRAME_HEIGHT);
+		mIsCapturing = true;
+	}
 
-    return isCapturing();
+	return isCapturing();
 }
 
-void CaptureFile::stop()
+void
+CaptureFile::stop()
 {
-    if (isCapturing()) {
-        mVideoCapture.release();
-        mIsCapturing = false;
-    }
+	if (isCapturing()) {
+		mVideoCapture.release();
+		mIsCapturing = false;
+	}
 }
 
-IplImage *CaptureFile::captureImage()
+cv::Mat
+CaptureFile::captureImage()
 {
-    if (!isCapturing()) {
-        return NULL;
-    }
+	if (!isCapturing()) {
+		return cv::Mat();
+	}
 
-    if (!mVideoCapture.grab()) {
-        // try to restart the capturing when end of file is reached
-        mVideoCapture.release();
-        mVideoCapture.open(captureDevice().id().c_str());
-        if (!mVideoCapture.isOpened()) {
-            mIsCapturing = false;
-            return NULL;
-        }
-        if (!mVideoCapture.grab()) {
-            return NULL;
-        }
-    }
-    mVideoCapture.retrieve(mMatrix);
-    mImage = cvIplImage(mMatrix);
-    return &mImage;
+	if (!mVideoCapture.grab()) {
+		// try to restart the capturing when end of file is reached
+		mVideoCapture.release();
+		mVideoCapture.open(captureDevice().id().c_str());
+		if (!mVideoCapture.isOpened()) {
+			mIsCapturing = false;
+			return cv::Mat();
+		}
+		if (!mVideoCapture.grab()) {
+			return cv::Mat();
+		}
+	}
+	mVideoCapture.retrieve(mMatrix);
+	mImage = mMatrix;
+	return mImage;
 }
 
-bool CaptureFile::showSettingsDialog()
+bool
+CaptureFile::showSettingsDialog()
 {
-    // TODO: implement this method
-    return false;
+	// TODO: implement this method
+	return false;
 }
 
-std::string CaptureFile::SerializeId()
+std::string
+CaptureFile::SerializeId()
 {
-    return "CaptureFile";
+	return "CaptureFile";
 }
 
-bool CaptureFile::Serialize(Serialization *serialization)
+bool
+CaptureFile::Serialize(Serialization *serialization)
 {
-    return false;
+	return false;
 }
 
-CapturePluginFile::CapturePluginFile(const std::string &captureType)
-    : CapturePlugin(captureType)
+CapturePluginFile::CapturePluginFile(const std::string &captureType) : CapturePlugin(captureType)
 {
 }
 
@@ -111,20 +113,23 @@ CapturePluginFile::~CapturePluginFile()
 {
 }
 
-CapturePlugin::CaptureDeviceVector CapturePluginFile::enumerateDevices()
+CapturePlugin::CaptureDeviceVector
+CapturePluginFile::enumerateDevices()
 {
-    CaptureDeviceVector devices;
-    return devices;
+	CaptureDeviceVector devices;
+	return devices;
 }
 
-Capture *CapturePluginFile::createCapture(const CaptureDevice captureDevice)
+Capture *
+CapturePluginFile::createCapture(const CaptureDevice captureDevice)
 {
-    return new CaptureFile(captureDevice);
+	return new CaptureFile(captureDevice);
 }
 
-void registerPlugin(const std::string &captureType, alvar::CapturePlugin *&capturePlugin)
+void
+registerPlugin(const std::string &captureType, alvar::CapturePlugin *&capturePlugin)
 {
-    capturePlugin = new CapturePluginFile(captureType);
+	capturePlugin = new CapturePluginFile(captureType);
 }
 
 } // namespace plugins

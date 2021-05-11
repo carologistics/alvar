@@ -44,31 +44,31 @@ class MutexPrivate;
 class ALVAR_EXPORT Mutex
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      */
-    Mutex();
+	Mutex();
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~Mutex();
+	~Mutex();
 
-    /**
+	/**
      * \brief Locks the mutex.
      *
      * If the mutex is already locked by another thread, this method will
      * block until the other thread unlocks the mutex.
      */
-    void lock();
+	void lock();
 
-    /**
+	/**
      * \brief Unlocks the mutex.
      */
-    void unlock();
+	void unlock();
 
 private:
-    MutexPrivate *d;
+	MutexPrivate *d;
 };
 
 } // namespace alvar

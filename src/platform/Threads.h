@@ -44,26 +44,26 @@ class ThreadsPrivate;
 class ALVAR_EXPORT Threads
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      */
-    Threads();
+	Threads();
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~Threads();
+	~Threads();
 
-    /**
+	/**
      * \brief Creates a new thread and returns true on success.
      *
      * \param method The method that the thread will execute.
      * \param parameters The parameters sent to the method.
      */
-    bool create(void *(*method)(void *), void *parameters);
+	bool create(void *(*method)(void *), void *parameters);
 
 private:
-    ThreadsPrivate *d;
+	ThreadsPrivate *d;
 };
 
 } // namespace alvar

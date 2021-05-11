@@ -31,44 +31,46 @@
  */
 
 #include "Alvar.h"
-#include "Util.h"
+#include "Camera.h"
 #include "ConnectedComponents.h"
 #include "Draw.h"
-#include "Camera.h"
+#include "Line.h"
 #include "Marker.h"
 #include "Rotation.h"
-#include "Line.h"
+#include "Util.h"
+
 #include <algorithm>
 using std::rotate;
-#include <list>
-#include <vector>
-#include <map>
 #include <cassert>
+#include <list>
+#include <map>
+#include <vector>
 
 namespace alvar {
 
 /**
  * \brief Templateless version of MarkerDetector. Please use MarkerDetector instead.
  */
-class ALVAR_EXPORT MarkerDetectorImpl {
+class ALVAR_EXPORT MarkerDetectorImpl
+{
 protected:
-	virtual Marker* new_M(double _edge_length = 0, int _res = 0, double _margin = 0) = 0;
-	virtual void _markers_clear() = 0;
-	virtual void _markers_push_back(Marker *mn) = 0;
-	virtual size_t _markers_size() = 0;
-	virtual void _track_markers_clear() = 0;
-	virtual void _track_markers_push_back(Marker *mn) = 0;
-	virtual size_t _track_markers_size() = 0;
-	virtual Marker* _track_markers_at(size_t i) = 0;
-	virtual void _swap_marker_tables() = 0;
+	virtual Marker *new_M(double _edge_length = 0, int _res = 0, double _margin = 0) = 0;
+	virtual void    _markers_clear()                                                 = 0;
+	virtual void    _markers_push_back(Marker *mn)                                   = 0;
+	virtual size_t  _markers_size()                                                  = 0;
+	virtual void    _track_markers_clear()                                           = 0;
+	virtual void    _track_markers_push_back(Marker *mn)                             = 0;
+	virtual size_t  _track_markers_size()                                            = 0;
+	virtual Marker *_track_markers_at(size_t i)                                      = 0;
+	virtual void    _swap_marker_tables()                                            = 0;
 
-	Labeling* labeling;
+	Labeling *labeling;
 
 	std::map<unsigned long, double> map_edge_length;
-	double edge_length;
-	int res;
-	double margin;
-	bool detect_pose_grayscale;
+	double                          edge_length;
+	int                             res;
+	double                          margin;
+	bool                            detect_pose_grayscale;
 
 	MarkerDetectorImpl();
 	virtual ~MarkerDetectorImpl();
@@ -103,7 +105,7 @@ public:
 	/** Set marker size for specified marker id. This needs to be called after setting the default marker size.
 	* \param _detect_pose_grayscale Do we detect marker pose using grayscale optimization?
 	*/
-	void SetOptions(bool _detect_pose_grayscale=false);
+	void SetOptions(bool _detect_pose_grayscale = false);
 
 	/**
 	 * \brief \e Detect \e Marker 's from \e image 
@@ -118,59 +120,95 @@ public:
 	 * - The marker points are read from inside the margins starting from top-left
 	 *   and reading the bits first left-to-right one line at a time.
 	 */
-	int Detect(IplImage *image,
-			   Camera *cam,
-			   bool track=false,
-			   bool visualize=false,
-			   double max_new_marker_error=0.08,
-			   double max_track_error=0.2,
-			   LabelingMethod labeling_method=CVSEQ,
-			   bool update_pose=true);
+	int Detect(cv::Mat &      image,
+	           Camera *       cam,
+	           bool           track                = false,
+	           bool           visualize            = false,
+	           double         max_new_marker_error = 0.08,
+	           double         max_track_error      = 0.2,
+	           LabelingMethod labeling_method      = CVSEQ,
+	           bool           update_pose          = true);
 
-	int DetectAdditional(IplImage *image, Camera *cam, bool visualize=false, double max_track_error=0.2);
+	int DetectAdditional(cv::Mat &image,
+	                     Camera * cam,
+	                     bool     visualize       = false,
+	                     double   max_track_error = 0.2);
 };
 
 /**
  * \brief \e MarkerDetector for detecting markers of type \e M
  * \param M Class that extends \e Marker
  */
-template<class M>
+template <class M>
 class ALVAR_EXPORT MarkerDetector : public MarkerDetectorImpl
 {
 protected:
-  Marker* new_M(double _edge_length = 0, int _res = 0, double _margin = 0) {
-    return new M(_edge_length, _res, _margin);
-  }
+	Marker *
+	new_M(double _edge_length = 0, int _res = 0, double _margin = 0)
+	{
+		return new M(_edge_length, _res, _margin);
+	}
 
-  void _markers_clear() { markers->clear(); }
-  void _markers_push_back(Marker *mn) { markers->push_back(*((M*)mn)); }
-  size_t _markers_size() { return markers->size(); }
-  void _track_markers_clear() { track_markers->clear(); }
-  void _track_markers_push_back(Marker *mn) { track_markers->push_back(*((M*)mn)); }
-  size_t _track_markers_size() { return track_markers->size(); }
-  Marker* _track_markers_at(size_t i) { return &track_markers->at(i); }
+	void
+	_markers_clear()
+	{
+		markers->clear();
+	}
+	void
+	_markers_push_back(Marker *mn)
+	{
+		markers->push_back(*((M *)mn));
+	}
+	size_t
+	_markers_size()
+	{
+		return markers->size();
+	}
+	void
+	_track_markers_clear()
+	{
+		track_markers->clear();
+	}
+	void
+	_track_markers_push_back(Marker *mn)
+	{
+		track_markers->push_back(*((M *)mn));
+	}
+	size_t
+	_track_markers_size()
+	{
+		return track_markers->size();
+	}
+	Marker *
+	_track_markers_at(size_t i)
+	{
+		return &track_markers->at(i);
+	}
 
-  void _swap_marker_tables() {
+	void
+	_swap_marker_tables()
+	{
 		std::vector<M> *tmp_markers = markers;
-		markers = track_markers;
-		track_markers = tmp_markers;
-  }
+		markers                     = track_markers;
+		track_markers               = tmp_markers;
+	}
 
 public:
-
 	std::vector<M> *markers;
 	std::vector<M> *track_markers;
 
 	/** Constructor */
-  MarkerDetector() : MarkerDetectorImpl() {
-    markers = new std::vector<M>;
-    track_markers = new std::vector<M>;
+	MarkerDetector() : MarkerDetectorImpl()
+	{
+		markers       = new std::vector<M>;
+		track_markers = new std::vector<M>;
 	}
 
 	/** Destructor */
-	~MarkerDetector() {
-    delete markers;
-    delete track_markers;
+	~MarkerDetector()
+	{
+		delete markers;
+		delete track_markers;
 	}
 };
 

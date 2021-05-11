@@ -27,24 +27,25 @@
 
 namespace alvar {
 
-Timer::Timer()
-    : d(new TimerPrivate())
+Timer::Timer() : d(new TimerPrivate())
 {
 }
 
 Timer::~Timer()
 {
-    delete d;
+	delete d;
 }
 
-void Timer::start()
+void
+Timer::start()
 {
-    return d->start();
+	return d->start();
 }
 
-double Timer::stop()
+double
+Timer::stop()
 {
-    return d->stop();
+	return d->stop();
 }
 
 } // namespace alvar

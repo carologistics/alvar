@@ -44,28 +44,28 @@ class TimerPrivate;
 class ALVAR_EXPORT Timer
 {
 public:
-    /**
+	/**
      * \brief Constructor.
      */
-    Timer();
+	Timer();
 
-    /**
+	/**
      * \brief Destructor.
      */
-    ~Timer();
+	~Timer();
 
-    /**
+	/**
      * \brief Starts the timer.
      */
-    void start();
+	void start();
 
-    /**
+	/**
      * \brief Stops the timer and returns the elapsed time in seconds.
      */
-    double stop();
+	double stop();
 
 private:
-    TimerPrivate *d;
+	TimerPrivate *d;
 };
 
 } // namespace alvar

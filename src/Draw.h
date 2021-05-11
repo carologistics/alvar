@@ -32,11 +32,12 @@
  */
 
 #include "Alvar.h"
-#include "Util.h"
 #include "Camera.h"
 #include "Line.h"
+#include "Util.h"
+
+#include <opencv2/imgproc.hpp>
 #include <sstream>
-#include <opencv2/opencv.hpp>
 
 namespace alvar {
 
@@ -46,38 +47,49 @@ namespace alvar {
  *  \param color Use CV_RGB(red,green,blue) to determine the color of the bounding box.
  *  \param label A label to show in the center of the bounding box.
  */
-template<class PointType>
-void inline DrawBB(IplImage *image, const std::vector<PointType>& points, CvScalar color, std::string label="")
+template <class PointType>
+void inline DrawBB(cv::Mat &                     image,
+                   const std::vector<PointType> &points,
+                   const cv::Scalar &            color,
+                   const std::string &           label = "")
 {
-    if (points.size() < 2) {
-        return;
-    }
-    PointType minimum = PointType(image->width, image->height);
-    PointType maximum = PointType(0, 0);
-    for (int i = 0; i < (int)points.size(); ++i) {
-        PointType current = points.at(i);
-        if (current.x < minimum.x) minimum.x = current.x;
-        if (current.x > maximum.x) maximum.x = current.x;
-        if (current.y < minimum.y) minimum.y = current.y;
-        if (current.y > maximum.y) maximum.y = current.y;
-    }
-    cvLine(image, cvPoint((int)minimum.x,(int)minimum.y), cvPoint((int)maximum.x,(int)minimum.y), color);
-	cvLine(image, cvPoint((int)maximum.x,(int)minimum.y), cvPoint((int)maximum.x,(int)maximum.y), color);
-	cvLine(image, cvPoint((int)maximum.x,(int)maximum.y), cvPoint((int)minimum.x,(int)maximum.y), color);
-	cvLine(image, cvPoint((int)minimum.x,(int)maximum.y), cvPoint((int)minimum.x,(int)minimum.y), color);
-    if (!label.empty()) {
-        CvFont font;
-		cvInitFont(&font, 0, 0.5, 0.5, 0);
-		cvPutText(image, label.c_str(), cvPoint((int)minimum.x+1,(int)minimum.y+2), &font, cvScalar(CV_RGB(255,255,0)));
-    }
+	if (points.size() < 2) {
+		return;
+	}
+	PointType minimum = PointType(image.cols, image.rows);
+	PointType maximum = PointType(0, 0);
+	for (int i = 0; i < (int)points.size(); ++i) {
+		PointType current = points.at(i);
+		if (current.x < minimum.x)
+			minimum.x = current.x;
+		if (current.x > maximum.x)
+			maximum.x = current.x;
+		if (current.y < minimum.y)
+			minimum.y = current.y;
+		if (current.y > maximum.y)
+			maximum.y = current.y;
+	}
+	cv::line(image,
+	         cv::Point((int)minimum.x, (int)minimum.y),
+	         cv::Point((int)maximum.x, (int)minimum.y),
+	         color);
+	cv::line(image,
+	         cv::Point((int)maximum.x, (int)minimum.y),
+	         cv::Point((int)maximum.x, (int)maximum.y),
+	         color);
+	cv::line(image,
+	         cv::Point((int)maximum.x, (int)maximum.y),
+	         cv::Point((int)minimum.x, (int)maximum.y),
+	         color);
+	cv::line(image,
+	         cv::Point((int)minimum.x, (int)maximum.y),
+	         cv::Point((int)minimum.x, (int)minimum.y),
+	         color);
+	if (!label.empty()) {
+		cv::putText(
+		  image, label, cv::Point((int)minimum.x + 1, (int)minimum.y + 2), 0, 0.5, CV_RGB(255, 255, 0));
+	}
 }
-
-/** \brief Draws a set of points.
- *  \param image Pointer to the destination image.
- *  \param points Array of CvPoints to be visualzed.
- *  \param color Use CV_RGB(red,green,blue) to determine the color.
-*/
-void ALVAR_EXPORT DrawPoints(IplImage *image, const std::vector<CvPoint>& points, CvScalar color);
 
 /** \brief Draws lines between consecutive points stored in vector (polyline).
   * \param image	Pointer to the destination image.
@@ -85,13 +97,22 @@ void ALVAR_EXPORT DrawPoints(IplImage *image, const std::vector<CvPoint>& points
   * \param color	Use CV_RGB(red,green,blue) to determine the color.
   * \param loop		If true, the polyline is closed.
 */
-template<class PointType>
-void inline DrawLines(IplImage *image, const std::vector<PointType>& points, CvScalar color, bool loop=true)
+template <class PointType>
+void inline DrawLines(cv::Mat &                     image,
+                      const std::vector<PointType> &points,
+                      const cv::Scalar &            color,
+                      bool                          loop = true)
 {
-	for(unsigned i = 1; i < points.size(); ++i)
-		cvLine(image, cvPoint((int)points[i-1].x,(int)points[i-1].y), cvPoint((int)points[i].x,(int)points[i].y), color);
+	for (unsigned i = 1; i < points.size(); ++i)
+		cv::line(image,
+		         cv::Point((int)points[i - 1].x, (int)points[i - 1].y),
+		         cv::Point((int)points[i].x, (int)points[i].y),
+		         color);
 	if (loop) {
-		cvLine(image, cvPoint((int)points[points.size()-1].x,(int)points[points.size()-1].y), cvPoint((int)points[0].x,(int)points[0].y), color);
+		cv::line(image,
+		         cv::Point((int)points[points.size() - 1].x, (int)points[points.size() - 1].y),
+		         cv::Point((int)points[0].x, (int)points[0].y),
+		         color);
 	}
 }
 
@@ -100,15 +121,18 @@ void inline DrawLines(IplImage *image, const std::vector<PointType>& points, CvS
   * \param line		Line struct to be drawn.
   * \param color	Use CV_RGB(red,green,blue) to determine the color.
 */
-void ALVAR_EXPORT DrawLine(IplImage* image, const Line line, CvScalar color = cvScalar(CV_RGB(0,255,0)));
+void ALVAR_EXPORT DrawLine(cv::Mat &         image,
+                           const Line        line,
+                           const cv::Scalar &color = CV_RGB(0, 255, 0));
 
 /** \brief Draws points of the contour that is obtained by \e Labeling class.
   * \param image	Pointer to the destination image.
   * \param contour	Controur sequence.
   * \param color	Use CV_RGB(red,green,blue) to determine the color.
 */
-void ALVAR_EXPORT DrawPoints(IplImage* image, const CvSeq* contour, CvScalar color = cvScalar(CV_RGB(255,0,0)));
-
+void ALVAR_EXPORT DrawPoints(cv::Mat &                     image,
+                             const std::vector<cv::Point> &contour,
+                             const cv::Scalar &            color = CV_RGB(255, 0, 0));
 
 /** \brief Draws circles to the contour points that are obtained by \e Labeling class.
   * \param image	Pointer to the destination image.
@@ -116,26 +140,32 @@ void ALVAR_EXPORT DrawPoints(IplImage* image, const CvSeq* contour, CvScalar col
   * \param radius	Circle radius in pixels.
   * \param color	Use CV_RGB(red,green,blue) to determine the color.
 */
-void ALVAR_EXPORT DrawCircles(IplImage* image, const CvSeq* contour, int radius, CvScalar color = cvScalar(CV_RGB(255,0,0)));
-
+void ALVAR_EXPORT DrawCircles(cv::Mat &                     image,
+                              const std::vector<cv::Point> &contour,
+                              int                           radius,
+                              const cv::Scalar &            color = CV_RGB(255, 0, 0));
 /** \brief Draws lines between consecutive contour points.
   * \param image	Pointer to the destination image.
   * \param contour	Controur sequence.
   * \param color	Use CV_RGB(red,green,blue) to determine the color.
 */
-void ALVAR_EXPORT DrawLines(IplImage* image, const CvSeq* contour, CvScalar color = cvScalar(CV_RGB(255,0,0)));
-
+void ALVAR_EXPORT DrawLines(cv::Mat &                     image,
+                            const std::vector<cv::Point> &contour,
+                            const cv::Scalar &            color = CV_RGB(255, 0, 0));
 /** \brief Draws circles to the array of points.
   * \param image	Pointer to the destination image.
   * \param points	Vector of points to be visualized.
   * \param color	Use CV_RGB(red,green,blue) to determine the color.
   * \param radius	Circle radius in pixels.
 */
-template<class PointType>
-void inline DrawPoints(IplImage *image, const std::vector<PointType>& points, CvScalar color, int radius=1)
+template <class PointType>
+void inline DrawPoints(cv::Mat &                     image,
+                       const std::vector<PointType> &points,
+                       const cv::Scalar &            color,
+                       int                           radius = 1)
 {
-	for(unsigned i = 0; i < points.size(); ++i)
-		cvCircle(image, cvPoint((int)points[i].x,(int)points[i].y), radius, color);
+	for (unsigned i = 0; i < points.size(); ++i)
+		cv::circle(image, cv::Point((int)points[i].x, (int)points[i].y), radius, color);
 }
 
 /** \brief Draws OpenCV ellipse.
@@ -145,7 +175,11 @@ void inline DrawPoints(IplImage *image, const std::vector<PointType>& points, Cv
   * \param fill		If false, only the outline is drawn.
   * \param par		The ellipse width and height are grown by \e par pixels.
 */
-void ALVAR_EXPORT DrawCVEllipse(IplImage* image, CvBox2D& ellipse, CvScalar color, bool fill=false, double par=0);
+void ALVAR_EXPORT DrawCVEllipse(cv::Mat &              image,
+                                const cv::RotatedRect &ellipse,
+                                const cv::Scalar &     color,
+                                bool                   fill = false,
+                                double                 par  = 0);
 
 /** \brief This function is used to construct a texture image which is needed to hide a marker from the original video frame. See \e SampleMarkerHide.cpp for example implementation. 
   * \param image		Pointer to the original video frame from where the hiding texture is calculated.
@@ -155,9 +189,12 @@ void ALVAR_EXPORT DrawCVEllipse(IplImage* image, CvBox2D& ellipse, CvScalar colo
   * \param topleft		Top left limit of the texture area in marker coordinate frame.
   * \param botright		Bottom right limit of the texture area in marker coordinate frame.
  */
-void ALVAR_EXPORT BuildHideTexture(IplImage *image, IplImage *hide_texture, 
-	Camera *cam, double gl_modelview[16], 
-	PointDouble topleft, PointDouble botright);
+void ALVAR_EXPORT BuildHideTexture(cv::Mat &   image,
+                                   cv::Mat &   hide_texture,
+                                   Camera *    cam,
+                                   double      gl_modelview[16],
+                                   PointDouble topleft,
+                                   PointDouble botright);
 
 /** \brief Draws the texture generated by \e BuildHideTexture to given video frame. For better performance, use OpenGL instead. See \e SampleMarkerHide.cpp for example implementation. 
  *  \param image		Pointer to the destination image where the texture is drawn.
@@ -167,9 +204,12 @@ void ALVAR_EXPORT BuildHideTexture(IplImage *image, IplImage *hide_texture,
  *  \param topleft		Top left limit of the texture area in marker coordinate frame.
  *  \param botright		Bottom right limit of the texture area in marker coordinate frame. 
  */
-void ALVAR_EXPORT DrawTexture(IplImage *image, IplImage *texture, 
-	Camera *cam, double gl_modelview[16], 
-	PointDouble topleft, PointDouble botright);
+void ALVAR_EXPORT DrawTexture(cv::Mat &   image,
+                              cv::Mat &   texture,
+                              Camera *    cam,
+                              double      gl_modelview[16],
+                              PointDouble topleft,
+                              PointDouble botright);
 
 } // namespace alvar
 

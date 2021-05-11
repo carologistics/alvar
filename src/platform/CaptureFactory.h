@@ -52,31 +52,31 @@ class CaptureFactoryPrivate;
 class ALVAR_EXPORT CaptureFactory
 {
 public:
-    /**
+	/**
      * \brief The singleton instance of CaptureFactory.
      */
-    static CaptureFactory *instance();
+	static CaptureFactory *instance();
 
-    /**
+	/**
      * \brief Vector of strings.
      */
-    typedef std::vector<std::string> CapturePluginVector;
+	typedef std::vector<std::string> CapturePluginVector;
 
-    /**
+	/**
      * \brief Enumerate capture plugins currently available.
      *
      * This method should be used carfully since it will load all the available plugins.
      *
      * \return A vector of strings identifying all currently available capture plugins.
      */
-    CapturePluginVector enumeratePlugins();
+	CapturePluginVector enumeratePlugins();
 
-    /**
+	/**
      * \brief Vector of CaptureDevices.
      */
-    typedef std::vector<CaptureDevice> CaptureDeviceVector;
+	typedef std::vector<CaptureDevice> CaptureDeviceVector;
 
-    /**
+	/**
      * \brief Enumerate capture devices currently available.
      *
      * This method should be used carfully since it will load all the known plugins
@@ -86,9 +86,9 @@ public:
      * \param captureType Force the enumeration of only one type of plugin.
      * \return A vector of CaptureDevice objects that are currently available.
      */
-    CaptureDeviceVector enumerateDevices(const std::string &captureType = "");
+	CaptureDeviceVector enumerateDevices(const std::string &captureType = "");
 
-    /**
+	/**
      * \brief Create Capture class. Transfers onwership to the caller.
      *
      * If the needed backend plugin is not loaded, an attempt is made to load it and
@@ -97,40 +97,50 @@ public:
      * \param captureDevice CaptureDevice object specifying the plugin to use.
      * \return A new Capture class for which the caller takes ownership.
      */
-    Capture *createCapture(const CaptureDevice captureDevice);
+	Capture *createCapture(const CaptureDevice captureDevice);
 
 protected:
-    /**
+	/**
      * \brief Destructor.
      */
-    ~CaptureFactory();
+	~CaptureFactory();
 
 private:
-    /**
+	/**
      * \brief CaptureFactoryDestroyer for deleting the CaptureFactory singleton.
      */
-    class CaptureFactoryDestroyer
-    {
-    public:
-        CaptureFactoryDestroyer(CaptureFactory *instance = NULL) : mInstance(instance) {}
-        ~CaptureFactoryDestroyer() {delete mInstance;}
-        void set(CaptureFactory *instance) {mInstance = instance;}
-    private:
-        CaptureFactory *mInstance;
-    };
+	class CaptureFactoryDestroyer
+	{
+	public:
+		CaptureFactoryDestroyer(CaptureFactory *instance = NULL) : mInstance(instance)
+		{
+		}
+		~CaptureFactoryDestroyer()
+		{
+			delete mInstance;
+		}
+		void
+		set(CaptureFactory *instance)
+		{
+			mInstance = instance;
+		}
 
-    // private constructors and assignment operator for singleton implementation
-    CaptureFactory();
-    CaptureFactory(const CaptureFactory&);
-    CaptureFactory &operator=(const CaptureFactory&);
+	private:
+		CaptureFactory *mInstance;
+	};
 
-    // static members for singleton implementation
-    static CaptureFactory *mInstance;
-    static Mutex mMutex;
-    static CaptureFactoryDestroyer mDestroyer;
+	// private constructors and assignment operator for singleton implementation
+	CaptureFactory();
+	CaptureFactory(const CaptureFactory &);
+	CaptureFactory &operator=(const CaptureFactory &);
 
-    // members
-    CaptureFactoryPrivate *d;
+	// static members for singleton implementation
+	static CaptureFactory *        mInstance;
+	static Mutex                   mMutex;
+	static CaptureFactoryDestroyer mDestroyer;
+
+	// members
+	CaptureFactoryPrivate *d;
 };
 
 } // namespace alvar

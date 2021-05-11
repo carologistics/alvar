@@ -33,16 +33,16 @@ class DirectoryIteratorPrivateData;
 class DirectoryIteratorPrivate
 {
 public:
-    DirectoryIteratorPrivate(const std::string &path);
-    ~DirectoryIteratorPrivate();
-    bool hasNext();
-    std::string next();
-    void skip();
+	DirectoryIteratorPrivate(const std::string &path);
+	~DirectoryIteratorPrivate();
+	bool        hasNext();
+	std::string next();
+	void        skip();
 
-    DirectoryIteratorPrivateData *d;
-    std::string mDirectory;
-    std::string mEntry;
-    bool mValid;
+	DirectoryIteratorPrivateData *d;
+	std::string                   mDirectory;
+	std::string                   mEntry;
+	bool                          mValid;
 };
 
 } // namespace alvar
