@@ -5,8 +5,8 @@ set(ALVAR_INTERNAL_RELEASE FALSE)
 
 # set project version
 set(ALVAR_VERSION_MAJOR 2)
-set(ALVAR_VERSION_MINOR 1)
-set(ALVAR_VERSION_PATCH 2)
+set(ALVAR_VERSION_MINOR 2)
+set(ALVAR_VERSION_PATCH 0)
 
 # denote special version tag
 # examples: a1, a2, a3, b1, b2, b3, rc1, rc2, rc3
