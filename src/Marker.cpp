@@ -284,6 +284,9 @@ Marker::UpdateContentBasic(vector<PointDouble> &_marker_corners_img,
 	marker_points_img.resize(marker_points.size());
 	cam->Undistort(marker_corners_img_undist);
 	H.Find(marker_corners, marker_corners_img_undist);
+	if (H.H.empty()) {
+		return false;
+	}
 	H.ProjectPoints(marker_points, marker_points_img);
 	cam->Distort(marker_points_img);
 	// Read the content
